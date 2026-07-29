@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+catalog/node_modules/
+
+# Next.js build output
+.next/
+catalog/.next/
+out/
+
+# Production build
+build/
+dist/
+
+# Environment variables — never commit secrets
+.env
+.env.local
+.env.production
+.env.*.local
+catalog/.env
+catalog/.env.local
+catalog/.env.production
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+catalog/next-env.d.ts
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/

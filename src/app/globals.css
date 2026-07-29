@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Titunge: Tenor Sans body, Canter display */
+  --font-sans: "Tenor Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Canter", "Tenor Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    /* Titunge teal — #5fa8a0 ≈ hsl(174 28% 52%) */
+    --primary: 174 28% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warm cream background from brand guide (#EAE3DD) */
+    --background: 30 15% 96%;
+    --foreground: 200 10% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 10% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 10% 12%;
+
+    /* Warm gray secondary (#C3BCAF family) */
+    --secondary: 30 8% 93%;
+    --secondary-foreground: 200 10% 18%;
+
+    --muted: 30 8% 93%;
+    --muted-foreground: 30 5% 48%;
+
+    --accent: 30 8% 93%;
+    --accent-foreground: 200 10% 18%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 30 10% 88%;
+    --input: 30 10% 88%;
+    --ring: 174 28% 52%;
+
+    --radius: 0.5rem;
+    --main-area-tint: 174 30% 94%;
+  }
+
+  .dark {
+    --primary: 174 28% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --background: 200 18% 10%;
+    --foreground: 0 0% 97%;
+
+    --card: 200 16% 14%;
+    --card-foreground: 0 0% 97%;
+
+    --popover: 200 16% 14%;
+    --popover-foreground: 0 0% 97%;
+
+    --secondary: 200 12% 16%;
+    --secondary-foreground: 0 0% 97%;
+
+    --muted: 200 12% 16%;
+    --muted-foreground: 200 8% 60%;
+
+    --accent: 200 12% 16%;
+    --accent-foreground: 0 0% 97%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 97%;
+
+    --border: 200 12% 20%;
+    --input: 200 12% 20%;
+    --ring: 174 28% 52%;
+
+    --main-area-tint: 174 20% 14%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground text-sm;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #bbb;
+  }
+
+  /* Sidebar dark scrollbar */
+  .sidebar-scrollbar::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(200 22% 22%);
+    border-radius: 10px;
+  }
+
+  /* Sidebar help link */
+  .sidebar-help-link {
+    background: hsl(174 28% 52% / 0.12);
+    color: hsl(174 28% 70%);
+    border-color: hsl(174 28% 52% / 0.25);
+  }
+  .sidebar-help-link:hover {
+    background: hsl(174 28% 52% / 0.22);
+    color: hsl(174 28% 78%);
+  }
+
+  /* Sidebar nav links */
+  .sidebar-nav-link {
+    color: hsl(200 8% 60%);
+  }
+  .sidebar-nav-link:hover {
+    background: hsl(0 0% 100% / 0.05);
+    color: hsl(0 0% 92%);
+  }
+  .sidebar-nav-link.active {
+    background: hsl(174 28% 52% / 0.18);
+    color: hsl(174 28% 72%);
+  }
+  .sidebar-nav-icon {
+    color: hsl(200 8% 48%);
+  }
+  .sidebar-nav-link:hover .sidebar-nav-icon {
+    color: hsl(0 0% 75%);
+  }
+  .sidebar-nav-link.active .sidebar-nav-icon {
+    color: hsl(174 28% 65%);
+  }
+
+  /* Main content area subtle teal tint gradient */
+  .main-area-bg {
+    background:
+      radial-gradient(ellipse 80% 40% at 60% 0%, hsl(var(--main-area-tint)) 0%, transparent 70%),
+      hsl(var(--background));
+    background-attachment: scroll, scroll;
+  }
+}
