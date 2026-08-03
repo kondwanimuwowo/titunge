@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getZambianDate } from "@/lib/utils/date";
 
-export async function getDashboardStats() {
+export async function getDashboardStats(businessId: string) {
   const supabase = await createClient();
   const todayString = getZambianDate();
 
@@ -13,13 +13,14 @@ export async function getDashboardStats() {
       { data: employees },
       { data: todayAttendance },
     ] = await Promise.all([
-      (supabase.from("orders") as any).select("*").is("deleted_at", null),
-      (supabase.from("customers") as any).select("*").is("deleted_at", null),
-      (supabase.from("materials") as any).select("*").is("deleted_at", null),
-      (supabase.from("employees") as any).select("*").eq("active", true),
+      (supabase.from("orders") as any).select("*").eq("business_id", businessId).is("deleted_at", null),
+      (supabase.from("customers") as any).select("*").eq("business_id", businessId).is("deleted_at", null),
+      (supabase.from("materials") as any).select("*").eq("business_id", businessId).is("deleted_at", null),
+      (supabase.from("employees") as any).select("*").eq("business_id", businessId).eq("active", true),
       (supabase
         .from("attendance") as any)
         .select("*, employees(name, role)")
+        .eq("business_id", businessId)
         .eq("date", todayString),
     ]);
 

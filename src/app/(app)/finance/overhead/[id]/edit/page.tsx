@@ -4,10 +4,12 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OverheadForm from "@/components/finance/OverheadForm";
 import { getOverheadById } from "@/lib/data/finance";
+import { getBusinessContext } from "@/lib/business-context";
 
 export default async function EditOverheadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const overhead = await getOverheadById(id);
+  const { businessId } = await getBusinessContext();
+  const overhead = await getOverheadById(businessId, id);
 
   if (!overhead) notFound();
 

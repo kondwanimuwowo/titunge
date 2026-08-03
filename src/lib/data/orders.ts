@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 
-export async function getOrders() {
+export async function getOrders(businessId: string) {
   const supabase = await createClient();
 
   // We order by created_at descending
@@ -14,13 +14,14 @@ export async function getOrders() {
         phone,
         email
       ),
-      employees:assigned_tailor_id (
+      employees:employee_id (
         id,
         name,
         role
       )
     `
     )
+    .eq("business_id", businessId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
@@ -32,11 +33,12 @@ export async function getOrders() {
   return data || [];
 }
 
-export async function getDeletedOrders() {
+export async function getDeletedOrders(businessId: string) {
   const supabase = await createClient();
 
   const { data, error } = await (supabase.from("orders") as any)
     .select(`*, customers(id, name, phone, email)`)
+    .eq("business_id", businessId)
     .not("deleted_at", "is", null)
     .order("deleted_at", { ascending: false });
 
@@ -48,10 +50,11 @@ export async function getDeletedOrders() {
   return data || [];
 }
 
-export async function getOrderStats() {
+export async function getOrderStats(businessId: string) {
   const supabase = await createClient();
   const { data: orders, error } = await (supabase.from("orders") as any)
     .select("status, total_cost, created_at")
+    .eq("business_id", businessId)
     .is("deleted_at", null);
 
   if (error || !orders) return null;
@@ -90,24 +93,21 @@ export async function getOrderStats() {
   return stats;
 }
 
-export async function getOrderById(id: string) {
+export async function getOrderById(businessId: string, id: string) {
   const supabase = await createClient();
-  
+
   // Parallel fetches for speed
-  const [orderResult, itemsResult, materialsResult, timelineResult] =
+  const [orderResult, itemsResult, materialsResult] =
     await Promise.all([
       (supabase.from("orders") as any)
         .select(`*, customers(id, name, phone, email, measurements, notes), employees:assigned_tailor_id(id, name, role)`)
+        .eq("business_id", businessId)
         .eq("id", id)
         .single(),
-      (supabase.from("order_items") as any).select("*").eq("order_id", id),
+      (supabase as any).from("order_items").select("*").eq("order_id", id),
       (supabase.from("order_materials") as any)
-        .select(`*, materials(id, name, unit, cost_per_unit, category)`)
+        .select(`*, materials(id, name, unit, unit_cost)`)
         .eq("order_id", id),
-      (supabase.from("order_timeline") as any)
-        .select("*")
-        .eq("order_id", id)
-        .order("created_at", { ascending: true }),
     ]) as any;
 
   if (orderResult.error) throw orderResult.error;
@@ -116,6 +116,6 @@ export async function getOrderById(id: string) {
     ...(orderResult.data || {}),
     items: itemsResult.data || [],
     materials: materialsResult.data || [],
-    timeline: timelineResult.data || [],
+    timeline: [],
   } as any;
 }

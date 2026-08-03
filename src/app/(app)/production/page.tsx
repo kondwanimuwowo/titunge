@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getBatches, getProductionStats, getBottlenecks } from "@/lib/data/production";
+import { getBusinessContext } from "@/lib/business-context";
 import { getProducts } from "@/lib/data/products";
 import { getMaterials } from "@/lib/data/inventory";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -16,12 +17,13 @@ export default async function ProductionPage() {
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
   const [batches, stats, products, materials, bottlenecks] = await Promise.all([
-    getBatches(),
-    getProductionStats(),
-    getProducts(),
-    getMaterials(),
-    getBottlenecks(),
+    getBatches(businessId),
+    getProductionStats(businessId),
+    getProducts(businessId),
+    getMaterials(businessId),
+    getBottlenecks(businessId),
   ]);
 
   return (

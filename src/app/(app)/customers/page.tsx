@@ -3,6 +3,7 @@ import { Plus, User, TrendingUp, Ruler } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCustomers } from "@/lib/data/customers";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import CustomerList from "@/components/customers/CustomerList";
@@ -16,7 +17,8 @@ export default async function CustomersPage() {
     redirect("/login");
   }
 
-  const customers = await getCustomers();
+  const { businessId } = await getBusinessContext();
+  const customers = await getCustomers(businessId);
 
   // Compute stats
   const totalCustomers = customers.length;

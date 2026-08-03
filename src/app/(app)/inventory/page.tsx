@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getMaterials, getFinishedGoods, getInventoryStats, getLowStockMaterials } from "@/lib/data/inventory";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import InventoryList from "@/components/inventory/InventoryList";
@@ -17,11 +18,12 @@ export default async function InventoryPage() {
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
   const [materials, finishedGoods, stats, lowStockMaterials] = await Promise.all([
-    getMaterials(),
-    getFinishedGoods(),
-    getInventoryStats(),
-    getLowStockMaterials(),
+    getMaterials(businessId),
+    getFinishedGoods(businessId),
+    getInventoryStats(businessId),
+    getLowStockMaterials(businessId),
   ]);
 
   return (

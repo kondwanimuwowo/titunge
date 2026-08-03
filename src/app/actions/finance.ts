@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireBusinessContext } from "@/lib/business-context";
 import {
   getFinancialSummary,
   getProfitLossOrders,
@@ -11,12 +12,14 @@ import {
 } from "@/lib/data/finance";
 
 export async function fetchFinanceData(startDate: string, endDate: string) {
+  const { businessId } = await requireBusinessContext();
+
   const [summary, profitLossOrders, expenses, payments, overhead] = await Promise.all([
-    getFinancialSummary(startDate, endDate),
-    getProfitLossOrders(startDate, endDate),
-    getExpenses(startDate, endDate),
-    getPayments(startDate, endDate),
-    getOverheadCosts(startDate, endDate),
+    getFinancialSummary(businessId, startDate, endDate),
+    getProfitLossOrders(businessId, startDate, endDate),
+    getExpenses(businessId, startDate, endDate),
+    getPayments(businessId, startDate, endDate),
+    getOverheadCosts(businessId, startDate, endDate),
   ]);
   return { summary, profitLossOrders, expenses, payments, overhead };
 }
@@ -29,9 +32,12 @@ export async function addExpense(data: {
   payment_method?: string;
   notes?: string;
 }): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("expenses") as any).insert([data]);
+  const { error } = await (supabase.from("expenses") as any).insert([
+    { ...data, business_id: businessId },
+  ]);
 
   if (error) {
     return { success: false, message: error.message };
@@ -52,9 +58,13 @@ export async function updateExpense(
     notes: string;
   }>
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("expenses") as any).update(data).eq("id", id);
+  const { error } = await (supabase.from("expenses") as any)
+    .update(data)
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -65,9 +75,13 @@ export async function updateExpense(
 }
 
 export async function deleteExpense(id: string): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("expenses") as any).delete().eq("id", id);
+  const { error } = await (supabase.from("expenses") as any)
+    .delete()
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -85,9 +99,10 @@ export async function addPayment(data: {
   reference_number?: string;
   notes?: string;
 }): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const payload = { ...data, order_id: data.order_id || null };
+  const payload = { ...data, order_id: data.order_id || null, business_id: businessId };
   const { error } = await (supabase.from("payments") as any).insert([payload]);
 
   if (error) {
@@ -99,9 +114,13 @@ export async function addPayment(data: {
 }
 
 export async function deletePayment(id: string): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("payments") as any).delete().eq("id", id);
+  const { error } = await (supabase.from("payments") as any)
+    .delete()
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -119,9 +138,12 @@ export async function addOverheadCost(data: {
   is_recurring?: boolean;
   notes?: string;
 }): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("overhead_costs") as any).insert([data]);
+  const { error } = await (supabase.from("overhead_costs") as any).insert([
+    { ...data, business_id: businessId },
+  ]);
 
   if (error) {
     return { success: false, message: error.message };
@@ -142,9 +164,13 @@ export async function updateOverheadCost(
     notes: string;
   }>
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("overhead_costs") as any).update(data).eq("id", id);
+  const { error } = await (supabase.from("overhead_costs") as any)
+    .update(data)
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -157,9 +183,13 @@ export async function updateOverheadCost(
 export async function deleteOverheadCost(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("overhead_costs") as any).delete().eq("id", id);
+  const { error } = await (supabase.from("overhead_costs") as any)
+    .delete()
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -176,10 +206,11 @@ export async function addGarmentType(data: {
   estimated_hours?: number;
   complexity?: string;
 }): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("garment_types") as any).insert([
-    { ...data, active: true },
+    { ...data, active: true, business_id: businessId },
   ]);
 
   if (error) {
@@ -200,9 +231,13 @@ export async function updateGarmentType(
     complexity: string;
   }>
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("garment_types") as any).update(data).eq("id", id);
+  const { error } = await (supabase.from("garment_types") as any)
+    .update(data)
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -215,11 +250,13 @@ export async function updateGarmentType(
 export async function deleteGarmentType(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("garment_types") as any)
     .update({ active: false })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -235,21 +272,24 @@ export async function updateFinancialSettings(data: {
   expected_monthly_orders?: number;
   tax_rate?: number;
 }): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   // Upsert: try update first, then insert if no row exists
   const { data: existing } = await (supabase.from("financial_settings") as any)
     .select("id")
+    .eq("business_id", businessId)
     .single();
 
   let error;
   if (existing?.id) {
     ({ error } = await (supabase.from("financial_settings") as any)
       .update({ ...data, updated_at: new Date().toISOString() })
-      .eq("id", existing.id));
+      .eq("id", existing.id)
+      .eq("business_id", businessId));
   } else {
     ({ error } = await (supabase.from("financial_settings") as any).insert([
-      { ...data, updated_at: new Date().toISOString() },
+      { ...data, business_id: businessId, updated_at: new Date().toISOString() },
     ]));
   }
 

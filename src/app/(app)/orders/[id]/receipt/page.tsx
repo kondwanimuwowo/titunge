@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getOrderById } from "@/lib/data/orders";
 import { getFinancialSettings } from "@/lib/data/finance";
 import { Button } from "@/components/ui/button";
@@ -10,22 +10,17 @@ import PrintReceiptButton from "@/components/orders/PrintReceiptButton";
 
 export default async function OrderReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { businessId } = await getBusinessContext();
 
   let order;
   try {
-    order = await getOrderById(id);
+    order = await getOrderById(businessId, id);
   } catch {
     notFound();
   }
   if (!order) notFound();
 
-  const settings = await getFinancialSettings();
+  const settings = await getFinancialSettings(businessId);
   const taxRate = parseFloat(String(settings?.tax_rate || 0));
 
   return (

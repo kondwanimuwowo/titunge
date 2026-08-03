@@ -1,46 +1,67 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Scissors, HelpCircle } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
-import type { UserRole } from "@/lib/types/database";
+import type { BusinessRole } from "@/lib/business-context";
 
 interface SidebarProps {
-  role: UserRole;
+  role: BusinessRole;
+  businessName: string;
+  logoUrl?: string | null;
   newInquiriesCount?: number;
 }
 
-export default function Sidebar({ role, newInquiriesCount = 0 }: SidebarProps) {
+export default function Sidebar({
+  role,
+  businessName,
+  logoUrl,
+  newInquiriesCount = 0,
+}: SidebarProps) {
   return (
     <aside
       className="w-56 h-full flex flex-col shrink-0 border-r"
       style={{
-        background: "hsl(28 22% 11%)",
-        borderColor: "hsl(28 22% 17%)",
+        background: "hsl(200 18% 10%)",
+        borderColor: "hsl(200 12% 16%)",
       }}
     >
-      {/* Logo */}
+      {/* Business identity */}
       <div
         className="flex-shrink-0 px-4 py-3.5 border-b"
-        style={{ borderColor: "hsl(28 22% 17%)" }}
+        style={{ borderColor: "hsl(200 12% 16%)" }}
       >
         <div className="flex items-center gap-2.5">
           <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0"
             style={{ background: "hsl(var(--primary) / 0.2)" }}
           >
-            <Scissors style={{ color: "hsl(46 70% 55%)" }} size={16} />
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={businessName}
+                width={32}
+                height={32}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Scissors
+                size={16}
+                style={{ color: "hsl(var(--primary))" }}
+              />
+            )}
           </div>
-          <div>
-            <h1
-              className="font-bold text-sm tracking-tight leading-none"
-              style={{ color: "hsl(46 60% 72%)" }}
-            >
-              GLORIAZ
-            </h1>
+          <div className="min-w-0">
             <p
-              className="text-[10px] font-semibold uppercase tracking-widest"
-              style={{ color: "hsl(46 40% 52%)" }}
+              className="text-xs font-bold truncate leading-tight"
+              style={{ color: "hsl(var(--primary) / 0.9)" }}
             >
-              Daughter
+              {businessName}
+            </p>
+            <p
+              className="text-[10px] uppercase tracking-widest"
+              style={{ color: "hsl(200 8% 45%)" }}
+            >
+              Titunge ERP
             </p>
           </div>
         </div>
@@ -54,7 +75,7 @@ export default function Sidebar({ role, newInquiriesCount = 0 }: SidebarProps) {
       {/* Footer */}
       <div
         className="flex-shrink-0 p-2 border-t"
-        style={{ borderColor: "hsl(28 22% 17%)" }}
+        style={{ borderColor: "hsl(200 12% 16%)" }}
       >
         <Link
           href="/manual"
@@ -67,19 +88,19 @@ export default function Sidebar({ role, newInquiriesCount = 0 }: SidebarProps) {
         <div
           className="rounded-md p-2 border"
           style={{
-            background: "hsl(28 22% 8%)",
-            borderColor: "hsl(28 22% 17%)",
+            background: "hsl(200 18% 8%)",
+            borderColor: "hsl(200 12% 16%)",
           }}
         >
           <p
             className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
-            style={{ color: "hsl(28 10% 45%)" }}
+            style={{ color: "hsl(200 8% 40%)" }}
           >
             Access Level
           </p>
           <p
             className="text-xs font-semibold capitalize"
-            style={{ color: "hsl(46 50% 68%)" }}
+            style={{ color: "hsl(var(--primary) / 0.8)" }}
           >
             {role}
           </p>

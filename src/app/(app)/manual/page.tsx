@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  BookOpen, 
-  Printer, 
-  ChevronRight, 
-  Menu, 
-  X 
+import {
+  BookOpen,
+  Printer,
+  ChevronRight,
+  Menu,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -30,19 +30,19 @@ export default function ManualPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 print:hidden">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-[hsl(46,70%,40%)] rounded-lg text-white">
+              <div className="p-2 bg-primary rounded-lg text-primary-foreground">
                 <BookOpen size={24} />
               </div>
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">User Manual</h1>
             </div>
             <p className="text-muted-foreground font-medium">
-              Learn how to master Gloriaz Daughter ERP system.
+              Learn how to use Titunge to run your business.
             </p>
           </div>
           <Button
             onClick={handlePrint}
             variant="outline"
-            className="gap-2 border-[hsl(46,70%,40%)] text-[hsl(46,70%,40%)] hover:bg-[hsl(46,70%,40%)]/5 font-bold"
+            className="gap-2 border-primary text-primary hover:bg-primary/5 font-bold"
           >
             <Printer size={18} />
             Export to PDF
@@ -74,7 +74,7 @@ export default function ManualPage() {
               isSidebarOpen ? "block" : "hidden"
             )}
           >
-            <nav className="sticky top-8 bg-white border rounded-2xl p-3 shadow-xl shadow-black/5">
+            <nav className="sticky top-8 bg-white rounded-2xl p-3 shadow-xl shadow-black/5">
               <div className="space-y-1">
                 {MANUAL_SECTIONS.map((section) => (
                   <button
@@ -87,28 +87,28 @@ export default function ManualPage() {
                     className={cn(
                       "w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 text-left group",
                       activeSectionId === section.id
-                        ? "bg-[hsl(46,70%,40%)] text-white shadow-lg shadow-[hsl(46,70%,40%)]/20 font-semibold"
+                        ? "bg-primary text-primary-foreground font-semibold"
                         : "hover:bg-muted text-muted-foreground hover:text-foreground"
                     )}
                   >
                     <div
                       className={cn(
                         "p-2.5 rounded-lg transition-colors",
-                        activeSectionId === section.id 
-                          ? "bg-white/20" 
+                        activeSectionId === section.id
+                          ? "bg-white/20"
                           : cn("bg-muted", section.bg)
                       )}
                     >
                       {React.cloneElement(section.icon as React.ReactElement, {
                         size: 20,
-                        className: activeSectionId === section.id ? "text-white" : section.color,
+                        className: activeSectionId === section.id ? "text-primary-foreground" : section.color,
                       } as any)}
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-bold leading-none mb-1">{section.title}</div>
                       <div className={cn(
                         "text-[11px] opacity-70",
-                        activeSectionId === section.id ? "text-white" : "text-muted-foreground"
+                        activeSectionId === section.id ? "text-primary-foreground" : "text-muted-foreground"
                       )}>
                         {section.subtitle}
                       </div>
@@ -118,13 +118,13 @@ export default function ManualPage() {
                 ))}
               </div>
 
-              <div className="mt-6 p-4 bg-muted/50 rounded-xl border border-dashed border-muted-foreground/20">
+              <div className="mt-6 p-4 bg-muted/50 rounded-xl">
                 <h5 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                  <div className="w-1 h-1 rounded-full bg-[hsl(46,70%,40%)] animate-pulse" />
-                  Road Test Period
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  Live Documentation
                 </h5>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  We update this manual weekly based on your feedback.
+                  We update this manual regularly based on your feedback.
                 </p>
               </div>
             </nav>
@@ -139,10 +139,10 @@ export default function ManualPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
-                className="bg-white rounded-3xl border border-border/50 p-6 md:p-10 shadow-2xl shadow-black/5"
+                className="bg-white rounded-3xl p-6 md:p-10 shadow-2xl shadow-black/5"
               >
                 {/* Section Header */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-10 pb-8 border-b">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-10 pb-8 border-b border-muted">
                   <div className={cn("p-6 rounded-2xl shadow-inner", activeSection.bg, activeSection.color)}>
                     {React.cloneElement(activeSection.icon as React.ReactElement, { size: 40 } as any)}
                   </div>
@@ -165,8 +165,8 @@ export default function ManualPage() {
 
             {/* Print Only Title */}
             <div className="hidden print:block mb-8">
-              <h1 className="text-4xl font-extrabold border-b-4 border-[hsl(46,70%,40%)] pb-4">
-                Gloriaz Daughter ERP - User Manual
+              <h1 className="text-4xl font-extrabold border-b-4 border-primary pb-4">
+                Titunge - User Manual
               </h1>
               <p className="mt-4 text-xl">Official Guide Section: {activeSection.title}</p>
             </div>

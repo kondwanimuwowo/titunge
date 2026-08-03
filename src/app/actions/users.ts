@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { requireBusinessContext } from "@/lib/business-context";
 
 export async function createUserAction(data: {
   fullName: string;
@@ -10,6 +11,9 @@ export async function createUserAction(data: {
   password: string;
   role: "admin" | "manager" | "employee";
 }): Promise<{ success: boolean; message?: string }> {
+  // requireBusinessContext for auth only — user_profiles is global, no business_id scoping
+  await requireBusinessContext();
+
   const adminClient = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -48,6 +52,8 @@ export async function updateUserRole(
   id: string,
   role: "admin" | "manager" | "employee"
 ) {
+  // requireBusinessContext for auth only — user_profiles is global, no business_id scoping
+  await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("user_profiles") as any)
@@ -64,6 +70,8 @@ export async function updateUserRole(
 }
 
 export async function toggleUserActive(id: string, active: boolean) {
+  // requireBusinessContext for auth only — user_profiles is global, no business_id scoping
+  await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("user_profiles") as any)

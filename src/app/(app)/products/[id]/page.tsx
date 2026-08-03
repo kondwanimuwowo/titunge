@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Edit2, Package, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getProductById } from "@/lib/data/products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,20 +26,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   if (!user) redirect("/login");
 
+  const { businessId } = await getBusinessContext();
+
   const [product, orders] = await Promise.all([
-    getProductById(id),
+    getProductById(businessId, id),
     getProductOrders(id),
   ]);
 
   if (!product) notFound();
 
-  const gallery: string[] = [];
-  if (product.image_url) gallery.push(product.image_url);
-  if ((product as any).gallery_images) {
-    for (const url of (product as any).gallery_images) {
-      if (url && !gallery.includes(url)) gallery.push(url);
-    }
-  }
+  const gallery: string[] = Array.isArray(product.images)
+    ? (product.images as string[]).filter(Boolean)
+    : [];
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
@@ -115,29 +114,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-xs text-muted-foreground mb-1">Base Price</p>
+              <p className="text-xs text-muted-foreground mb-1">Price</p>
               <p className="text-xl font-bold text-primary">
-                K{parseFloat(String(product.base_price || 0)).toFixed(2)}
+                K{parseFloat(String(product.price || 0)).toFixed(2)}
               </p>
             </div>
-            {product.labor_cost && (
-              <div className="rounded-lg border border-border bg-card p-4">
-                <p className="text-xs text-muted-foreground mb-1">Labor Cost</p>
-                <p className="text-xl font-bold">
-                  K{parseFloat(String(product.labor_cost || 0)).toFixed(2)}
-                </p>
-              </div>
-            )}
             <div className="rounded-lg border border-border bg-card p-4">
               <p className="text-xs text-muted-foreground mb-1">Stock Quantity</p>
               <p className="text-xl font-bold">
                 {parseInt(String(product.stock_quantity || 0))}
-              </p>
-            </div>
-            <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-xs text-muted-foreground mb-1">Type</p>
-              <p className="text-sm font-semibold">
-                {product.customizable ? "Custom Design" : "Finished Good"}
               </p>
             </div>
           </div>

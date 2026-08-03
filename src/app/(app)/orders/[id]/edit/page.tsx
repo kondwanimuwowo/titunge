@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getOrderById } from "@/lib/data/orders";
 import { getCustomers } from "@/lib/data/customers";
 import { getEmployees } from "@/lib/data/employees";
@@ -23,6 +24,7 @@ export default async function EditOrderPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { businessId } = await getBusinessContext();
   const { id } = await params;
   const now = new Date();
   const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
@@ -30,20 +32,20 @@ export default async function EditOrderPage({
 
   let order: any;
   try {
-    order = await getOrderById(id);
+    order = await getOrderById(businessId, id);
   } catch {
     notFound();
   }
 
   const [customers, employees, products, garmentTypes, financialSettings, overheadCosts, materials] =
     await Promise.all([
-      getCustomers(),
-      getEmployees(),
-      getProducts(),
-      getGarmentTypes(),
-      getFinancialSettings(),
-      getOverheadCosts(monthStart, monthEnd),
-      getMaterials(),
+      getCustomers(businessId),
+      getEmployees(businessId),
+      getProducts(businessId),
+      getGarmentTypes(businessId),
+      getFinancialSettings(businessId),
+      getOverheadCosts(businessId, monthStart, monthEnd),
+      getMaterials(businessId),
     ]);
 
   const totalOverhead = overheadCosts.reduce(

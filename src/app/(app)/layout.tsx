@@ -1,44 +1,57 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
+import { buildThemeVars } from "@/lib/themes";
 import { getUnreadCount, getNotifications } from "@/lib/data/notifications";
 import { getInquiryStats } from "@/lib/data/inquiries";
 import Sidebar from "@/components/layout/Sidebar";
 import AppShell from "@/components/layout/AppShell";
-import type { Tables } from "@/lib/types/database";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { business, businessId, role, userId } = await getBusinessContext();
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: profileData } = await supabase
+    .from("user_profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
 
-  if (!user) {
-    redirect("/login");
-  }
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const [profileData, unreadCount, recentNotifications, inquiryStats] = await Promise.all([
-    supabase.from("user_profiles").select("*").eq("id", user.id).single(),
-    getUnreadCount(),
-    getNotifications(5),
-    getInquiryStats(),
+  const [unreadCount, recentNotifications, inquiryStats] = await Promise.all([
+    getUnreadCount(businessId),
+    getNotifications(businessId, 5),
+    getInquiryStats(businessId),
   ]);
 
-  const profile = profileData.data as Tables<"user_profiles"> | null;
-  const role = profile?.role ?? "employee";
+  const themeVars = buildThemeVars(business.theme_key);
 
   return (
-    <AppShell
-      sidebar={<Sidebar role={role} newInquiriesCount={inquiryStats.newCount} />}
-      user={user}
-      profile={profile}
-      unreadCount={unreadCount}
-      recentNotifications={recentNotifications}
-    >
-      {children}
-    </AppShell>
+    <>
+      {/* Inject per-tenant theme vars — overrides globals.css defaults */}
+      <style>{`:root { ${themeVars} }`}</style>
+
+      <AppShell
+        sidebar={
+          <Sidebar
+            role={role}
+            businessName={business.name}
+            logoUrl={business.logo_url}
+            newInquiriesCount={inquiryStats.newCount}
+          />
+        }
+        user={user!}
+        profile={profileData}
+        role={role}
+        unreadCount={unreadCount}
+        recentNotifications={recentNotifications}
+      >
+        {children}
+      </AppShell>
+    </>
   );
 }

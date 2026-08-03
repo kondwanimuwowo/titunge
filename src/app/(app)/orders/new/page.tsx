@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getCustomers } from "@/lib/data/customers";
 import { getEmployees } from "@/lib/data/employees";
 import { getProducts } from "@/lib/data/products";
@@ -23,6 +24,7 @@ export default async function NewOrderPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { businessId } = await getBusinessContext();
   const params = await searchParams;
 
   const now = new Date();
@@ -31,13 +33,13 @@ export default async function NewOrderPage({
 
   const [customers, employees, products, garmentTypes, financialSettings, overheadCosts, materials] =
     await Promise.all([
-      getCustomers(),
-      getEmployees(),
-      getProducts(),
-      getGarmentTypes(),
-      getFinancialSettings(),
-      getOverheadCosts(monthStart, monthEnd),
-      getMaterials(),
+      getCustomers(businessId),
+      getEmployees(businessId),
+      getProducts(businessId),
+      getGarmentTypes(businessId),
+      getFinancialSettings(businessId),
+      getOverheadCosts(businessId, monthStart, monthEnd),
+      getMaterials(businessId),
     ]);
 
   // Compute per-order overhead contribution
@@ -52,7 +54,7 @@ export default async function NewOrderPage({
   let prefill: any = null;
   if (params.inquiry_id) {
     try {
-      prefill = await getInquiryById(params.inquiry_id);
+      prefill = await getInquiryById(businessId, params.inquiry_id);
     } catch {
       // inquiry not found — continue without prefill
     }

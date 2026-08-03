@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ShoppingCart, TrendingUp, Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOrders, getOrderStats } from "@/lib/data/orders";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import OrderList from "@/components/orders/OrderList";
@@ -17,10 +18,11 @@ export default async function OrdersPage() {
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
   // Fetch data concurrently
   const [orders, stats] = await Promise.all([
-    getOrders(),
-    getOrderStats(),
+    getOrders(businessId),
+    getOrderStats(businessId),
   ]);
 
   return (

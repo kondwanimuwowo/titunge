@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Navbar from "./Navbar";
-import type { Tables } from "@/lib/types/database";
+import type { Tables, UserRole } from "@/lib/types/database";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface AppShellProps {
   sidebar: React.ReactNode;
   user: SupabaseUser;
   profile: Tables<"user_profiles"> | null;
+  role: UserRole;
   unreadCount: number;
   recentNotifications: any[];
   children: React.ReactNode;
@@ -20,6 +21,7 @@ export default function AppShell({
   sidebar,
   user,
   profile,
+  role,
   unreadCount,
   recentNotifications,
   children,
@@ -58,6 +60,7 @@ export default function AppShell({
         <Navbar
           user={user}
           profile={profile}
+          role={role}
           unreadCount={unreadCount}
           recentNotifications={recentNotifications}
           onMenuClick={() => setSidebarOpen(true)}

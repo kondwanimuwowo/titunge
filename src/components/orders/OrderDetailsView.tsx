@@ -45,12 +45,14 @@ import { StatusTimeline } from "./StatusTimeline";
 import { updateOrderStatus } from "@/app/actions/orders";
 import type { OrderStatus } from "@/lib/types/database";
 
-const STATUS_FLOW: OrderStatus[] = [
-  "enquiry",
-  "contacted",
-  "measurements",
+// Legacy GD statuses kept for data-migration compatibility
+type ExtendedOrderStatus = OrderStatus | "enquiry" | "contacted" | "measurements" | "fitting";
+
+const STATUS_FLOW: ExtendedOrderStatus[] = [
+  "pending",
+  "in_progress",
   "production",
-  "fitting",
+  "ready",
   "completed",
   "delivered",
 ];
@@ -66,9 +68,9 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
   const [statusNotes, setStatusNotes] = useState("");
 
   const getNextStatus = (): OrderStatus | null => {
-    const currentIndex = STATUS_FLOW.indexOf(order.status as OrderStatus);
+    const currentIndex = STATUS_FLOW.indexOf(order.status as ExtendedOrderStatus);
     return currentIndex >= 0 && currentIndex < STATUS_FLOW.length - 1
-      ? STATUS_FLOW[currentIndex + 1]
+      ? (STATUS_FLOW[currentIndex + 1] as OrderStatus)
       : null;
   };
 

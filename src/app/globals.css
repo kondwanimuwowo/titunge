@@ -35,8 +35,8 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   /* Titunge: Tenor Sans body, Canter display */
-  --font-sans: "Tenor Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Canter", "Tenor Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-tenor-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-canter), var(--font-tenor-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {

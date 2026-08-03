@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { MessageSquare, Bell, Phone, CheckCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getInquiries, getInquiryStats } from "@/lib/data/inquiries";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import InquiriesList from "@/components/inquiries/InquiriesList";
@@ -14,9 +15,10 @@ export default async function InquiriesPage() {
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
   const [inquiries, stats] = await Promise.all([
-    getInquiries(),
-    getInquiryStats(),
+    getInquiries(businessId),
+    getInquiryStats(businessId),
   ]);
 
   return (

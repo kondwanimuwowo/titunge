@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMaterialById } from "@/lib/data/inventory";
+import { getBusinessContext } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
 import StockUpdateForm from "@/components/inventory/StockUpdateForm";
 
@@ -24,7 +25,8 @@ export default async function StockUpdatePage({
     redirect("/login");
   }
 
-  const material = await getMaterialById(id);
+  const { businessId } = await getBusinessContext();
+  const material = await getMaterialById(businessId, id);
   if (!material) notFound();
 
   return (

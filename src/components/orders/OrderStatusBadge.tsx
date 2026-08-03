@@ -3,8 +3,8 @@
 import { motion } from "framer-motion";
 import type { OrderStatus } from "@/lib/types/database";
 
-// Fallback if we accidentally pass a string not in the enum
-type ExtendedStatus = OrderStatus | "enquiry" | "contacted" | "measurements" | "production" | "fitting" | "completed" | "delivered" | "cancelled";
+// Covers both new schema values and legacy GD values for data-migration safety
+type ExtendedStatus = OrderStatus | "enquiry" | "contacted" | "measurements" | "fitting";
 
 interface OrderStatusBadgeProps {
   status: ExtendedStatus;
@@ -15,6 +15,23 @@ export default function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     ExtendedStatus,
     { label: string; color: string; dotColor: string }
   > = {
+    // New schema statuses
+    pending: {
+      label: "Pending",
+      color: "bg-gray-100 text-gray-700 border-gray-300",
+      dotColor: "bg-gray-500",
+    },
+    in_progress: {
+      label: "In Progress",
+      color: "bg-blue-100 text-blue-700 border-blue-300",
+      dotColor: "bg-blue-500",
+    },
+    ready: {
+      label: "Ready",
+      color: "bg-teal-100 text-teal-700 border-teal-300",
+      dotColor: "bg-teal-500",
+    },
+    // Legacy GD statuses (kept for data migration)
     enquiry: {
       label: "Enquiry",
       color: "bg-gray-100 text-gray-700 border-gray-300",

@@ -2,14 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireBusinessContext } from "@/lib/business-context";
 
 export async function addMaterialAction(
   data: any
 ): Promise<{ success: boolean; message?: string; materialId?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { data: newMaterial, error } = await (supabase.from("materials") as any)
-    .insert([data])
+    .insert([{ ...data, business_id: businessId }])
     .select("id")
     .single();
 
@@ -25,11 +27,13 @@ export async function updateMaterialAction(
   id: string,
   updates: any
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("materials") as any)
     .update(updates)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -43,11 +47,13 @@ export async function updateMaterialAction(
 export async function deleteMaterialAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("materials") as any)
     .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -60,11 +66,13 @@ export async function deleteMaterialAction(
 export async function restoreMaterialAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("materials") as any)
     .update({ deleted_at: null })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -77,11 +85,13 @@ export async function restoreMaterialAction(
 export async function hardDeleteMaterialAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { data, error } = await (supabase.from("materials") as any)
     .delete()
     .eq("id", id)
+    .eq("business_id", businessId)
     .select("id");
 
   if (!error && (!data || data.length === 0)) {
@@ -110,12 +120,14 @@ export async function updateStockAction(
   orderId?: string | null,
   unitCost?: number | null
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   // Get current material
   const { data: material, error: fetchError } = await (supabase.from("materials") as any)
     .select("name, stock_quantity, cost_per_unit, min_stock_level")
     .eq("id", id)
+    .eq("business_id", businessId)
     .single();
 
   if (fetchError || !material) {
@@ -155,7 +167,8 @@ export async function updateStockAction(
 
   const { error: updateError } = await (supabase.from("materials") as any)
     .update(updateData)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (updateError) {
     return { success: false, message: updateError.message };
@@ -171,6 +184,7 @@ export async function updateStockAction(
         notes,
         order_id: orderId || null,
         unit_cost: unitCost || currentCost,
+        business_id: businessId,
       },
     ]);
   } catch (logError) {
@@ -188,6 +202,7 @@ export async function updateStockAction(
           message: `${material.name} has fallen below minimum stock level (${newQuantity} / ${minStock})`,
           type: "warning",
           read: false,
+          business_id: businessId,
         },
       ]);
     } catch (notifyError) {

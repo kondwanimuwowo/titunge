@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getRecycleBinItems } from "@/lib/data/recycleBin";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import RecycleBinList from "@/components/recycleBin/RecycleBinList";
 
@@ -12,7 +13,8 @@ export default async function RecycleBinPage() {
     redirect("/login");
   }
 
-  const items = await getRecycleBinItems();
+  const { businessId } = await getBusinessContext();
+  const items = await getRecycleBinItems(businessId);
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

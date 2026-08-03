@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getNotifications } from "@/lib/data/notifications";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import NotificationsList from "@/components/notifications/NotificationsList";
 
@@ -14,7 +15,8 @@ export default async function NotificationsPage() {
     redirect("/login");
   }
 
-  const notifications = await getNotifications();
+  const { businessId } = await getBusinessContext();
+  const notifications = await getNotifications(businessId);
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

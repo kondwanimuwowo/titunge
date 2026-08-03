@@ -4,10 +4,12 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import GarmentTypeForm from "@/components/finance/GarmentTypeForm";
 import { getGarmentTypeById } from "@/lib/data/finance";
+import { getBusinessContext } from "@/lib/business-context";
 
 export default async function EditGarmentTypePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const garmentType = await getGarmentTypeById(id);
+  const { businessId } = await getBusinessContext();
+  const garmentType = await getGarmentTypeById(businessId, id);
 
   if (!garmentType) notFound();
 

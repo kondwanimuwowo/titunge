@@ -86,10 +86,10 @@ export default function ProductList({ initialProducts }: ProductListProps) {
             >
               {/* Image */}
               <div className="aspect-square bg-muted/50 relative overflow-hidden">
-                {product.image_url ? (
+                {Array.isArray(product.images) && (product.images as string[])[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={product.image_url}
+                    src={(product.images as string[])[0]}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
@@ -121,7 +121,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
               <div className="p-3 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
-                  {!product.customizable && (
+                  {product.product_type !== "custom_design" && (
                     <Badge
                       variant={parseInt(String(product.stock_quantity || 0)) > 0 ? "secondary" : "destructive"}
                       className="text-xs shrink-0"
@@ -136,18 +136,12 @@ export default function ProductList({ initialProducts }: ProductListProps) {
                 )}
 
                 <p className="text-sm font-semibold text-primary">
-                  K{parseFloat(String(product.base_price || 0)).toFixed(2)}
+                  K{parseFloat(String(product.price || 0)).toFixed(2)}
                 </p>
 
                 {product.description && (
                   <p className="text-xs text-muted-foreground line-clamp-2">
                     {product.description}
-                  </p>
-                )}
-
-                {parseFloat(String(product.labor_cost || 0)) > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Labor: K{parseFloat(String(product.labor_cost)).toFixed(2)}
                   </p>
                 )}
               </div>

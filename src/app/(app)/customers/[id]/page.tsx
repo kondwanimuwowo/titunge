@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import { getCustomerWithOrders, getCustomerStats } from "@/lib/data/customers";
+import { getBusinessContext } from "@/lib/business-context";
 import CustomerDetailsView from "@/components/customers/CustomerDetailsView";
 import { Button } from "@/components/ui/button";
 
@@ -16,12 +17,14 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
+
   let customer;
   let stats;
 
   try {
-    customer = await getCustomerWithOrders(id);
-    stats = await getCustomerStats(id);
+    customer = await getCustomerWithOrders(businessId, id);
+    stats = await getCustomerStats(businessId, id);
   } catch (error) {
     console.error("Customer not found or error:", error);
     notFound();

@@ -1,480 +1,1280 @@
-// Auto-derived from supabase/schema.sql — keep updated as schema evolves.
-
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
-export type UserRole = "admin" | "manager" | "employee";
-export type MaterialType = "raw_material" | "finished_product";
-export type NotificationType =
-  | "low_stock"
-  | "order_update"
-  | "production_complete"
-  | "system";
-export type OrderStatus =
-  | "enquiry"
-  | "contacted"
-  | "measurements"
-  | "production"
-  | "fitting"
-  | "completed"
-  | "delivered"
-  | "cancelled";
-export type ProductionStatus =
-  | "cutting"
-  | "stitching"
-  | "finishing"
-  | "quality_check"
-  | "completed"
-  | "cancelled";
-export type StageStatus = "pending" | "in_progress" | "completed" | "rework";
-export type StageName =
-  | "cutting"
-  | "stitching"
-  | "finishing"
-  | "quality_check";
-export type ProductType = "custom_design" | "finished_good";
-
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
       attendance: {
         Row: {
-          id: string;
-          employee_id: string | null;
-          date: string;
-          clock_in: string | null;
-          clock_out: string | null;
-          hours_worked: number | null;
-          notes: string | null;
-          created_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["attendance"]["Row"], "id" | "created_at">;
-        Update: Partial<Database["public"]["Tables"]["attendance"]["Insert"]>;
-      };
+          business_id: string
+          clock_in: string | null
+          clock_out: string | null
+          created_at: string | null
+          date: string
+          employee_id: string | null
+          hours_worked: number | null
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          business_id: string
+          clock_in?: string | null
+          clock_out?: string | null
+          created_at?: string | null
+          date: string
+          employee_id?: string | null
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          business_id?: string
+          clock_in?: string | null
+          clock_out?: string | null
+          created_at?: string | null
+          date?: string
+          employee_id?: string | null
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_users: {
+        Row: {
+          active: boolean | null
+          business_id: string
+          id: string
+          joined_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          business_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          business_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_users_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      businesses: {
+        Row: {
+          created_at: string | null
+          currency: string
+          id: string
+          logo_url: string | null
+          name: string
+          order_prefix: string
+          plan: string
+          slug: string
+          status: string
+          theme_key: string
+          timezone: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          order_prefix?: string
+          plan?: string
+          slug: string
+          status?: string
+          theme_key?: string
+          timezone?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          order_prefix?: string
+          plan?: string
+          slug?: string
+          status?: string
+          theme_key?: string
+          timezone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       catalog_purchases: {
         Row: {
-          id: string;
-          product_id: string | null;
-          customer_name: string;
-          customer_email: string;
-          customer_phone: string | null;
-          amount: number;
-          currency: string | null;
-          lenco_reference: string;
-          lenco_collection_id: string | null;
-          payment_method: string | null;
-          status: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["catalog_purchases"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["catalog_purchases"]["Insert"]>;
-      };
+          amount: number
+          business_id: string
+          created_at: string | null
+          currency: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          payment_method: string | null
+          product_id: string | null
+          reference: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          business_id: string
+          created_at?: string | null
+          currency?: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          payment_method?: string | null
+          product_id?: string | null
+          reference: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          created_at?: string | null
+          currency?: string | null
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          payment_method?: string | null
+          product_id?: string | null
+          reference?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_purchases_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "catalog_purchases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_inquiries: {
         Row: {
-          id: string;
-          product_id: string | null;
-          customer_name: string;
-          customer_phone: string;
-          customer_email: string | null;
-          preferred_size: string | null;
-          custom_measurements_needed: boolean | null;
-          special_requests: string | null;
-          contact_method: string | null;
-          status: string | null;
-          staff_notes: string | null;
-          converted_order_id: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          contacted_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["customer_inquiries"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["customer_inquiries"]["Insert"]>;
-      };
+          business_id: string
+          contact_method: string | null
+          contacted_at: string | null
+          converted_order_id: string | null
+          created_at: string | null
+          custom_measurements_needed: boolean | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          id: string
+          preferred_size: string | null
+          product_id: string | null
+          special_requests: string | null
+          staff_notes: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          contact_method?: string | null
+          contacted_at?: string | null
+          converted_order_id?: string | null
+          created_at?: string | null
+          custom_measurements_needed?: boolean | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          id?: string
+          preferred_size?: string | null
+          product_id?: string | null
+          special_requests?: string | null
+          staff_notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          contact_method?: string | null
+          contacted_at?: string | null
+          converted_order_id?: string | null
+          created_at?: string | null
+          custom_measurements_needed?: boolean | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          preferred_size?: string | null
+          product_id?: string | null
+          special_requests?: string | null
+          staff_notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_inquiries_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_inquiries_converted_order_id_fkey"
+            columns: ["converted_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_inquiries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
-          id: string;
-          name: string;
-          phone: string;
-          email: string | null;
-          address: string | null;
-          measurements: Json | null;
-          notes: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          deleted_at: string | null;
-        };
+          address: string | null
+          business_id: string
+          created_at: string | null
+          deleted_at: string | null
+          email: string | null
+          id: string
+          measurements: Json | null
+          name: string
+          notes: string | null
+          phone: string
+          updated_at: string | null
+        }
         Insert: {
-          id?: string;
-          name: string;
-          phone: string;
-          email?: string | null;
-          address?: string | null;
-          measurements?: Json | null;
-          notes?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          deleted_at?: string | null;
-        };
+          address?: string | null
+          business_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          measurements?: Json | null
+          name: string
+          notes?: string | null
+          phone: string
+          updated_at?: string | null
+        }
         Update: {
-          id?: string;
-          name?: string;
-          phone?: string;
-          email?: string | null;
-          address?: string | null;
-          measurements?: Json | null;
-          notes?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-          deleted_at?: string | null;
-        };
-      };
+          address?: string | null
+          business_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          measurements?: Json | null
+          name?: string
+          notes?: string | null
+          phone?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
-          id: string;
-          name: string;
-          role: string;
-          email: string | null;
-          phone: string;
-          hire_date: string;
-          hourly_rate: number | null;
-          active: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["employees"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["employees"]["Insert"]>;
-      };
+          active: boolean | null
+          business_id: string
+          created_at: string | null
+          email: string | null
+          hire_date: string | null
+          hourly_rate: number | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          business_id: string
+          created_at?: string | null
+          email?: string | null
+          hire_date?: string | null
+          hourly_rate?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          business_id?: string
+          created_at?: string | null
+          email?: string | null
+          hire_date?: string | null
+          hourly_rate?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
-          id: string;
-          expense_date: string;
-          category: string;
-          description: string;
-          amount: number;
-          payment_method: string | null;
-          reference_number: string | null;
-          employee_id: string | null;
-          order_id: string | null;
-          notes: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["expenses"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["expenses"]["Insert"]>;
-      };
+          amount: number
+          business_id: string
+          category: string
+          created_at: string | null
+          description: string | null
+          employee_id: string | null
+          expense_date: string
+          id: string
+          notes: string | null
+          order_id: string | null
+          payment_method: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          business_id: string
+          category: string
+          created_at?: string | null
+          description?: string | null
+          employee_id?: string | null
+          expense_date: string
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          payment_method?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          employee_id?: string | null
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          payment_method?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_settings: {
         Row: {
-          id: string;
-          custom_hourly_rate: number | null;
-          default_profit_margin: number | null;
-          expected_monthly_orders: number | null;
-          tax_rate: number | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["financial_settings"]["Row"], "id" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["financial_settings"]["Insert"]>;
-      };
+          business_id: string
+          custom_hourly_rate: number | null
+          default_profit_margin: number | null
+          expected_monthly_orders: number | null
+          id: string
+          tax_rate: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          custom_hourly_rate?: number | null
+          default_profit_margin?: number | null
+          expected_monthly_orders?: number | null
+          id?: string
+          tax_rate?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          custom_hourly_rate?: number | null
+          default_profit_margin?: number | null
+          expected_monthly_orders?: number | null
+          id?: string
+          tax_rate?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_settings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       garment_types: {
         Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          base_labour_cost: number;
-          estimated_hours: number | null;
-          complexity: string | null;
-          active: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["garment_types"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["garment_types"]["Insert"]>;
-      };
+          active: boolean | null
+          base_labour_cost: number | null
+          business_id: string
+          complexity: string | null
+          created_at: string | null
+          description: string | null
+          estimated_hours: number | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          base_labour_cost?: number | null
+          business_id: string
+          complexity?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          base_labour_cost?: number | null
+          business_id?: string
+          complexity?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garment_types_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_transactions: {
         Row: {
-          id: string;
-          material_id: string | null;
-          quantity_change: number;
-          operation_type: string;
-          notes: string | null;
-          created_at: string | null;
-          order_id: string | null;
-          unit_cost: number | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["inventory_transactions"]["Row"], "id" | "created_at">;
-        Update: Partial<Database["public"]["Tables"]["inventory_transactions"]["Insert"]>;
-      };
+          business_id: string
+          created_at: string | null
+          id: string
+          material_id: string
+          notes: string | null
+          operation_type: string
+          order_id: string | null
+          quantity_change: number
+          unit_cost: number | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          id?: string
+          material_id: string
+          notes?: string | null
+          operation_type: string
+          order_id?: string | null
+          quantity_change: number
+          unit_cost?: number | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          material_id?: string
+          notes?: string | null
+          operation_type?: string
+          order_id?: string | null
+          quantity_change?: number
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_transactions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transactions_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materials: {
         Row: {
-          id: string;
-          name: string;
-          category: string;
-          unit: string;
-          stock_quantity: number;
-          min_stock_level: number;
-          cost_per_unit: number;
-          supplier: string | null;
-          description: string | null;
-          last_restocked: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          material_type: MaterialType | null;
-          finished_product_sku: string | null;
-          selling_price: number | null;
-          production_cost: number | null;
-          product_id: string | null;
-          reorder_level: number | null;
-          deleted_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["materials"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["materials"]["Insert"]>;
-      };
+          business_id: string
+          created_at: string | null
+          id: string
+          min_stock_level: number | null
+          name: string
+          notes: string | null
+          stock_quantity: number | null
+          supplier: string | null
+          unit: string
+          unit_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          id?: string
+          min_stock_level?: number | null
+          name: string
+          notes?: string | null
+          stock_quantity?: number | null
+          supplier?: string | null
+          unit?: string
+          unit_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          min_stock_level?: number | null
+          name?: string
+          notes?: string | null
+          stock_quantity?: number | null
+          supplier?: string | null
+          unit?: string
+          unit_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
-          id: string;
-          user_id: string | null;
-          type: NotificationType;
-          title: string;
-          message: string;
-          link: string | null;
-          read: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["notifications"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
-      };
-      order_items: {
-        Row: {
-          id: string;
-          order_id: string | null;
-          item_type: string;
-          description: string | null;
-          quantity: number | null;
-          price: number;
-          measurements: Json | null;
-          created_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["order_items"]["Row"], "id" | "created_at">;
-        Update: Partial<Database["public"]["Tables"]["order_items"]["Insert"]>;
-      };
+          business_id: string
+          created_at: string | null
+          data: Json | null
+          id: string
+          message: string | null
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string | null
+          read?: boolean | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          message?: string | null
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_materials: {
         Row: {
-          id: string;
-          order_id: string | null;
-          material_id: string | null;
-          quantity_used: number;
-          cost: number;
-          created_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["order_materials"]["Row"], "id" | "created_at">;
-        Update: Partial<Database["public"]["Tables"]["order_materials"]["Insert"]>;
-      };
-      order_timeline: {
-        Row: {
-          id: string;
-          order_id: string | null;
-          status: string;
-          notes: string | null;
-          created_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["order_timeline"]["Row"], "id" | "created_at">;
-        Update: Partial<Database["public"]["Tables"]["order_timeline"]["Insert"]>;
-      };
+          business_id: string
+          created_at: string | null
+          id: string
+          material_id: string
+          order_id: string
+          quantity_used: number
+          unit_cost: number | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          id?: string
+          material_id: string
+          order_id: string
+          quantity_used?: number
+          unit_cost?: number | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          material_id?: string
+          order_id?: string
+          quantity_used?: number
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_materials_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_materials_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_materials_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
-          id: string;
-          order_number: string;
-          customer_id: string | null;
-          status: OrderStatus;
-          order_date: string | null;
-          due_date: string | null;
-          total_cost: number;
-          deposit: number | null;
-          balance: number | null;
-          description: string | null;
-          notes: string | null;
-          assigned_tailor_id: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          labour_cost: number | null;
-          overhead_cost: number | null;
-          material_cost: number | null;
-          profit_margin: number | null;
-          garment_type_id: string | null;
-          order_type: string | null;
-          product_id: string | null;
-          deleted_at: string | null;
-          cancellation_reason: string | null;
-          cancelled_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["orders"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;
-      };
+          balance_due: number | null
+          business_id: string
+          created_at: string | null
+          customer_id: string | null
+          deleted_at: string | null
+          deposit: number | null
+          due_date: string | null
+          employee_id: string | null
+          garment_type_id: string | null
+          id: string
+          labour_cost: number | null
+          material_cost: number | null
+          measurements: Json | null
+          notes: string | null
+          order_date: string | null
+          order_number: string
+          order_type: string | null
+          overhead_cost: number | null
+          status: string
+          style_notes: string | null
+          total_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          balance_due?: number | null
+          business_id: string
+          created_at?: string | null
+          customer_id?: string | null
+          deleted_at?: string | null
+          deposit?: number | null
+          due_date?: string | null
+          employee_id?: string | null
+          garment_type_id?: string | null
+          id?: string
+          labour_cost?: number | null
+          material_cost?: number | null
+          measurements?: Json | null
+          notes?: string | null
+          order_date?: string | null
+          order_number: string
+          order_type?: string | null
+          overhead_cost?: number | null
+          status?: string
+          style_notes?: string | null
+          total_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          balance_due?: number | null
+          business_id?: string
+          created_at?: string | null
+          customer_id?: string | null
+          deleted_at?: string | null
+          deposit?: number | null
+          due_date?: string | null
+          employee_id?: string | null
+          garment_type_id?: string | null
+          id?: string
+          labour_cost?: number | null
+          material_cost?: number | null
+          measurements?: Json | null
+          notes?: string | null
+          order_date?: string | null
+          order_number?: string
+          order_type?: string | null
+          overhead_cost?: number | null
+          status?: string
+          style_notes?: string | null
+          total_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_garment_type_id_fkey"
+            columns: ["garment_type_id"]
+            isOneToOne: false
+            referencedRelation: "garment_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       overhead_costs: {
         Row: {
-          id: string;
-          month: string;
-          category: string;
-          description: string;
-          amount: number;
-          is_recurring: boolean | null;
-          notes: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["overhead_costs"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["overhead_costs"]["Insert"]>;
-      };
+          amount: number
+          business_id: string
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_recurring: boolean | null
+          month: string
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          business_id: string
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          month: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          month?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "overhead_costs_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
-          id: string;
-          order_id: string;
-          payment_date: string;
-          amount: number;
-          payment_method: string;
-          reference_number: string | null;
-          notes: string | null;
-          created_by: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["payments"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["payments"]["Insert"]>;
-      };
+          amount: number
+          business_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          order_id: string | null
+          payment_date: string
+          payment_method: string | null
+          reference_number: string | null
+        }
+        Insert: {
+          amount?: number
+          business_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          payment_date: string
+          payment_method?: string | null
+          reference_number?: string | null
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          reference_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_batch_orders: {
+        Row: {
+          batch_id: string
+          business_id: string
+          created_at: string | null
+          id: string
+          order_id: string
+        }
+        Insert: {
+          batch_id: string
+          business_id: string
+          created_at?: string | null
+          id?: string
+          order_id: string
+        }
+        Update: {
+          batch_id?: string
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_batch_orders_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "production_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_batch_orders_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_batch_orders_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       production_batches: {
         Row: {
-          id: string;
-          batch_number: string;
-          product_id: string | null;
-          quantity: number;
-          status: ProductionStatus | null;
-          started_at: string | null;
-          completed_at: string | null;
-          notes: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          total_cost: number | null;
-          labor_cost: number | null;
-          material_cost: number | null;
-          deleted_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["production_batches"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["production_batches"]["Insert"]>;
-      };
-      production_logs: {
-        Row: {
-          id: string;
-          batch_id: string | null;
-          user_id: string | null;
-          action: string;
-          details: string | null;
-          metadata: Json | null;
-          created_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["production_logs"]["Row"], "id" | "created_at">;
-        Update: Partial<Database["public"]["Tables"]["production_logs"]["Insert"]>;
-      };
-      production_materials: {
-        Row: {
-          id: string;
-          batch_id: string | null;
-          material_id: string | null;
-          quantity_used: number;
-          cost: number;
-          created_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["production_materials"]["Row"], "id" | "created_at">;
-        Update: Partial<Database["public"]["Tables"]["production_materials"]["Insert"]>;
-      };
-      production_stages: {
-        Row: {
-          id: string;
-          batch_id: string | null;
-          stage_name: StageName;
-          assigned_to: string | null;
-          status: StageStatus | null;
-          started_at: string | null;
-          completed_at: string | null;
-          notes: string | null;
-          quality_issues: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          input_data: Json | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["production_stages"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["production_stages"]["Insert"]>;
-      };
+          batch_number: string
+          business_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          batch_number: string
+          business_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          batch_number?: string
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_batches_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          base_price: number;
-          category: string | null;
-          image_url: string | null;
-          estimated_days: number | null;
-          active: boolean | null;
-          created_at: string | null;
-          featured: boolean | null;
-          stock_status: string | null;
-          customizable: boolean | null;
-          gallery_images: string[] | null;
-          size_guide: string | null;
-          fabric_details: string | null;
-          care_instructions: string | null;
-          updated_at: string | null;
-          labor_cost: number | null;
-          deleted_at: string | null;
-          product_type: ProductType | null;
-          stock_quantity: number | null;
-          min_stock_level: number | null;
-          cost_per_unit: number | null;
-          supplier_id: string | null;
-          barcode: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["products"]["Row"], "id" | "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
-      };
+          active: boolean | null
+          business_id: string
+          category: string | null
+          colors: Json | null
+          created_at: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          images: Json | null
+          name: string
+          price: number
+          product_type: string | null
+          sizes: Json | null
+          stock_quantity: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          business_id: string
+          category?: string | null
+          colors?: Json | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          name: string
+          price?: number
+          product_type?: string | null
+          sizes?: Json | null
+          stock_quantity?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          business_id?: string
+          category?: string | null
+          colors?: Json | null
+          created_at?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          images?: Json | null
+          name?: string
+          price?: number
+          product_type?: string | null
+          sizes?: Json | null
+          stock_quantity?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
-          id: string;
-          email: string;
-          full_name: string;
-          role: UserRole;
-          active: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: Omit<Database["public"]["Tables"]["user_profiles"]["Row"], "created_at" | "updated_at">;
-        Update: Partial<Database["public"]["Tables"]["user_profiles"]["Insert"]>;
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      my_business_ids: { Args: never; Returns: string[] }
+    }
     Enums: {
-      user_role: UserRole;
-      material_type: MaterialType;
-      notification_type: NotificationType;
-      order_status: OrderStatus;
-      production_status: ProductionStatus;
-      stage_status: StageStatus;
-      stage_name: StageName;
-    };
-  };
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
 
-// Convenience type aliases
-export type Tables<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Row"];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-export type TablesInsert<T extends keyof Database["public"]["Tables"]> =
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
+
+// Domain types — match the CHECK constraints in schema.sql
+export type OrderStatus =
+  | "pending"
+  | "in_progress"
+  | "production"
+  | "ready"
+  | "completed"
+  | "delivered"
+  | "cancelled";
+
+export type UserRole = "admin" | "manager" | "employee";
+
+// Convenience aliases matching the old manual type file
+export type InsertTables<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Insert"];
 
-export type TablesUpdate<T extends keyof Database["public"]["Tables"]> =
+export type UpdateTables<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Update"];

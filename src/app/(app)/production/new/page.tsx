@@ -1,23 +1,18 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getProducts } from "@/lib/data/products";
 import { getMaterials } from "@/lib/data/inventory";
 import { Button } from "@/components/ui/button";
 import CreateBatchForm from "@/components/production/CreateBatchForm";
 
 export default async function NewBatchPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { businessId } = await getBusinessContext();
 
   const [products, materials] = await Promise.all([
-    getProducts(),
-    getMaterials(),
+    getProducts(businessId),
+    getMaterials(businessId),
   ]);
 
   return (

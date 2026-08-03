@@ -4,6 +4,7 @@ import { ArrowLeft, Edit2, TrendingUp, TrendingDown, AlertTriangle } from "lucid
 import { format } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { getMaterialById, getMaterialHistory } from "@/lib/data/inventory";
+import { getBusinessContext } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -24,16 +25,17 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
 
   if (!user) redirect("/login");
 
+  const { businessId } = await getBusinessContext();
   const [material, history] = await Promise.all([
-    getMaterialById(id),
-    getMaterialHistory(id),
+    getMaterialById(businessId, id),
+    getMaterialHistory(businessId, id),
   ]);
 
   if (!material) notFound();
 
   const stock = parseFloat(String(material.stock_quantity || 0));
   const min = parseFloat(String(material.min_stock_level || 0));
-  const cost = parseFloat(String(material.cost_per_unit || 0));
+  const cost = parseFloat(String(material.unit_cost || 0));
   const totalValue = stock * cost;
 
   return (
@@ -78,7 +80,7 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
         <div>
           <h1 className="text-2xl font-bold">{material.name}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {material.category} · {material.unit}
+            {material.unit}
             {material.supplier && ` · Supplier: ${material.supplier}`}
           </p>
         </div>
@@ -116,8 +118,8 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
         </div>
       )}
 
-      {material.description && (
-        <p className="text-sm text-muted-foreground">{material.description}</p>
+      {material.notes && (
+        <p className="text-sm text-muted-foreground">{material.notes}</p>
       )}
 
       {/* Transaction history */}

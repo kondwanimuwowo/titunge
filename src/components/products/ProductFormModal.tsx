@@ -47,14 +47,10 @@ export default function ProductFormModal({ product, onClose }: ProductFormModalP
   const [isPending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
   const [imageGallery, setImageGallery] = useState<string[]>(() => {
-    const urls: string[] = [];
-    if (product?.image_url) urls.push(product.image_url);
-    if ((product as any)?.gallery_images) {
-      for (const url of (product as any).gallery_images) {
-        if (url && !urls.includes(url)) urls.push(url);
-      }
+    if (Array.isArray(product?.images)) {
+      return (product.images as string[]).filter(Boolean);
     }
-    return urls;
+    return [];
   });
 
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
@@ -63,11 +59,10 @@ export default function ProductFormModal({ product, onClose }: ProductFormModalP
           name: product.name,
           description: product.description,
           category: product.category,
-          base_price: product.base_price,
-          labor_cost: product.labor_cost,
+          price: product.price,
           stock_quantity: product.stock_quantity,
           active: product.active,
-          customizable: product.customizable,
+          customizable: product.product_type === "custom_design",
         }
       : {
           active: true,
@@ -80,8 +75,7 @@ export default function ProductFormModal({ product, onClose }: ProductFormModalP
     startTransition(async () => {
       const payload = {
         ...data,
-        image_url: imageGallery[0] || null,
-        gallery_images: imageGallery,
+        images: imageGallery,
       };
 
       const result = product
@@ -199,30 +193,16 @@ export default function ProductFormModal({ product, onClose }: ProductFormModalP
           </div>
 
           {/* Pricing */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="basePrice">Base Price (K) *</Label>
-              <Input
-                id="basePrice"
-                type="number"
-                step="0.01"
-                {...register("base_price", { required: true })}
-                placeholder="0.00"
-                disabled={isPending}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="laborCost">Labor Cost (K)</Label>
-              <Input
-                id="laborCost"
-                type="number"
-                step="0.01"
-                {...register("labor_cost")}
-                placeholder="0.00"
-                disabled={isPending}
-              />
-            </div>
+          <div>
+            <Label htmlFor="price">Price (K) *</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              {...register("price", { required: true })}
+              placeholder="0.00"
+              disabled={isPending}
+            />
           </div>
 
           {/* Inventory & Options */}

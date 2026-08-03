@@ -27,25 +27,6 @@ import {
   updateMaterialAction,
 } from "@/app/actions/inventory";
 
-const CATEGORIES = [
-  "Cotton",
-  "Polyester",
-  "Silk",
-  "Wool",
-  "Linen",
-  "Denim",
-  "Fabric",
-  "Chitenge/Ankara Print",
-  "Lace",
-  "Interfacing/Lining",
-  "Trim/Embellishments",
-  "Elastic",
-  "Thread",
-  "Buttons",
-  "Zippers",
-  "Industrial",
-];
-
 const UNITS = ["Meters", "Kilograms", "Pieces", "Reels", "Boxes", "Packs", "Sheets"];
 
 interface AddMaterialFormProps {
@@ -62,22 +43,20 @@ export default function AddMaterialForm({ material, onClose }: AddMaterialFormPr
     defaultValues: material
       ? {
           name: material.name,
-          category: material.category,
           unit: material.unit,
           stock_quantity: material.stock_quantity,
           min_stock_level: material.min_stock_level,
-          cost_per_unit: material.cost_per_unit,
+          unit_cost: material.unit_cost,
           supplier: material.supplier || "",
-          description: material.description || "",
+          notes: material.notes || "",
         }
       : {
           stock_quantity: 0,
           min_stock_level: 0,
-          cost_per_unit: 0,
+          unit_cost: 0,
         },
   });
 
-  const selectedCategory = watch("category");
   const selectedUnit = watch("unit");
 
   const onSubmit = (data: FormData) => {
@@ -123,45 +102,24 @@ export default function AddMaterialForm({ material, onClose }: AddMaterialFormPr
             )}
           </div>
 
-          {/* Category and Unit */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="category">Category *</Label>
-              <Select
-                value={selectedCategory || ""}
-                onValueChange={(value) => setValue("category", value)}
-              >
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="unit">Unit *</Label>
-              <Select
-                value={selectedUnit || ""}
-                onValueChange={(value) => setValue("unit", value)}
-              >
-                <SelectTrigger id="unit">
-                  <SelectValue placeholder="Select unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  {UNITS.map((unit) => (
-                    <SelectItem key={unit} value={unit}>
-                      {unit}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Unit */}
+          <div>
+            <Label htmlFor="unit">Unit *</Label>
+            <Select
+              value={selectedUnit || ""}
+              onValueChange={(value) => setValue("unit", value)}
+            >
+              <SelectTrigger id="unit">
+                <SelectValue placeholder="Select unit" />
+              </SelectTrigger>
+              <SelectContent>
+                {UNITS.map((unit) => (
+                  <SelectItem key={unit} value={unit}>
+                    {unit}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Stock and Min Level */}
@@ -191,14 +149,14 @@ export default function AddMaterialForm({ material, onClose }: AddMaterialFormPr
             </div>
           </div>
 
-          {/* Cost per Unit */}
+          {/* Unit Cost */}
           <div>
-            <Label htmlFor="cost">Cost per Unit (K) *</Label>
+            <Label htmlFor="cost">Unit Cost (K) *</Label>
             <Input
               id="cost"
               type="number"
               step="0.01"
-              {...register("cost_per_unit", { required: true })}
+              {...register("unit_cost", { required: true })}
               placeholder="0.00"
               disabled={isPending}
             />
@@ -215,12 +173,12 @@ export default function AddMaterialForm({ material, onClose }: AddMaterialFormPr
             />
           </div>
 
-          {/* Description */}
+          {/* Notes */}
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="notes">Notes</Label>
             <textarea
-              id="description"
-              {...register("description")}
+              id="notes"
+              {...register("notes")}
               placeholder="Additional notes"
               className="w-full px-3 py-2 border rounded-md text-sm"
               rows={3}

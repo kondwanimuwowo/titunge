@@ -2,13 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireBusinessContext } from "@/lib/business-context";
 
 export async function deleteCustomerAction(id: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("customers") as any)
     .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Delete customer error:", error);
@@ -20,11 +23,13 @@ export async function deleteCustomerAction(id: string) {
 }
 
 export async function restoreCustomerAction(id: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("customers") as any)
     .update({ deleted_at: null })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -35,11 +40,13 @@ export async function restoreCustomerAction(id: string) {
 }
 
 export async function hardDeleteCustomerAction(id: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { data, error } = await (supabase.from("customers") as any)
     .delete()
     .eq("id", id)
+    .eq("business_id", businessId)
     .select("id");
 
   if (!error && (!data || data.length === 0)) {
@@ -65,11 +72,13 @@ export async function updateMeasurementsAction(
   measurements: any,
   orderId?: string
 ) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("customers") as any)
     .update({ measurements })
-    .eq("id", customerId);
+    .eq("id", customerId)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Update measurements error:", error);
@@ -85,11 +94,13 @@ export async function updateMeasurementsAction(
 }
 
 export async function findCustomerByPhoneAction(phone: string, excludeId?: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   let query = (supabase.from("customers") as any)
     .select("id, name")
     .eq("phone", phone)
+    .eq("business_id", businessId)
     .is("deleted_at", null)
     .limit(1);
 
@@ -102,10 +113,11 @@ export async function findCustomerByPhoneAction(phone: string, excludeId?: strin
 }
 
 export async function addCustomerAction(data: any) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   // Strip empty strings to let DB defaults apply
-  const payload = { ...data };
+  const payload = { ...data, business_id: businessId };
   if (!payload.phone) delete payload.phone;
   if (!payload.email) delete payload.email;
   if (!payload.address) delete payload.address;
@@ -125,11 +137,13 @@ export async function addCustomerAction(data: any) {
 }
 
 export async function updateCustomerAction(id: string, data: any) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("customers") as any)
     .update(data)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Update customer error:", error);

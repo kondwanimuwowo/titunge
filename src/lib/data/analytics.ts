@@ -25,6 +25,7 @@ function applyOrderFilters(query: any, filters?: AnalyticsFilters, dateColumn = 
 }
 
 export async function getRevenueData(
+  businessId: string,
   filters?: AnalyticsFilters
 ): Promise<{ month: string; revenue: number }[]> {
   const supabase = await createClient();
@@ -38,6 +39,7 @@ export async function getRevenueData(
 
     let query = (supabase.from("orders") as any)
       .select("total_cost")
+      .eq("business_id", businessId)
       .gte("order_date", start)
       .lte("order_date", end)
       .is("deleted_at", null);
@@ -57,11 +59,15 @@ export async function getRevenueData(
 }
 
 export async function getOrderStatusData(
+  businessId: string,
   filters?: AnalyticsFilters
 ): Promise<{ status: string; count: number }[]> {
   const supabase = await createClient();
 
-  let query = (supabase.from("orders") as any).select("status").is("deleted_at", null);
+  let query = (supabase.from("orders") as any)
+    .select("status")
+    .eq("business_id", businessId)
+    .is("deleted_at", null);
   query = applyOrderFilters(query, { ...filters, status: undefined });
 
   const { data } = await query;
@@ -76,6 +82,7 @@ export async function getOrderStatusData(
 }
 
 export async function getTopMaterials(
+  businessId: string,
   filters?: AnalyticsFilters,
   limit = 10
 ): Promise<{ material: string; quantity: number }[]> {
@@ -83,7 +90,7 @@ export async function getTopMaterials(
 
   const { data } = await (supabase.from("order_materials") as any).select(
     "quantity_used, materials(name), orders!inner(order_date, customer_id, assigned_tailor_id, status, total_cost, deleted_at)"
-  );
+  ).eq("business_id", businessId);
 
   const rows = (data || []).filter((row: any) => {
     const o = row.orders;
@@ -111,6 +118,7 @@ export async function getTopMaterials(
 }
 
 export async function getEmployeeProductivity(
+  businessId: string,
   filters?: AnalyticsFilters
 ): Promise<{ name: string; hours: number; orders: number }[]> {
   const supabase = await createClient();
@@ -120,11 +128,15 @@ export async function getEmployeeProductivity(
   const startDate = filters?.startDate || thirtyDaysAgo;
   const endDate = filters?.endDate || today;
 
-  let employeesQuery = (supabase.from("employees") as any).select("id, name").eq("active", true);
+  let employeesQuery = (supabase.from("employees") as any)
+    .select("id, name")
+    .eq("business_id", businessId)
+    .eq("active", true);
   if (filters?.employeeId) employeesQuery = employeesQuery.eq("id", filters.employeeId);
 
   let ordersQuery = (supabase.from("orders") as any)
     .select("assigned_tailor_id")
+    .eq("business_id", businessId)
     .eq("status", "completed")
     .gte("order_date", startDate)
     .lte("order_date", endDate)
@@ -135,6 +147,7 @@ export async function getEmployeeProductivity(
     employeesQuery,
     (supabase.from("attendance") as any)
       .select("employee_id, hours_worked")
+      .eq("business_id", businessId)
       .gte("date", startDate)
       .lte("date", endDate),
     ordersQuery,
@@ -166,6 +179,7 @@ export async function getEmployeeProductivity(
 }
 
 export async function getProfitabilityData(
+  businessId: string,
   filters?: AnalyticsFilters,
   months = 6
 ): Promise<{ month: string; revenue: number; costs: number; profit: number }[]> {
@@ -180,6 +194,7 @@ export async function getProfitabilityData(
 
     let query = (supabase.from("orders") as any)
       .select("total_cost, material_cost, labour_cost")
+      .eq("business_id", businessId)
       .gte("order_date", start)
       .lte("order_date", end)
       .is("deleted_at", null);
@@ -217,6 +232,7 @@ export async function getProfitabilityData(
 }
 
 export async function getCustomerAnalytics(
+  businessId: string,
   filters?: AnalyticsFilters,
   limit = 10
 ): Promise<{ customer: string; spend: number; orders: number }[]> {
@@ -224,6 +240,7 @@ export async function getCustomerAnalytics(
 
   let query = (supabase.from("orders") as any)
     .select("total_cost, customers(name)")
+    .eq("business_id", businessId)
     .is("deleted_at", null);
   query = applyOrderFilters(query, filters);
 
@@ -248,6 +265,7 @@ export async function getCustomerAnalytics(
 }
 
 export async function getInventoryTurnover(
+  businessId: string,
   filters?: AnalyticsFilters,
   limit = 10
 ): Promise<{ material: string; turnover: number }[]> {
@@ -256,8 +274,11 @@ export async function getInventoryTurnover(
   const [usageResult, materialsResult] = await Promise.all([
     (supabase.from("order_materials") as any).select(
       "quantity_used, material_id, materials(name), orders!inner(order_date, customer_id, assigned_tailor_id, status, total_cost, deleted_at)"
-    ),
-    (supabase.from("materials") as any).select("id, name, stock_quantity").is("deleted_at", null),
+    ).eq("business_id", businessId),
+    (supabase.from("materials") as any)
+      .select("id, name, stock_quantity")
+      .eq("business_id", businessId)
+      .is("deleted_at", null),
   ]);
 
   const usageRows = (usageResult.data || []).filter((row: any) => {
@@ -293,7 +314,7 @@ export async function getInventoryTurnover(
     .slice(0, limit);
 }
 
-export async function getAnalyticsStats(filters?: AnalyticsFilters): Promise<{
+export async function getAnalyticsStats(businessId: string, filters?: AnalyticsFilters): Promise<{
   totalOrders: number;
   totalRevenue: number;
   activeCustomers: number;
@@ -305,14 +326,19 @@ export async function getAnalyticsStats(filters?: AnalyticsFilters): Promise<{
 
   let ordersQuery = (supabase.from("orders") as any)
     .select("total_cost, customers(name)")
+    .eq("business_id", businessId)
     .is("deleted_at", null);
   ordersQuery = applyOrderFilters(ordersQuery, filters);
 
   const [ordersResult, customersResult, materialsResult] = await Promise.all([
     ordersQuery,
-    (supabase.from("customers") as any).select("id").is("deleted_at", null),
+    (supabase.from("customers") as any)
+      .select("id")
+      .eq("business_id", businessId)
+      .is("deleted_at", null),
     (supabase.from("materials") as any)
       .select("stock_quantity, min_stock_level")
+      .eq("business_id", businessId)
       .is("deleted_at", null),
   ]);
 

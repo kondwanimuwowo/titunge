@@ -1,16 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
-import type { Tables } from "@/lib/types/database";
+﻿import { createClient } from "@/lib/supabase/server";
 
-export async function getBatches(): Promise<any[]> {
+export async function getBatches(businessId: string): Promise<any[]> {
   const supabase = await createClient();
   const { data, error } = await (supabase.from("production_batches") as any)
     .select(
       `
       *,
-      products(id, name, image_url),
-      production_stages(*)
+      products(id, name, images)
     `
     )
+    .eq("business_id", businessId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
@@ -22,10 +21,11 @@ export async function getBatches(): Promise<any[]> {
   return data || [];
 }
 
-export async function getDeletedBatches(): Promise<any[]> {
+export async function getDeletedBatches(businessId: string): Promise<any[]> {
   const supabase = await createClient();
   const { data, error } = await (supabase.from("production_batches") as any)
-    .select(`*, products(id, name, image_url)`)
+    .select(`*, products(id, name, images)`)
+    .eq("business_id", businessId)
     .not("deleted_at", "is", null)
     .order("deleted_at", { ascending: false });
 
@@ -37,7 +37,7 @@ export async function getDeletedBatches(): Promise<any[]> {
   return data || [];
 }
 
-export async function getBatchById(id: string): Promise<any> {
+export async function getBatchById(businessId: string, id: string): Promise<any> {
   const supabase = await createClient();
   const { data, error } = await (supabase.from("production_batches") as any)
     .select(
@@ -49,6 +49,7 @@ export async function getBatchById(id: string): Promise<any> {
       production_logs(id, batch_id, user_id, action, details, metadata, created_at, user_profiles(id, name))
     `
     )
+    .eq("business_id", businessId)
     .eq("id", id)
     .is("deleted_at", null)
     .single();
@@ -71,11 +72,12 @@ export interface ProductionBottleneck {
   average_duration: number;
 }
 
-export async function getAverageStageDurations(): Promise<Record<string, number>> {
+export async function getAverageStageDurations(businessId: string): Promise<Record<string, number>> {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("production_stages") as any)
-    .select("stage_name, started_at, completed_at")
+  const { data, error } = await (supabase as any).from("production_stages")
+    .select("stage_name, started_at, completed_at, production_batches!inner(business_id)")
+    .eq("production_batches.business_id", businessId)
     .eq("status", "completed")
     .not("started_at", "is", null)
     .not("completed_at", "is", null);
@@ -102,21 +104,22 @@ export async function getAverageStageDurations(): Promise<Record<string, number>
   return averages;
 }
 
-export async function getBottlenecks(): Promise<ProductionBottleneck[]> {
+export async function getBottlenecks(businessId: string): Promise<ProductionBottleneck[]> {
   const supabase = await createClient();
 
-  const averages = await getAverageStageDurations();
+  const averages = await getAverageStageDurations(businessId);
 
-  const { data: activeStages, error } = await (supabase.from("production_stages") as any)
+  const { data: activeStages, error } = await (supabase as any).from("production_stages")
     .select(
       `
       id,
       batch_id,
       stage_name,
       started_at,
-      production_batches!inner(batch_number, status)
+      production_batches!inner(batch_number, status, business_id)
     `
     )
+    .eq("production_batches.business_id", businessId)
     .eq("status", "in_progress")
     .not("started_at", "is", null);
 
@@ -138,7 +141,7 @@ export async function getBottlenecks(): Promise<ProductionBottleneck[]> {
       return {
         id: stage.id,
         batch_id: stage.batch_id,
-        batch_number: stage.production_batches?.batch_number || "—",
+        batch_number: stage.production_batches?.batch_number || "â€”",
         stage_name: stage.stage_name,
         started_at: stage.started_at,
         current_duration: Math.round(currentDuration * 10) / 10,
@@ -149,7 +152,7 @@ export async function getBottlenecks(): Promise<ProductionBottleneck[]> {
     .filter((stage: any) => stage.is_delayed);
 }
 
-export async function getProductionStats(): Promise<{
+export async function getProductionStats(businessId: string): Promise<{
   weeklyOutput: number;
   bottleneckCount: number;
   avgDurations: Record<string, number>;
@@ -162,6 +165,7 @@ export async function getProductionStats(): Promise<{
 
   const { data: weeklyBatches, error: weeklyError } = await (supabase.from("production_batches") as any)
     .select("id")
+    .eq("business_id", businessId)
     .eq("status", "completed")
     .gte("completed_at", sevenDaysAgo.toISOString())
     .is("deleted_at", null);
@@ -171,8 +175,8 @@ export async function getProductionStats(): Promise<{
   }
 
   const [bottlenecks, avgDurations] = await Promise.all([
-    getBottlenecks(),
-    getAverageStageDurations(),
+    getBottlenecks(businessId),
+    getAverageStageDurations(businessId),
   ]);
 
   return {
@@ -183,6 +187,7 @@ export async function getProductionStats(): Promise<{
 }
 
 export async function validateMaterialAvailability(
+  businessId: string,
   materials: Array<{ material_id: string; quantity: number }>
 ): Promise<{ valid: boolean; message?: string }> {
   const supabase = await createClient();
@@ -190,6 +195,7 @@ export async function validateMaterialAvailability(
   for (const material of materials) {
     const { data, error } = await (supabase.from("materials") as any)
       .select("stock_quantity, min_stock_level")
+      .eq("business_id", businessId)
       .eq("id", material.material_id)
       .single();
 

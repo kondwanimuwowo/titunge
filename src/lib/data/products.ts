@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/types/database";
 
-export async function getProducts(): Promise<Tables<"products">[]> {
+export async function getProducts(businessId: string): Promise<Tables<"products">[]> {
   const supabase = await createClient();
-  const { data, error } = await (supabase.from("products") as any)
+  const { data, error } = await supabase
+    .from("products")
     .select("*")
+    .eq("business_id", businessId)
     .is("deleted_at", null)
     .order("name");
 
@@ -16,10 +18,12 @@ export async function getProducts(): Promise<Tables<"products">[]> {
   return data || [];
 }
 
-export async function getDeletedProducts(): Promise<Tables<"products">[]> {
+export async function getDeletedProducts(businessId: string): Promise<Tables<"products">[]> {
   const supabase = await createClient();
-  const { data, error } = await (supabase.from("products") as any)
+  const { data, error } = await supabase
+    .from("products")
     .select("*")
+    .eq("business_id", businessId)
     .not("deleted_at", "is", null)
     .order("deleted_at", { ascending: false });
 
@@ -31,10 +35,12 @@ export async function getDeletedProducts(): Promise<Tables<"products">[]> {
   return data || [];
 }
 
-export async function getProductById(id: string): Promise<Tables<"products"> | null> {
+export async function getProductById(businessId: string, id: string): Promise<Tables<"products"> | null> {
   const supabase = await createClient();
-  const { data, error } = await (supabase.from("products") as any)
+  const { data, error } = await supabase
+    .from("products")
     .select("*")
+    .eq("business_id", businessId)
     .eq("id", id)
     .is("deleted_at", null)
     .single();
@@ -48,11 +54,14 @@ export async function getProductById(id: string): Promise<Tables<"products"> | n
 }
 
 export async function getProductsByType(
+  businessId: string,
   type: "custom_design" | "finished_good"
 ): Promise<Tables<"products">[]> {
   const supabase = await createClient();
-  const { data, error } = await (supabase.from("products") as any)
+  const { data, error } = await supabase
+    .from("products")
     .select("*")
+    .eq("business_id", businessId)
     .eq("product_type", type)
     .is("deleted_at", null)
     .order("name");

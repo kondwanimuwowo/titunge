@@ -2,14 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireBusinessContext } from "@/lib/business-context";
 import { format } from "date-fns";
 
 export async function deleteOrder(orderId: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("orders") as any)
     .update({ deleted_at: new Date().toISOString() })
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Order delete error:", error);
@@ -24,11 +27,13 @@ export async function deleteOrder(orderId: string) {
 }
 
 export async function restoreOrder(orderId: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("orders") as any)
     .update({ deleted_at: null })
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -40,11 +45,13 @@ export async function restoreOrder(orderId: string) {
 }
 
 export async function hardDeleteOrder(orderId: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { data, error } = await (supabase.from("orders") as any)
     .delete()
     .eq("id", orderId)
+    .eq("business_id", businessId)
     .select("id");
 
   if (!error && (!data || data.length === 0)) {
@@ -67,31 +74,25 @@ export async function hardDeleteOrder(orderId: string) {
 }
 
 export async function updateOrderStatus(orderId: string, status: string, notes: string = "") {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   // 1. Update status
   const { error: updateError } = await (supabase.from("orders") as any)
     .update({ status })
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .eq("business_id", businessId);
 
   if (updateError) {
     return { success: false, message: updateError.message };
   }
 
-  // 2. Add to timeline
-  await (supabase.from("order_timeline") as any).insert([
-    {
-      order_id: orderId,
-      status,
-      notes,
-    },
-  ]);
-
-  // 3. Deduct materials if moving to production (MVP exact copy of legacy behavior)
+  // 2. Deduct materials if moving to production (MVP exact copy of legacy behavior)
   if (status === "production") {
     const { data: orderData } = await (supabase.from("orders") as any)
       .select("order_number")
       .eq("id", orderId)
+      .eq("business_id", businessId)
       .single();
 
     const orderLabel = orderData?.order_number ? `Order #${orderData.order_number}` : "order";
@@ -105,13 +106,15 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
         const { data: inv } = await (supabase.from("materials") as any)
           .select("stock_quantity")
           .eq("id", m.material_id)
+          .eq("business_id", businessId)
           .single();
 
         if (inv) {
           const newQty = Math.max(0, (inv.stock_quantity || 0) - m.quantity_used);
           await (supabase.from("materials") as any)
             .update({ stock_quantity: newQty })
-            .eq("id", m.material_id);
+            .eq("id", m.material_id)
+            .eq("business_id", businessId);
 
           await (supabase.from("inventory_transactions") as any).insert([{
             material_id: m.material_id,
@@ -119,6 +122,7 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
             operation_type: "order_deduction",
             quantity_change: -m.quantity_used,
             notes: `Deducted for ${orderLabel} (moved to production)`,
+            business_id: businessId,
           }]);
         }
       }
@@ -133,11 +137,13 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
 }
 
 export async function cancelOrder(orderId: string, reason: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { data: order, error: fetchError } = await (supabase.from("orders") as any)
     .select("status")
     .eq("id", orderId)
+    .eq("business_id", businessId)
     .single();
 
   if (fetchError || !order) {
@@ -155,6 +161,7 @@ export async function cancelOrder(orderId: string, reason: string) {
     const { data: orderData } = await (supabase.from("orders") as any)
       .select("order_number")
       .eq("id", orderId)
+      .eq("business_id", businessId)
       .single();
 
     const orderLabel = orderData?.order_number ? `Order #${orderData.order_number}` : "order";
@@ -168,13 +175,15 @@ export async function cancelOrder(orderId: string, reason: string) {
         const { data: inv } = await (supabase.from("materials") as any)
           .select("stock_quantity")
           .eq("id", m.material_id)
+          .eq("business_id", businessId)
           .single();
 
         if (inv) {
           const newQty = (inv.stock_quantity || 0) + m.quantity_used;
           await (supabase.from("materials") as any)
             .update({ stock_quantity: newQty })
-            .eq("id", m.material_id);
+            .eq("id", m.material_id)
+            .eq("business_id", businessId);
 
           await (supabase.from("inventory_transactions") as any).insert([{
             material_id: m.material_id,
@@ -182,6 +191,7 @@ export async function cancelOrder(orderId: string, reason: string) {
             operation_type: "cancellation_restore",
             quantity_change: m.quantity_used,
             notes: `Stock restored — ${orderLabel} cancelled`,
+            business_id: businessId,
           }]);
         }
       }
@@ -194,17 +204,12 @@ export async function cancelOrder(orderId: string, reason: string) {
       cancellation_reason: reason,
       cancelled_at: new Date().toISOString(),
     })
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .eq("business_id", businessId);
 
   if (updateError) {
     return { success: false, message: updateError.message };
   }
-
-  await (supabase.from("order_timeline") as any).insert([{
-    order_id: orderId,
-    status: "cancelled",
-    notes: reason,
-  }]);
 
   revalidatePath("/orders");
   revalidatePath(`/orders/${orderId}`);
@@ -215,6 +220,7 @@ export async function cancelOrder(orderId: string, reason: string) {
 }
 
 export async function createOrderAction(orderData: any) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
@@ -229,6 +235,7 @@ export async function createOrderAction(orderData: any) {
         ...restOrderData,
         order_number: orderNumber,
         order_date: new Date().toISOString(),
+        business_id: businessId,
       }])
       .select("id")
       .single();
@@ -249,13 +256,6 @@ export async function createOrderAction(orderData: any) {
       await (supabase.from("order_materials") as any).insert(materialRows);
     }
 
-    // Step 4: Insert first timeline entry
-    await (supabase.from("order_timeline") as any).insert([{
-      order_id: newOrderId,
-      status: orderData.status || "enquiry",
-      notes: "Order created",
-    }]);
-
     revalidatePath("/orders");
     revalidatePath("/dashboard");
 
@@ -270,6 +270,7 @@ export async function updateOrderMaterialsAction(
   orderId: string,
   materials: { material_id: string; quantity_used: number }[]
 ) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
@@ -278,12 +279,13 @@ export async function updateOrderMaterialsAction(
 
     if (materials.length > 0) {
       const { data: materialRecords, error: matError } = await (supabase.from("materials") as any)
-        .select("id, cost_per_unit")
-        .in("id", materials.map((m) => m.material_id));
+        .select("id, unit_cost")
+        .in("id", materials.map((m) => m.material_id))
+        .eq("business_id", businessId);
 
       if (matError) throw new Error(matError.message);
 
-      const costMap = new Map((materialRecords || []).map((m: any) => [m.id, parseFloat(String(m.cost_per_unit || 0))]));
+      const costMap = new Map((materialRecords || []).map((m: any) => [m.id, parseFloat(String(m.unit_cost || 0))]));
 
       for (const m of materials) {
         const unitCost = (costMap.get(m.material_id) as number) || 0;
@@ -302,7 +304,8 @@ export async function updateOrderMaterialsAction(
 
     const { error: updateError } = await (supabase.from("orders") as any)
       .update({ material_cost: Math.round(materialCost * 100) / 100 })
-      .eq("id", orderId);
+      .eq("id", orderId)
+      .eq("business_id", businessId);
 
     if (updateError) throw new Error(updateError.message);
 
@@ -317,6 +320,7 @@ export async function updateOrderMaterialsAction(
 }
 
 export async function updateOrderAction(orderId: string, orderData: any) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
@@ -335,7 +339,8 @@ export async function updateOrderAction(orderId: string, orderData: any) {
         description: fields.description ?? null,
         notes: fields.notes ?? null,
       })
-      .eq("id", orderId);
+      .eq("id", orderId)
+      .eq("business_id", businessId);
 
     if (orderError) throw new Error(orderError.message);
 

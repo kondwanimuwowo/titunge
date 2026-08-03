@@ -1,21 +1,16 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getProductById } from "@/lib/data/products";
 import { Button } from "@/components/ui/button";
 import ProductForm from "@/components/products/ProductForm";
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { businessId } = await getBusinessContext();
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  const product = await getProductById(id);
+  const product = await getProductById(businessId, id);
   if (!product) notFound();
 
   return (

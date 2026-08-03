@@ -1,24 +1,27 @@
 import { createClient } from "@/lib/supabase/server";
-import { format, startOfMonth, endOfMonth } from "date-fns";
 
-export async function getFinancialSummary(startDate: string, endDate: string) {
+export async function getFinancialSummary(businessId: string, startDate: string, endDate: string) {
   const supabase = await createClient();
 
   const [ordersResult, overheadResult, expensesResult, paymentsResult] = await Promise.all([
     (supabase.from("orders") as any)
       .select("id, total_cost, material_cost, labour_cost, overhead_cost, status")
+      .eq("business_id", businessId)
       .gte("order_date", startDate)
       .lte("order_date", endDate),
     (supabase.from("overhead_costs") as any)
       .select("amount")
+      .eq("business_id", businessId)
       .gte("month", startDate)
       .lte("month", endDate),
     (supabase.from("expenses") as any)
       .select("amount")
+      .eq("business_id", businessId)
       .gte("expense_date", startDate)
       .lte("expense_date", endDate),
     (supabase.from("payments") as any)
       .select("amount")
+      .eq("business_id", businessId)
       .gte("payment_date", startDate)
       .lte("payment_date", endDate),
   ]);
@@ -79,11 +82,12 @@ export async function getFinancialSummary(startDate: string, endDate: string) {
   };
 }
 
-export async function getProfitLossOrders(startDate?: string, endDate?: string) {
+export async function getProfitLossOrders(businessId: string, startDate?: string, endDate?: string) {
   const supabase = await createClient();
 
   let query = (supabase.from("orders") as any)
     .select("id, order_number, order_date, total_cost, material_cost, labour_cost, overhead_cost, customers(name)")
+    .eq("business_id", businessId)
     .in("status", ["completed", "delivered"])
     .is("deleted_at", null)
     .order("order_date", { ascending: false });
@@ -120,12 +124,12 @@ export async function getProfitLossOrders(startDate?: string, endDate?: string) 
   });
 }
 
-export async function getExpenses(startDate?: string, endDate?: string) {
+export async function getExpenses(businessId: string, startDate?: string, endDate?: string) {
   const supabase = await createClient();
 
-  let query = (supabase.from("expenses") as any).select(
-    "*, employees(id, name), orders(id, order_number)"
-  );
+  let query = (supabase.from("expenses") as any)
+    .select("*, employees(id, name), orders(id, order_number)")
+    .eq("business_id", businessId);
 
   if (startDate) query = query.gte("expense_date", startDate);
   if (endDate) query = query.lte("expense_date", endDate);
@@ -140,12 +144,12 @@ export async function getExpenses(startDate?: string, endDate?: string) {
   return data || [];
 }
 
-export async function getPayments(startDate?: string, endDate?: string) {
+export async function getPayments(businessId: string, startDate?: string, endDate?: string) {
   const supabase = await createClient();
 
-  let query = (supabase.from("payments") as any).select(
-    "*, orders(id, order_number, total_cost, customers(name, phone))"
-  );
+  let query = (supabase.from("payments") as any)
+    .select("*, orders(id, order_number, total_cost, customers(name, phone))")
+    .eq("business_id", businessId);
 
   if (startDate) query = query.gte("payment_date", startDate);
   if (endDate) query = query.lte("payment_date", endDate);
@@ -160,11 +164,12 @@ export async function getPayments(startDate?: string, endDate?: string) {
   return data || [];
 }
 
-export async function getOverheadCosts(startDate: string, endDate: string) {
+export async function getOverheadCosts(businessId: string, startDate: string, endDate: string) {
   const supabase = await createClient();
 
   const { data, error } = await (supabase.from("overhead_costs") as any)
     .select("*")
+    .eq("business_id", businessId)
     .gte("month", startDate)
     .lte("month", endDate)
     .order("category");
@@ -177,21 +182,24 @@ export async function getOverheadCosts(startDate: string, endDate: string) {
   return data || [];
 }
 
-export async function getOverheadById(id: string) {
+export async function getOverheadById(businessId: string, id: string) {
   const supabase = await createClient();
   const { data, error } = await (supabase.from("overhead_costs") as any)
     .select("*")
+    .eq("business_id", businessId)
     .eq("id", id)
     .single();
   if (error && error.code !== "PGRST116") return null;
   return data || null;
 }
 
-export async function getGarmentTypes() {
+export async function getGarmentTypes(businessId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("garment_types") as any)
+  const { data, error } = await supabase
+    .from("garment_types")
     .select("*")
+    .eq("business_id", businessId)
     .eq("active", true)
     .order("name");
 
@@ -203,21 +211,25 @@ export async function getGarmentTypes() {
   return data || [];
 }
 
-export async function getGarmentTypeById(id: string) {
+export async function getGarmentTypeById(businessId: string, id: string) {
   const supabase = await createClient();
-  const { data, error } = await (supabase.from("garment_types") as any)
+  const { data, error } = await supabase
+    .from("garment_types")
     .select("*")
+    .eq("business_id", businessId)
     .eq("id", id)
     .single();
   if (error && error.code !== "PGRST116") return null;
   return data || null;
 }
 
-export async function getFinancialSettings() {
+export async function getFinancialSettings(businessId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("financial_settings") as any)
+  const { data, error } = await supabase
+    .from("financial_settings")
     .select("*")
+    .eq("business_id", businessId)
     .single();
 
   if (error && error.code !== "PGRST116") {
@@ -227,3 +239,4 @@ export async function getFinancialSettings() {
 
   return data || null;
 }
+

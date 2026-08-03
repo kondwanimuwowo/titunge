@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 
-export async function getCustomers() {
+export async function getCustomers(businessId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("customers") as any)
+  const { data, error } = await supabase
+    .from("customers")
     .select("*")
+    .eq("business_id", businessId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
@@ -16,11 +18,13 @@ export async function getCustomers() {
   return data || [];
 }
 
-export async function getDeletedCustomers() {
+export async function getDeletedCustomers(businessId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("customers") as any)
+  const { data, error } = await supabase
+    .from("customers")
     .select("*")
+    .eq("business_id", businessId)
     .not("deleted_at", "is", null)
     .order("deleted_at", { ascending: false });
 
@@ -32,11 +36,13 @@ export async function getDeletedCustomers() {
   return data || [];
 }
 
-export async function getCustomerById(id: string) {
+export async function getCustomerById(businessId: string, id: string) {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("customers") as any)
+  const { data, error } = await supabase
+    .from("customers")
     .select("*")
+    .eq("business_id", businessId)
     .eq("id", id)
     .single();
 
@@ -48,12 +54,21 @@ export async function getCustomerById(id: string) {
   return data;
 }
 
-export async function getCustomerWithOrders(id: string) {
+export async function getCustomerWithOrders(businessId: string, id: string) {
   const supabase = await createClient();
 
   const [customerResult, ordersResult] = await Promise.all([
-    (supabase.from("customers") as any).select("*").eq("id", id).single(),
-    (supabase.from("orders") as any).select("*").eq("customer_id", id).order("created_at", { ascending: false }),
+    supabase
+      .from("customers")
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("id", id)
+      .single(),
+    (supabase.from("orders") as any)
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("customer_id", id)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (customerResult.error || !customerResult.data) {
@@ -67,11 +82,12 @@ export async function getCustomerWithOrders(id: string) {
   };
 }
 
-export async function getCustomerStats(customerId: string) {
+export async function getCustomerStats(businessId: string, customerId: string) {
   const supabase = await createClient();
 
   const { data: orders } = await (supabase.from("orders") as any)
     .select("total_cost, status, created_at")
+    .eq("business_id", businessId)
     .eq("customer_id", customerId)
     .is("deleted_at", null);
 

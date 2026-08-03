@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireBusinessContext } from "@/lib/business-context";
 
 // Helper: Get Zambian date string (YYYY-MM-DD)
 function getZambianDateString(): string {
@@ -20,11 +21,13 @@ function getZambianDateTimeString(): string {
 export async function addEmployeeAction(
   data: any
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const payload = {
     ...data,
     active: true,
+    business_id: businessId,
   };
 
   const { error } = await (supabase.from("employees") as any).insert([payload]);
@@ -41,11 +44,13 @@ export async function updateEmployeeAction(
   id: string,
   updates: any
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("employees") as any)
     .update(updates)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -59,11 +64,13 @@ export async function updateEmployeeAction(
 export async function deleteEmployeeAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("employees") as any)
     .update({ active: false })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -76,11 +83,13 @@ export async function deleteEmployeeAction(
 export async function restoreEmployeeAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("employees") as any)
     .update({ active: true })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -93,11 +102,13 @@ export async function restoreEmployeeAction(
 export async function hardDeleteEmployeeAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { data, error } = await (supabase.from("employees") as any)
     .delete()
     .eq("id", id)
+    .eq("business_id", businessId)
     .select("id");
 
   if (!error && (!data || data.length === 0)) {
@@ -121,6 +132,7 @@ export async function hardDeleteEmployeeAction(
 export async function clockInAction(
   employeeId: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const todayDate = getZambianDateString();
@@ -131,6 +143,7 @@ export async function clockInAction(
     const { data: existing } = await (supabase.from("attendance") as any)
       .select("id")
       .eq("employee_id", employeeId)
+      .eq("business_id", businessId)
       .eq("date", todayDate)
       .single();
 
@@ -142,6 +155,7 @@ export async function clockInAction(
     const { error } = await (supabase.from("attendance") as any).insert([
       {
         employee_id: employeeId,
+        business_id: businessId,
         date: todayDate,
         clock_in: nowTime,
       },
@@ -161,6 +175,7 @@ export async function clockInAction(
 export async function clockOutAction(
   employeeId: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const todayDate = getZambianDateString();
@@ -171,6 +186,7 @@ export async function clockOutAction(
     const { data: attendance } = await (supabase.from("attendance") as any)
       .select("*")
       .eq("employee_id", employeeId)
+      .eq("business_id", businessId)
       .eq("date", todayDate)
       .single();
 
@@ -189,7 +205,8 @@ export async function clockOutAction(
         clock_out: nowTime,
         hours_worked: Math.round(hoursWorked * 100) / 100,
       })
-      .eq("id", attendance.id);
+      .eq("id", attendance.id)
+      .eq("business_id", businessId);
 
     if (error) {
       return { success: false, message: error.message };
@@ -205,6 +222,7 @@ export async function clockOutAction(
 export async function getTodayStatusAction(
   employeeId: string
 ): Promise<{ status: "absent" | "clocked_in" | "clocked_out"; data?: any }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const todayDate = getZambianDateString();
@@ -213,6 +231,7 @@ export async function getTodayStatusAction(
     const { data } = await (supabase.from("attendance") as any)
       .select("*")
       .eq("employee_id", employeeId)
+      .eq("business_id", businessId)
       .eq("date", todayDate)
       .maybeSingle();
 

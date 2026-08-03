@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getProducts } from "@/lib/data/products";
 import { PageHeader } from "@/components/layout/PageHeader";
 import ProductList from "@/components/products/ProductList";
@@ -8,14 +8,9 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default async function ProductsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { businessId } = await getBusinessContext();
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  const products = await getProducts();
+  const products = await getProducts(businessId);
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

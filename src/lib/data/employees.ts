@@ -1,20 +1,23 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/types/database";
 
-export async function getEmployees(): Promise<(Tables<"employees"> & { active_orders_count: number })[]> {
+export async function getEmployees(businessId: string): Promise<(Tables<"employees"> & { active_orders_count: number })[]> {
   const supabase = await createClient();
 
   // Get all employees (active and inactive) so the UI can filter client-side
-  const { data, error } = await (supabase.from("employees_with_order_count") as any)
+  const { data, error } = await (supabase as any).from("employees_with_order_count")
     .select("*")
+    .eq("business_id", businessId)
     .order("name");
 
   if (error) {
     // Fallback: if view doesn't exist, fetch and compute client-side
     console.warn("Aggregation view not available, falling back to client-side computation");
 
-    const { data: employees, error: empError } = await (supabase.from("employees") as any)
+    const { data: employees, error: empError } = await supabase
+      .from("employees")
       .select("*")
+      .eq("business_id", businessId)
       .order("name");
 
     if (empError) {
@@ -25,6 +28,7 @@ export async function getEmployees(): Promise<(Tables<"employees"> & { active_or
     // Build lookup map for all active orders in one query
     const { data: orders } = await (supabase.from("orders") as any)
       .select("assigned_tailor_id")
+      .eq("business_id", businessId)
       .in("status", ["pending", "in_progress", "review"]);
 
     const orderCounts = (orders || []).reduce(
@@ -35,7 +39,7 @@ export async function getEmployees(): Promise<(Tables<"employees"> & { active_or
       {} as Record<string, number>
     );
 
-    return (employees || []).map((emp: any) => ({
+    return (employees || []).map((emp) => ({
       ...emp,
       active_orders_count: orderCounts[emp.id] || 0,
     }));
@@ -44,11 +48,13 @@ export async function getEmployees(): Promise<(Tables<"employees"> & { active_or
   return data || [];
 }
 
-export async function getDeletedEmployees(): Promise<(Tables<"employees"> & { active_orders_count: number })[]> {
+export async function getDeletedEmployees(businessId: string): Promise<(Tables<"employees"> & { active_orders_count: number })[]> {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("employees") as any)
+  const { data, error } = await supabase
+    .from("employees")
     .select("*")
+    .eq("business_id", businessId)
     .eq("active", false)
     .order("name");
 
@@ -57,14 +63,15 @@ export async function getDeletedEmployees(): Promise<(Tables<"employees"> & { ac
     throw new Error("Failed to fetch deleted employees");
   }
 
-  return (data || []).map((emp: any) => ({ ...emp, active_orders_count: 0 }));
+  return (data || []).map((emp) => ({ ...emp, active_orders_count: 0 }));
 }
 
-export async function getEmployeeById(id: string): Promise<Tables<"employees"> | null> {
+export async function getEmployeeById(businessId: string, id: string): Promise<Tables<"employees"> | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("employees")
     .select("*")
+    .eq("business_id", businessId)
     .eq("id", id)
     .single();
 
@@ -76,18 +83,17 @@ export async function getEmployeeById(id: string): Promise<Tables<"employees"> |
   return data || null;
 }
 
-export async function getTodayAttendance(): Promise<any[]> {
+export async function getTodayAttendance(businessId: string): Promise<any[]> {
   const supabase = await createClient();
 
   // Get today's date in Zambian timezone
   const today = new Date();
-  const zambiaTz = new Intl.DateTimeFormat("en-ZA", { timeZone: "Africa/Harare" });
-  const [date] = zambiaTz.formatToParts(today);
   const todayDate = today.toISOString().split("T")[0];
 
   const { data, error } = await supabase
     .from("attendance")
     .select("*, employees(id, name, role, email)")
+    .eq("business_id", businessId)
     .gte("date", todayDate)
     .lt("date", new Date(today.getTime() + 86400000).toISOString().split("T")[0]);
 
@@ -100,6 +106,7 @@ export async function getTodayAttendance(): Promise<any[]> {
 }
 
 export async function getEmployeeAttendance(
+  businessId: string,
   employeeId: string,
   startDate?: string,
   endDate?: string
@@ -109,6 +116,7 @@ export async function getEmployeeAttendance(
   let query = supabase
     .from("attendance")
     .select("*")
+    .eq("business_id", businessId)
     .eq("employee_id", employeeId);
 
   if (startDate) {
@@ -130,6 +138,7 @@ export async function getEmployeeAttendance(
 }
 
 export async function getAttendanceStats(
+  businessId: string,
   startDate: string,
   endDate: string
 ): Promise<{
@@ -140,8 +149,10 @@ export async function getAttendanceStats(
 }> {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("attendance") as any)
+  const { data, error } = await supabase
+    .from("attendance")
     .select("hours_worked")
+    .eq("business_id", businessId)
     .gte("date", startDate)
     .lte("date", endDate);
 
@@ -151,12 +162,12 @@ export async function getAttendanceStats(
   }
 
   const records = data || [];
-  const totalHours = records.reduce((sum: number, r: any) => sum + (parseFloat(String(r.hours_worked || 0))), 0);
+  const totalHours = records.reduce((sum: number, r) => sum + (parseFloat(String(r.hours_worked || 0))), 0);
 
   return {
     totalDays: records.length,
-    presentDays: records.filter((r: any) => r.hours_worked).length,
-    absentDays: records.length - (records.filter((r: any) => r.hours_worked).length),
+    presentDays: records.filter((r) => r.hours_worked).length,
+    absentDays: records.length - (records.filter((r) => r.hours_worked).length),
     totalHours,
   };
 }

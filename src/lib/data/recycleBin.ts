@@ -21,14 +21,14 @@ export interface RecycleBinItem {
   deletedAt: string | null;
 }
 
-export async function getRecycleBinItems(): Promise<RecycleBinItem[]> {
+export async function getRecycleBinItems(businessId: string): Promise<RecycleBinItem[]> {
   const [employees, customers, products, materials, orders, batches] = await Promise.all([
-    getDeletedEmployees(),
-    getDeletedCustomers(),
-    getDeletedProducts(),
-    getDeletedMaterials(),
-    getDeletedOrders(),
-    getDeletedBatches(),
+    getDeletedEmployees(businessId),
+    getDeletedCustomers(businessId),
+    getDeletedProducts(businessId),
+    getDeletedMaterials(businessId),
+    getDeletedOrders(businessId),
+    getDeletedBatches(businessId),
   ]);
 
   const items: RecycleBinItem[] = [

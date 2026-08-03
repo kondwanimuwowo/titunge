@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCustomerById } from "@/lib/data/customers";
+import { getBusinessContext } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
 import CustomerForm from "@/components/customers/CustomerForm";
 
@@ -15,9 +16,11 @@ export default async function EditCustomerPage({ params }: { params: Promise<{ i
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
+
   let customer;
   try {
-    customer = await getCustomerById(id);
+    customer = await getCustomerById(businessId, id);
   } catch {
     notFound();
   }

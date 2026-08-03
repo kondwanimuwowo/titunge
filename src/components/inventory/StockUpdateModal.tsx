@@ -55,7 +55,7 @@ export default function StockUpdateModal({
   const useSamePrice = watch("useSamePrice");
   const newPrice = watch("newPrice");
 
-  const currentCost = parseFloat(String(material.cost_per_unit || 0));
+  const currentCost = parseFloat(String(material.unit_cost || 0));
   const currentStock = parseFloat(String(material.stock_quantity || 0));
 
   // Calculate new stock and weighted average cost

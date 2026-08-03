@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/types/database";
 
-export async function getMaterials(): Promise<Tables<"materials">[]> {
+export async function getMaterials(businessId: string): Promise<Tables<"materials">[]> {
   const supabase = await createClient();
   const { data, error } = await (supabase.from("materials") as any)
     .select("*")
-    .is("deleted_at", null)
+    .eq("business_id", businessId)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -16,25 +16,16 @@ export async function getMaterials(): Promise<Tables<"materials">[]> {
   return data || [];
 }
 
-export async function getDeletedMaterials(): Promise<Tables<"materials">[]> {
-  const supabase = await createClient();
-  const { data, error } = await (supabase.from("materials") as any)
-    .select("*")
-    .not("deleted_at", "is", null)
-    .order("deleted_at", { ascending: false });
-
-  if (error) {
-    console.error("Failed to fetch deleted materials:", error);
-    throw new Error("Failed to fetch deleted materials");
-  }
-
-  return data || [];
+// materials table does not have deleted_at in the current schema — soft-delete not yet supported
+export async function getDeletedMaterials(_businessId: string): Promise<Tables<"materials">[]> {
+  return [];
 }
 
-export async function getMaterialById(id: string): Promise<Tables<"materials"> | null> {
+export async function getMaterialById(businessId: string, id: string): Promise<Tables<"materials"> | null> {
   const supabase = await createClient();
   const { data, error } = await (supabase.from("materials") as any)
     .select("*")
+    .eq("business_id", businessId)
     .eq("id", id)
     .is("deleted_at", null)
     .single();
@@ -47,11 +38,12 @@ export async function getMaterialById(id: string): Promise<Tables<"materials"> |
   return data || null;
 }
 
-export async function getFinishedGoods(): Promise<Tables<"products">[]> {
+export async function getFinishedGoods(businessId: string): Promise<Tables<"products">[]> {
   const supabase = await createClient();
   const { data, error } = await (supabase.from("products") as any)
     .select("*")
-    .eq("customizable", false)
+    .eq("business_id", businessId)
+    .eq("product_type", "finished_good")
     .is("deleted_at", null)
     .order("name");
 
@@ -63,7 +55,7 @@ export async function getFinishedGoods(): Promise<Tables<"products">[]> {
   return data || [];
 }
 
-export async function getInventoryStats(): Promise<{
+export async function getInventoryStats(businessId: string): Promise<{
   totalValue: number;
   lowStockCount: number;
   finishedGoodsCount: number;
@@ -72,11 +64,12 @@ export async function getInventoryStats(): Promise<{
 
   const [materialsResult, finishedGoodsResult] = await Promise.all([
     (supabase.from("materials") as any)
-      .select("stock_quantity, cost_per_unit, min_stock_level")
-      .is("deleted_at", null),
+      .select("stock_quantity, unit_cost, min_stock_level")
+      .eq("business_id", businessId),
     (supabase.from("products") as any)
       .select("stock_quantity")
-      .eq("customizable", false)
+      .eq("business_id", businessId)
+      .eq("product_type", "finished_good")
       .is("deleted_at", null),
   ]);
 
@@ -96,7 +89,7 @@ export async function getInventoryStats(): Promise<{
   // Calculate total value
   const totalValue = materials.reduce((sum: number, m: any) => {
     const quantity = parseFloat(String(m.stock_quantity || 0));
-    const cost = parseFloat(String(m.cost_per_unit || 0));
+    const cost = parseFloat(String(m.unit_cost || 0));
     return sum + quantity * cost;
   }, 0);
 
@@ -118,12 +111,14 @@ export async function getInventoryStats(): Promise<{
 }
 
 export async function getMaterialHistory(
+  businessId: string,
   materialId: string
 ): Promise<Tables<"inventory_transactions">[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("inventory_transactions")
     .select("*")
+    .eq("business_id", businessId)
     .eq("material_id", materialId)
     .order("created_at", { ascending: false });
 
@@ -149,12 +144,15 @@ export type InventoryAuditRow = {
   order_number: string | null;
 };
 
-export async function getAllInventoryTransactions(filters?: {
-  materialId?: string;
-  operationType?: string;
-  startDate?: string;
-  endDate?: string;
-}): Promise<InventoryAuditRow[]> {
+export async function getAllInventoryTransactions(
+  businessId: string,
+  filters?: {
+    materialId?: string;
+    operationType?: string;
+    startDate?: string;
+    endDate?: string;
+  }
+): Promise<InventoryAuditRow[]> {
   const supabase = await createClient();
 
   let query = (supabase.from("inventory_transactions") as any)
@@ -164,6 +162,7 @@ export async function getAllInventoryTransactions(filters?: {
       materials(name, unit),
       orders(order_number)
     `)
+    .eq("business_id", businessId)
     .order("created_at", { ascending: false })
     .limit(500);
 
@@ -194,11 +193,11 @@ export async function getAllInventoryTransactions(filters?: {
   }));
 }
 
-export async function getLowStockMaterials(): Promise<Tables<"materials">[]> {
+export async function getLowStockMaterials(businessId: string): Promise<Tables<"materials">[]> {
   const supabase = await createClient();
   const { data, error } = await (supabase.from("materials") as any)
     .select("*")
-    .is("deleted_at", null)
+    .eq("business_id", businessId)
     .order("created_at", { ascending: false });
 
   if (error) {

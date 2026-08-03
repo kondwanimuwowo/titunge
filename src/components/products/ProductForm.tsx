@@ -51,14 +51,10 @@ export default function ProductForm({ product }: ProductFormProps) {
 
   // Already-uploaded images (edit mode: pre-filled from product; create mode: filled as uploads complete)
   const [imageGallery, setImageGallery] = useState<string[]>(() => {
-    const urls: string[] = [];
-    if (product?.image_url) urls.push(product.image_url);
-    if ((product as any)?.gallery_images) {
-      for (const url of (product as any).gallery_images) {
-        if (url && !urls.includes(url)) urls.push(url);
-      }
+    if (Array.isArray(product?.images)) {
+      return (product.images as string[]).filter(Boolean);
     }
-    return urls;
+    return [];
   });
 
   // Images selected but not yet uploaded (create mode only — uploaded once the product is saved)
@@ -76,11 +72,10 @@ export default function ProductForm({ product }: ProductFormProps) {
           name: product.name,
           description: product.description,
           category: product.category,
-          base_price: product.base_price,
-          labor_cost: product.labor_cost,
+          price: product.price,
           stock_quantity: product.stock_quantity,
           active: product.active,
-          customizable: product.customizable,
+          customizable: product.product_type === "custom_design",
         }
       : {
           active: true,
@@ -98,8 +93,7 @@ export default function ProductForm({ product }: ProductFormProps) {
         const payload = {
           ...data,
           product_type: productType,
-          image_url: imageGallery[0] || null,
-          gallery_images: imageGallery,
+          images: imageGallery,
         };
         const result = await updateProductAction(product.id, payload);
         if (result.success) {
@@ -115,8 +109,7 @@ export default function ProductForm({ product }: ProductFormProps) {
       const createResult = await addProductAction({
         ...data,
         product_type: productType,
-        image_url: null,
-        gallery_images: [],
+        images: [],
       });
 
       if (!createResult.success || !createResult.productId) {
@@ -141,8 +134,7 @@ export default function ProductForm({ product }: ProductFormProps) {
 
       if (uploadedUrls.length > 0) {
         await updateProductAction(newProductId, {
-          image_url: uploadedUrls[0],
-          gallery_images: uploadedUrls,
+          images: uploadedUrls,
         });
       }
 
@@ -179,8 +171,7 @@ export default function ProductForm({ product }: ProductFormProps) {
         const newGallery = [...imageGallery, result.url];
         setImageGallery(newGallery);
         await updateProductAction(product.id, {
-          image_url: newGallery[0],
-          gallery_images: newGallery,
+          images: newGallery,
         });
         toast.success("Image uploaded");
       } else {
@@ -201,8 +192,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     const newGallery = imageGallery.filter((_, i) => i !== index);
     setImageGallery(newGallery);
     await updateProductAction(product.id, {
-      image_url: newGallery[0] || null,
-      gallery_images: newGallery,
+      images: newGallery,
     });
     toast.success("Image removed");
     setUploading(false);
@@ -257,29 +247,16 @@ export default function ProductForm({ product }: ProductFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="basePrice">Base Price (K) *</Label>
-          <Input
-            id="basePrice"
-            type="number"
-            step="0.01"
-            {...register("base_price", { required: true })}
-            placeholder="0.00"
-            disabled={isPending}
-          />
-        </div>
-        <div>
-          <Label htmlFor="laborCost">Labor Cost (K)</Label>
-          <Input
-            id="laborCost"
-            type="number"
-            step="0.01"
-            {...register("labor_cost")}
-            placeholder="0.00"
-            disabled={isPending}
-          />
-        </div>
+      <div>
+        <Label htmlFor="price">Price (K) *</Label>
+        <Input
+          id="price"
+          type="number"
+          step="0.01"
+          {...register("price", { required: true })}
+          placeholder="0.00"
+          disabled={isPending}
+        />
       </div>
 
       <div className="border-t pt-4 space-y-4">

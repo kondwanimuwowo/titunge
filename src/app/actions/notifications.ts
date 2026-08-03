@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireBusinessContext } from "@/lib/business-context";
 
 type NotificationType = "low_stock" | "order_update" | "production_complete" | "system";
 
@@ -12,6 +13,7 @@ export async function createNotification(
   link?: string,
   userId?: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
@@ -23,6 +25,7 @@ export async function createNotification(
         message,
         link: link || null,
         read: false,
+        business_id: businessId,
       },
     ]);
 
@@ -40,12 +43,14 @@ export async function createNotification(
 export async function markAsRead(
   notificationId: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
     const { error } = await (supabase.from("notifications") as any)
       .update({ read: true })
-      .eq("id", notificationId);
+      .eq("id", notificationId)
+      .eq("business_id", businessId);
 
     if (error) {
       return { success: false, message: error.message };
@@ -59,17 +64,14 @@ export async function markAsRead(
 }
 
 export async function markAllAsRead(): Promise<{ success: boolean; message?: string }> {
+  const { businessId, userId } = await requireBusinessContext();
   const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-
-  if (!userData.user) {
-    return { success: false, message: "Not authenticated" };
-  }
 
   try {
     const { error } = await (supabase.from("notifications") as any)
       .update({ read: true })
-      .eq("user_id", userData.user.id)
+      .eq("user_id", userId)
+      .eq("business_id", businessId)
       .eq("read", false);
 
     if (error) {
@@ -86,12 +88,14 @@ export async function markAllAsRead(): Promise<{ success: boolean; message?: str
 export async function deleteNotification(
   notificationId: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
     const { error } = await (supabase.from("notifications") as any)
       .delete()
-      .eq("id", notificationId);
+      .eq("id", notificationId)
+      .eq("business_id", businessId);
 
     if (error) {
       return { success: false, message: error.message };

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { getAllInventoryTransactions, getMaterials } from "@/lib/data/inventory";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, TrendingUp, TrendingDown, RotateCcw } from "lucide-react";
@@ -40,15 +41,16 @@ export default async function InventoryAuditPage({
   if (!user) redirect("/login");
 
   const params = await searchParams;
+  const { businessId } = await getBusinessContext();
 
   const [transactions, materials] = await Promise.all([
-    getAllInventoryTransactions({
+    getAllInventoryTransactions(businessId, {
       materialId: params.material || undefined,
       operationType: params.type || undefined,
       startDate: params.from || undefined,
       endDate: params.to || undefined,
     }),
-    getMaterials(),
+    getMaterials(businessId),
   ]);
 
   const totalIn = transactions

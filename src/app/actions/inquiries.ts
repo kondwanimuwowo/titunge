@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireBusinessContext } from "@/lib/business-context";
 import { format } from "date-fns";
 
 export async function markInquiryContactedAction(id: string, notes?: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const updateData: any = {
@@ -18,7 +20,8 @@ export async function markInquiryContactedAction(id: string, notes?: string) {
 
   const { error } = await (supabase.from("customer_inquiries") as any)
     .update(updateData)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Error marking inquiry contacted:", error);
@@ -30,11 +33,13 @@ export async function markInquiryContactedAction(id: string, notes?: string) {
 }
 
 export async function deleteInquiryAction(id: string) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("customer_inquiries") as any)
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Error deleting inquiry:", error);
@@ -46,6 +51,7 @@ export async function deleteInquiryAction(id: string) {
 }
 
 export async function convertToOrderAction(inquiryId: string, orderData: any) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
@@ -60,12 +66,14 @@ export async function convertToOrderAction(inquiryId: string, orderData: any) {
       const { data: inquiry } = await (supabase.from("customer_inquiries") as any)
         .select("customer_name, customer_phone, customer_email")
         .eq("id", inquiryId)
+        .eq("business_id", businessId)
         .single();
 
       if (inquiry?.customer_phone) {
         const { data: existingCustomer } = await (supabase.from("customers") as any)
           .select("id")
           .eq("phone", inquiry.customer_phone)
+          .eq("business_id", businessId)
           .maybeSingle();
 
         if (existingCustomer) {
@@ -77,6 +85,7 @@ export async function convertToOrderAction(inquiryId: string, orderData: any) {
               name: inquiry.customer_name || "Unknown",
               phone: inquiry.customer_phone,
               email: inquiry.customer_email || null,
+              business_id: businessId,
             }])
             .select("id")
             .single();
@@ -96,6 +105,7 @@ export async function convertToOrderAction(inquiryId: string, orderData: any) {
         customer_id: customerId,
         order_number: orderNumber,
         order_date: new Date().toISOString(),
+        business_id: businessId,
       }])
       .select("id")
       .single();
@@ -116,17 +126,11 @@ export async function convertToOrderAction(inquiryId: string, orderData: any) {
       await (supabase.from("order_materials") as any).insert(materialRows);
     }
 
-    // Step 5: Insert first timeline entry
-    await (supabase.from("order_timeline") as any).insert([{
-      order_id: newOrderId,
-      status: "enquiry",
-      notes: "Converted from catalog inquiry",
-    }]);
-
-    // Step 6: Update inquiry status
+    // Step 5: Update inquiry status
     await (supabase.from("customer_inquiries") as any)
       .update({ status: "converted", converted_order_id: newOrderId })
-      .eq("id", inquiryId);
+      .eq("id", inquiryId)
+      .eq("business_id", businessId);
 
     revalidatePath("/inquiries");
     revalidatePath("/orders");

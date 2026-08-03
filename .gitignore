@@ -23,6 +23,12 @@ catalog/.env.production
 # Vercel
 .vercel
 
+# Supabase local dev
+supabase/.temp/
+
+# Cloudflare / OpenNext build output
+.open-next/
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts

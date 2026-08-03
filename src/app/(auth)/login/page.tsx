@@ -50,11 +50,11 @@ export default function LoginPage() {
           <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
             <Scissors className="text-primary" size={22} />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            GLORIA'S
+          <h1 className="text-2xl font-bold tracking-tight text-foreground" style={{ fontFamily: "var(--font-canter)" }}>
+            Titunge
           </h1>
-          <p className="text-xs font-semibold text-primary/70 uppercase tracking-widest">
-            Daughter ERP
+          <p className="text-xs text-muted-foreground mt-1">
+            Sign in to your workspace
           </p>
         </div>
 
@@ -145,7 +145,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          &copy; 2024 Gloriaz Daughter. All rights reserved.
+          &copy; {new Date().getFullYear()} Titunge. All rights reserved.
         </p>
       </div>
     </motion.div>

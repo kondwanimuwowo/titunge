@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getEmployees, getTodayAttendance } from "@/lib/data/employees";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import EmployeeList from "@/components/employees/EmployeeList";
@@ -15,9 +16,10 @@ export default async function EmployeesPage() {
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
   const [employees, todayAttendance] = await Promise.all([
-    getEmployees(),
-    getTodayAttendance(),
+    getEmployees(businessId),
+    getTodayAttendance(businessId),
   ]);
 
   const activeCount = employees.filter((e) => e.active).length;

@@ -2,14 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireBusinessContext } from "@/lib/business-context";
 
 export async function addProductAction(
   data: any
 ): Promise<{ success: boolean; message?: string; productId?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { data: newProduct, error } = await (supabase.from("products") as any)
-    .insert([data])
+    .insert([{ ...data, business_id: businessId }])
     .select("id")
     .single();
 
@@ -25,11 +27,13 @@ export async function updateProductAction(
   id: string,
   updates: any
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("products") as any)
     .update(updates)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -42,11 +46,13 @@ export async function updateProductAction(
 export async function deleteProductAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("products") as any)
     .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -59,11 +65,13 @@ export async function deleteProductAction(
 export async function restoreProductAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await (supabase.from("products") as any)
     .update({ deleted_at: null })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_id", businessId);
 
   if (error) {
     return { success: false, message: error.message };
@@ -76,11 +84,13 @@ export async function restoreProductAction(
 export async function hardDeleteProductAction(
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { data, error } = await (supabase.from("products") as any)
     .delete()
     .eq("id", id)
+    .eq("business_id", businessId)
     .select("id");
 
   if (!error && (!data || data.length === 0)) {
@@ -104,6 +114,8 @@ export async function hardDeleteProductAction(
 export async function uploadProductImageAction(
   formData: FormData
 ): Promise<{ success: boolean; url?: string; message?: string }> {
+  await requireBusinessContext();
+
   try {
     const file = formData.get("file") as File;
     const productId = formData.get("productId") as string;
@@ -148,9 +160,9 @@ export async function uploadProductImageAction(
 
     if (uploadError) {
       console.error("[Upload] Supabase error:", uploadError);
-      return { 
-        success: false, 
-        message: `Upload failed: ${uploadError.message}. Ensure bucket 'product-images' exists and is public.` 
+      return {
+        success: false,
+        message: `Upload failed: ${uploadError.message}. Ensure bucket 'product-images' exists and is public.`
       };
     }
 
@@ -171,6 +183,7 @@ export async function uploadProductImageAction(
 export async function deleteProductImageAction(
   imageUrl: string
 ): Promise<{ success: boolean; message?: string }> {
+  await requireBusinessContext();
   const supabase = await createClient();
 
   try {

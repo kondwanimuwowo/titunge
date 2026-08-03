@@ -1,17 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/types/database";
 
-export async function getNotifications(limit = 50) {
+export async function getNotifications(businessId: string, limit = 50) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
 
-  if (!userData.user) {
-    return [];
-  }
+  if (!userData.user) return [];
 
   const { data, error } = await supabase
     .from("notifications")
     .select("*")
+    .eq("business_id", businessId)
     .or(`user_id.eq.${userData.user.id},user_id.is.null`)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -24,17 +23,16 @@ export async function getNotifications(limit = 50) {
   return (data || []) as (Tables<"notifications"> & { read: boolean })[];
 }
 
-export async function getUnreadCount() {
+export async function getUnreadCount(businessId: string) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
 
-  if (!userData.user) {
-    return 0;
-  }
+  if (!userData.user) return 0;
 
   const { count, error } = await supabase
     .from("notifications")
     .select("*", { count: "exact", head: true })
+    .eq("business_id", businessId)
     .or(`user_id.eq.${userData.user.id},user_id.is.null`)
     .eq("read", false);
 

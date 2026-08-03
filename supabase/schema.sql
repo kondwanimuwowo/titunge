@@ -18,6 +18,7 @@ CREATE TABLE public.businesses (
   name             text NOT NULL,
   slug             text UNIQUE NOT NULL,       -- URL/subdomain identifier e.g. "gloriaz-daughter"
   logo_url         text,
+  theme_key        text NOT NULL DEFAULT 'titunge-teal', -- one of 8 preset palette slugs
   order_prefix     text NOT NULL DEFAULT 'ORD', -- e.g. "GD" → orders like GD-001
   currency         text NOT NULL DEFAULT 'ZMW',
   timezone         text NOT NULL DEFAULT 'Africa/Lusaka',
@@ -418,9 +419,38 @@ END;
 $$;
 
 -- ============================================================
+-- STORAGE: Public bucket for business assets (logos, etc.)
+-- Run this once in the Supabase Dashboard > Storage, or via CLI:
+--   supabase storage create business-assets --public
+-- ============================================================
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'business-assets',
+  'business-assets',
+  true,
+  2097152, -- 2 MB
+  ARRAY['image/png','image/jpeg','image/jpg','image/gif','image/webp','image/svg+xml']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow any authenticated user to upload to their own business folder
+CREATE POLICY "Authenticated users can upload business assets"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'business-assets');
+
+CREATE POLICY "Business assets are publicly readable"
+  ON storage.objects FOR SELECT TO public
+  USING (bucket_id = 'business-assets');
+
+CREATE POLICY "Authenticated users can update their business assets"
+  ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'business-assets');
+
+-- ============================================================
 -- SEED: Gloriaz Daughter as tenant #1
 -- (data will be migrated from the standalone GD project later)
 -- ============================================================
 
-INSERT INTO public.businesses (name, slug, order_prefix, currency, timezone)
-VALUES ('Gloriaz Daughter', 'gloriaz-daughter', 'GD', 'ZMW', 'Africa/Lusaka');
+INSERT INTO public.businesses (name, slug, order_prefix, currency, timezone, theme_key)
+VALUES ('Gloriaz Daughter', 'gloriaz-daughter', 'GD', 'ZMW', 'Africa/Lusaka', 'gold-ochre');

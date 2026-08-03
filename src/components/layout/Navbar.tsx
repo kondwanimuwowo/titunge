@@ -10,18 +10,19 @@ import NotificationBell from "./NotificationBell";
 import GlobalSearch from "./GlobalSearch";
 import ThemeToggle from "./ThemeToggle";
 import { ROLE_BADGE_COLORS } from "@/lib/constants";
-import type { Tables } from "@/lib/types/database";
+import type { Tables, UserRole } from "@/lib/types/database";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface NavbarProps {
   user: SupabaseUser;
   profile: Tables<"user_profiles"> | null;
+  role: UserRole;
   unreadCount: number;
   recentNotifications: any[];
   onMenuClick?: () => void;
 }
 
-export default function Navbar({ user, profile, unreadCount, recentNotifications, onMenuClick }: NavbarProps) {
+export default function Navbar({ user, profile, role, unreadCount, recentNotifications, onMenuClick }: NavbarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -99,7 +100,7 @@ export default function Navbar({ user, profile, unreadCount, recentNotifications
                 {profile?.full_name ?? "User"}
               </p>
               <p className="text-[10px] text-muted-foreground capitalize">
-                {profile?.role ?? "employee"}
+                {role ?? "employee"}
               </p>
             </div>
             <ChevronDown size={14} className="text-muted-foreground hidden md:block" />
@@ -132,12 +133,12 @@ export default function Navbar({ user, profile, unreadCount, recentNotifications
                   <span
                     className={cn(
                       "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                      ROLE_BADGE_COLORS[profile?.role ?? "employee"] ?? "bg-muted text-muted-foreground"
+                      ROLE_BADGE_COLORS[role ?? "employee"] ?? "bg-muted text-muted-foreground"
                     )}
                   >
-                    {profile?.role === "admin" && <Shield size={11} />}
-                    {(profile?.role ?? "employee").charAt(0).toUpperCase() +
-                      (profile?.role ?? "employee").slice(1)}
+                    {role === "admin" && <Shield size={11} />}
+                    {(role ?? "employee").charAt(0).toUpperCase() +
+                      (role ?? "employee").slice(1)}
                   </span>
                 </div>
 

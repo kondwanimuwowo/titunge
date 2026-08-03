@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getEmployeeById, getEmployeeAttendance } from "@/lib/data/employees";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { format } from "date-fns";
 
@@ -13,7 +14,8 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
     redirect("/login");
   }
 
-  const employee = await getEmployeeById(id);
+  const { businessId } = await getBusinessContext();
+  const employee = await getEmployeeById(businessId, id);
 
   if (!employee) {
     redirect("/employees");
@@ -24,6 +26,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   const attendance = await getEmployeeAttendance(
+    businessId,
     id,
     thirtyDaysAgo.toISOString().split("T")[0],
     new Date().toISOString().split("T")[0]

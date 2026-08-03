@@ -5,6 +5,7 @@ import { format } from "date-fns";
 
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardStats } from "@/lib/data/dashboard";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import DashboardRealtime from "@/components/dashboard/DashboardRealtime";
@@ -32,7 +33,8 @@ export default async function DashboardPage() {
   const profile = profileData as any;
   const firstName = profile?.full_name?.split(" ")[0];
 
-  const data = await getDashboardStats();
+  const { businessId } = await getBusinessContext();
+  const data = await getDashboardStats(businessId);
 
   const clockedInToday = data.raw.todayAttendance.filter((a: any) => !a.clock_out).length;
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getOrderById } from "@/lib/data/orders";
 import { getMaterials } from "@/lib/data/inventory";
 import OrderDetailsView from "@/components/orders/OrderDetailsView";
@@ -17,10 +18,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
   let order;
   let availableMaterials;
   try {
-    [order, availableMaterials] = await Promise.all([getOrderById(id), getMaterials()]);
+    [order, availableMaterials] = await Promise.all([getOrderById(businessId, id), getMaterials(businessId)]);
   } catch (error) {
     console.error("Order not found or error:", error);
     notFound();

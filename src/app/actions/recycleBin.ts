@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requireBusinessContext } from "@/lib/business-context";
 import { restoreEmployeeAction, hardDeleteEmployeeAction } from "./employees";
 import { restoreCustomerAction, hardDeleteCustomerAction } from "./customers";
 import { restoreProductAction, hardDeleteProductAction } from "./products";
@@ -20,6 +21,8 @@ export async function restoreRecycleBinItem(
   type: RecycleBinType,
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  await requireBusinessContext();
+
   let result: { success: boolean; message?: string };
 
   switch (type) {
@@ -51,6 +54,8 @@ export async function hardDeleteRecycleBinItem(
   type: RecycleBinType,
   id: string
 ): Promise<{ success: boolean; message?: string }> {
+  await requireBusinessContext();
+
   let result: { success: boolean; message?: string };
 
   switch (type) {

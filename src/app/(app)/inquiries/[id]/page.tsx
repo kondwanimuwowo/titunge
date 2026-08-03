@@ -4,6 +4,7 @@ import { ArrowLeft, Package, Phone, Mail, ArrowRight, Check, Clock } from "lucid
 import { format } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { getInquiryById } from "@/lib/data/inquiries";
+import { getBusinessContext } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import InquiryActions from "@/components/inquiries/InquiryActions";
@@ -26,7 +27,8 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
 
   if (!user) redirect("/login");
 
-  const inquiry = await getInquiryById(id);
+  const { businessId } = await getBusinessContext();
+  const inquiry = await getInquiryById(businessId, id);
   if (!inquiry) notFound();
 
   return (
@@ -44,7 +46,7 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
           <span>/</span>
           <span className="text-foreground font-semibold">{inquiry.customer_name || "Unknown"}</span>
         </div>
-        <StatusBadge status={inquiry.status} />
+        <StatusBadge status={inquiry.status ?? "new"} />
       </div>
 
       {/* Customer info */}
@@ -80,18 +82,9 @@ export default async function InquiryDetailPage({ params }: { params: Promise<{ 
           <h2 className="text-base font-semibold">Request Details</h2>
           {inquiry.products && (
             <div className="flex items-center gap-4">
-              {inquiry.products.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={inquiry.products.image_url}
-                  alt={inquiry.products.name}
-                  className="w-16 h-16 rounded-lg object-cover border border-border"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center border border-border">
-                  <Package className="h-6 w-6 text-muted-foreground" />
-                </div>
-              )}
+              <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center border border-border">
+                <Package className="h-6 w-6 text-muted-foreground" />
+              </div>
               <div>
                 <p className="font-semibold">{inquiry.products.name}</p>
                 {inquiry.preferred_size && (

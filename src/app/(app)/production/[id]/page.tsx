@@ -1,19 +1,14 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getBusinessContext } from "@/lib/business-context";
 import { getBatchById } from "@/lib/data/production";
 import { PageHeader } from "@/components/layout/PageHeader";
 import BatchDetailsView from "@/components/production/BatchDetailsView";
 
 export default async function BatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { businessId } = await getBusinessContext();
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  const batch = await getBatchById(id);
+  const batch = await getBatchById(businessId, id);
 
   if (!batch) {
     redirect("/production");

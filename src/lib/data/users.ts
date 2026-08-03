@@ -1,26 +1,47 @@
 import { createClient } from "@/lib/supabase/server";
 
-export async function getUsers() {
+// business_users.user_id references auth.users(id), not user_profiles(id),
+// so PostgREST can't auto-join them. We do a two-step fetch instead.
+
+export async function getUsers(businessId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("user_profiles") as any)
+  const { data: members, error } = await supabase
+    .from("business_users")
     .select("*")
-    .order("full_name", { ascending: true });
+    .eq("business_id", businessId)
+    .order("joined_at", { ascending: true });
 
   if (error) {
     console.error("Error fetching users:", error);
     throw new Error("Failed to load users");
   }
 
-  return data || [];
+  if (!members || members.length === 0) return [];
+
+  const userIds = members.map((m) => m.user_id);
+
+  const { data: profiles } = await supabase
+    .from("user_profiles")
+    .select("*")
+    .in("id", userIds);
+
+  const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+
+  return members.map((m) => ({
+    ...m,
+    user_profiles: profileMap[m.user_id] ?? null,
+  }));
 }
 
-export async function getUserById(id: string) {
+export async function getUserById(businessId: string, userId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await (supabase.from("user_profiles") as any)
+  const { data: member, error } = await supabase
+    .from("business_users")
     .select("*")
-    .eq("id", id)
+    .eq("business_id", businessId)
+    .eq("user_id", userId)
     .single();
 
   if (error) {
@@ -28,5 +49,11 @@ export async function getUserById(id: string) {
     throw new Error("Failed to load user");
   }
 
-  return data;
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle();
+
+  return { ...member, user_profiles: profile ?? null };
 }

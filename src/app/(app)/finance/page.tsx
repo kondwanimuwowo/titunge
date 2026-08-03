@@ -8,6 +8,7 @@ import {
   getOverheadCosts,
   getProfitLossOrders,
 } from "@/lib/data/finance";
+import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import FinanceTabs from "@/components/finance/FinanceTabs";
 
@@ -21,16 +22,17 @@ export default async function FinancePage() {
     redirect("/login");
   }
 
+  const { businessId } = await getBusinessContext();
   const now = new Date();
   const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
   const monthEnd = format(endOfMonth(now), "yyyy-MM-dd");
 
   const [summary, profitLossOrders, expenses, payments, overhead] = await Promise.all([
-    getFinancialSummary(monthStart, monthEnd),
-    getProfitLossOrders(monthStart, monthEnd),
-    getExpenses(monthStart, monthEnd),
-    getPayments(monthStart, monthEnd),
-    getOverheadCosts(monthStart, monthEnd),
+    getFinancialSummary(businessId, monthStart, monthEnd),
+    getProfitLossOrders(businessId, monthStart, monthEnd),
+    getExpenses(businessId, monthStart, monthEnd),
+    getPayments(businessId, monthStart, monthEnd),
+    getOverheadCosts(businessId, monthStart, monthEnd),
   ]);
 
   return (
