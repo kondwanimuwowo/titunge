@@ -21,24 +21,30 @@ export function MarketingFooter() {
   return (
     <footer className="bg-white border-t border-gray-100">
       <div className="max-w-5xl mx-auto px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-          {/* Brand */}
-          <div className="col-span-2 md:col-span-1 space-y-4">
-            <Link href="/">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
+          {/* Brand — wider column */}
+          <div className="col-span-2 space-y-3">
+            <Link href="/" className="flex items-center gap-2.5">
               <Image
-                src="/titunge-logo.png"
+                src="/titunge-logo-mark.png"
                 alt="Titunge"
-                width={200}
-                height={200}
+                width={32}
+                height={32}
                 className="object-contain"
               />
+              <span
+                className="text-sm font-semibold text-gray-900"
+                style={{ fontFamily: "var(--font-canter)" }}
+              >
+                Titunge
+              </span>
             </Link>
-            <p className="text-sm text-gray-500 leading-relaxed max-w-[200px]">
-              ERP software for tailoring and garment workshops.
+            <p className="text-sm text-gray-500 leading-relaxed max-w-[220px]">
+              ERP software built for tailoring and garment workshops.
             </p>
           </div>
 
-          {/* Link groups */}
+          {/* Link groups — each takes 1 of the remaining 3 columns */}
           {Object.entries(LINKS).map(([group, links]) => (
             <div key={group} className="space-y-3">
               <p className="text-xs font-semibold text-gray-900 uppercase tracking-wider">{group}</p>

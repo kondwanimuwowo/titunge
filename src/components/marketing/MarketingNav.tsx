@@ -34,14 +34,20 @@ export function MarketingNav() {
       <div className="max-w-5xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 shrink-0">
             <Image
-              src="/titunge-logo.png"
+              src="/titunge-logo-mark.png"
               alt="Titunge"
-              width={52}
-              height={52}
+              width={30}
+              height={30}
               className="object-contain"
             />
+            <span
+              className="text-sm font-semibold tracking-tight text-gray-900"
+              style={{ fontFamily: "var(--font-canter)" }}
+            >
+              Titunge
+            </span>
           </Link>
 
           {/* Desktop nav */}
