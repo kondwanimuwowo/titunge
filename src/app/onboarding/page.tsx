@@ -4,7 +4,8 @@ import { useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Scissors, Loader2, Check, AlertCircle, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { Loader2, Check, AlertCircle, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signUpAction, signInAction, checkSlugAvailable, createBusinessAction } from "@/app/actions/onboarding";
 
@@ -169,13 +170,14 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex" style={{ backgroundColor: "#f5f1ee" }}>
       {/* Left panel */}
       <div className="hidden lg:flex flex-col justify-between w-80 xl:w-96 p-10 shrink-0" style={{ backgroundColor: "#0e1a18" }}>
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#5fa8a0" }}>
-            <Scissors size={16} className="text-white" strokeWidth={2} />
-          </div>
-          <span className="text-white font-semibold text-base" style={{ fontFamily: "var(--font-canter)" }}>
-            Titunge
-          </span>
+        <Link href="/">
+          <Image
+            src="/titunge-logo.png"
+            alt="Titunge"
+            width={52}
+            height={52}
+            className="object-contain brightness-0 invert"
+          />
         </Link>
 
         <div className="space-y-8">

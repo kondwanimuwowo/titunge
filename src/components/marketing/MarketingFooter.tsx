@@ -9,7 +9,7 @@ const LINKS = {
   ],
   Company: [
     { label: "About", href: "/about" },
-    { label: "Contact", href: "mailto:hello@titunge.com" },
+    { label: "Contact", href: "/contact" },
   ],
   Legal: [
     { label: "Privacy policy", href: "#" },
@@ -28,8 +28,8 @@ export function MarketingFooter() {
               <Image
                 src="/titunge-logo.png"
                 alt="Titunge"
-                width={120}
-                height={40}
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </Link>

@@ -38,8 +38,8 @@ export function MarketingNav() {
             <Image
               src="/titunge-logo.png"
               alt="Titunge"
-              width={120}
-              height={40}
+              width={52}
+              height={52}
               className="object-contain"
             />
           </Link>

@@ -18,6 +18,7 @@ const PLANS = [
       "30-day free trial, no card required",
     ],
     cta: "Start 30-day trial",
+    href: "/onboarding",
     featured: false,
   },
   {
@@ -36,6 +37,7 @@ const PLANS = [
       "Priority support",
     ],
     cta: "Start 30-day trial",
+    href: "/onboarding",
     featured: true,
   },
   {
@@ -53,6 +55,7 @@ const PLANS = [
       "Dedicated account support",
     ],
     cta: "Contact us",
+    href: "/contact",
     featured: false,
   },
 ];
@@ -148,7 +151,7 @@ export default function PricingPage() {
                   </ul>
 
                   <Link
-                    href="/onboarding"
+                    href={plan.href}
                     className="block w-full text-center text-sm font-semibold rounded-full px-6 py-3 transition-opacity hover:opacity-90"
                     style={{
                       backgroundColor: plan.featured ? "#5fa8a0" : "#f5f1ee",

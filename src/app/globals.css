@@ -40,6 +40,10 @@
 }
 
 @layer base {
+  a, button, [role="button"], label[for], select, summary {
+    cursor: pointer;
+  }
+
   :root {
     /* Titunge teal — #5fa8a0 ≈ hsl(174 28% 52%) */
     --primary: 174 28% 52%;
