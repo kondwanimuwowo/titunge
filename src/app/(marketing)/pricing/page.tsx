@@ -4,51 +4,55 @@ import { FadeIn } from "@/components/marketing/FadeIn";
 
 const PLANS = [
   {
-    name: "Starter",
-    price: "Free",
-    period: null,
-    description: "Enough to replace your spreadsheets and get every order recorded.",
+    name: "Basic",
+    price: "K1,500",
+    period: "/month",
+    description: "For the solo tailor or small workshop getting their operation off paper. Capture every order, track your clients, and keep your books in one place.",
     features: [
-      "Up to 50 orders per month",
-      "1 user account",
-      "Orders and customer management",
+      "Up to 3 staff accounts",
+      "Up to 20 active clients",
+      "Orders and measurements management",
       "Inventory tracking",
       "Basic finance recording",
-      "Email support",
+      "Customer inquiry management",
+      "30-day free trial, no card required",
     ],
-    cta: "Get started free",
+    cta: "Start 30-day trial",
     featured: false,
   },
   {
-    name: "Growth",
-    price: "$29",
+    name: "Pro",
+    price: "K3,000",
     period: "/month",
-    description: "For workshops processing steady order volume with a team of tailors.",
+    description: "For a growing fashion house that needs the full picture — production schedules, team roles, and the numbers to make better decisions.",
     features: [
-      "Unlimited orders",
-      "Up to 5 user accounts",
-      "All modules: orders, inventory, customers, production, finance, analytics",
+      "Up to 10 staff accounts",
+      "Up to 50 active clients",
+      "Everything in Basic",
+      "Production tracking and scheduling",
+      "Advanced analytics and reports",
+      "Role-based access control",
       "Public product catalog app",
-      "Customer inquiry management",
-      "Priority email support",
+      "Priority support",
     ],
-    cta: "Start 14-day trial",
+    cta: "Start 30-day trial",
     featured: true,
   },
   {
-    name: "Scale",
-    price: "$79",
+    name: "Enterprise",
+    price: "K8,000",
     period: "/month",
-    description: "For larger operations or workshops managing multiple locations.",
+    description: "For manufacturers and exporters running at scale. Unlimited everything, custom branding, and a dedicated support line so nothing slows you down.",
     features: [
-      "Unlimited orders and users",
-      "Multiple business locations",
+      "Unlimited staff accounts",
+      "Unlimited clients",
+      "Everything in Pro",
+      "Custom logo and brand colours",
       "Custom subdomain (yourshop.titunge.com)",
-      "Logo and brand color customization",
-      "Advanced analytics",
-      "Dedicated support",
+      "Multiple business locations",
+      "Dedicated account support",
     ],
-    cta: "Get started",
+    cta: "Contact us",
     featured: false,
   },
 ];
@@ -56,23 +60,23 @@ const PLANS = [
 const FAQ = [
   {
     q: "Is there a free trial?",
-    a: "The Growth plan includes a 14-day trial with no credit card required. After the trial, you can stay on Starter or upgrade to keep full access.",
+    a: "Every plan starts with a 30-day trial, no credit card required. You get full access to all features on your chosen plan for the entire trial period.",
   },
   {
     q: "Can I change plans later?",
     a: "Yes. You can upgrade or downgrade at any time. Upgrades take effect immediately. Downgrades apply at the end of your billing period.",
   },
   {
-    q: "What counts as an order?",
-    a: "Any order record you create in the system, regardless of its status. Cancelled orders still count toward your monthly limit on the Starter plan.",
+    q: "Are prices in Zambian Kwacha?",
+    a: "Yes. All plan prices are billed in ZMW. Your subscription renews monthly on the same date you signed up.",
   },
   {
-    q: "Do you support currencies other than USD?",
-    a: "Yes. Each business can set its own local currency. Pricing for the software is billed in USD.",
+    q: "What happens when I hit my client or staff limit?",
+    a: "You can continue using the system for existing records but will be prompted to upgrade before adding new staff or client profiles. Nothing gets locked or deleted.",
   },
   {
     q: "Is my data secure?",
-    a: "Yes. Each business's data is isolated using row-level security. No tenant can access another's records.",
+    a: "Yes. Each business's data is fully isolated using row-level security. No other tenant can access your records, and you can export everything at any time.",
   },
 ];
 
@@ -90,7 +94,7 @@ export default function PricingPage() {
               Simple pricing
             </h1>
             <p className="mt-4 text-lg text-gray-500 max-w-lg">
-              Start free. Pay only when your business is ready to grow.
+              Every plan includes a 30-day free trial. No card required to start.
             </p>
           </FadeIn>
         </div>
