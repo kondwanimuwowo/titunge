@@ -101,7 +101,10 @@ export async function middleware(request: NextRequest) {
       .limit(1)
       .single();
 
-    const slug = (data?.businesses as { slug: string } | null)?.slug;
+    const businesses = data?.businesses;
+    const slug = Array.isArray(businesses)
+      ? (businesses[0] as { slug: string } | undefined)?.slug
+      : (businesses as unknown as { slug: string } | null)?.slug;
     if (slug) {
       const url = request.nextUrl.clone();
       const response = NextResponse.redirect(url);
