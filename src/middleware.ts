@@ -90,6 +90,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Authenticated with no business slug (e.g. workers.dev flat URL, cleared cookies)
+  // Auto-resolve slug from the user's first active business membership and set cookie.
+  if (user && !businessSlug && !isAuthRoute && !isPublicRoute) {
+    const { data } = await supabase
+      .from("business_users")
+      .select("businesses!inner(slug)")
+      .eq("user_id", user.id)
+      .eq("active", true)
+      .limit(1)
+      .single();
+
+    const slug = (data?.businesses as { slug: string } | null)?.slug;
+    if (slug) {
+      const url = request.nextUrl.clone();
+      const response = NextResponse.redirect(url);
+      response.cookies.set("titunge-business", slug, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        sameSite: "lax",
+      });
+      return response;
+    }
+    // No business found — fall through to onboarding
+  }
+
   return supabaseResponse;
 }
 
