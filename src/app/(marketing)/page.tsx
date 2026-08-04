@@ -115,7 +115,7 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative pt-32 pb-24 lg:pt-44 lg:pb-36" style={{ backgroundColor: "#0e1a18" }}>
+      <section className="relative pt-36 pb-24 lg:pt-48 lg:pb-36" style={{ backgroundColor: "#0e1a18" }}>
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <FadeIn className="max-w-3xl">
             <h1

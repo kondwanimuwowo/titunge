@@ -10,7 +10,7 @@ export default function ContactPage() {
   return (
     <>
       {/* Header */}
-      <section className="pt-32 pb-16" style={{ backgroundColor: "#f5f1ee" }}>
+      <section className="pt-36 pb-16" style={{ backgroundColor: "#f5f1ee" }}>
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <FadeIn>
             <h1

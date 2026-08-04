@@ -103,7 +103,7 @@ export default function FeaturesPage() {
   return (
     <>
       {/* Header */}
-      <section className="pt-32 pb-20" style={{ backgroundColor: "#0e1a18" }}>
+      <section className="pt-36 pb-20" style={{ backgroundColor: "#0e1a18" }}>
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <FadeIn>
             <h1

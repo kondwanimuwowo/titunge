@@ -21,7 +21,7 @@ export default function AboutPage() {
   return (
     <>
       {/* Header */}
-      <section className="pt-32 pb-20 bg-white">
+      <section className="pt-36 pb-20 bg-white">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <FadeIn className="max-w-2xl">
             <h1
