@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, Scissors } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -33,13 +34,14 @@ export function MarketingNav() {
       <div className="max-w-5xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#5fa8a0" }}>
-              <Scissors size={14} className="text-white" strokeWidth={2} />
-            </div>
-            <span className="text-sm font-semibold tracking-tight text-gray-900" style={{ fontFamily: "var(--font-canter)" }}>
-              Titunge
-            </span>
+          <Link href="/" className="flex items-center shrink-0">
+            <Image
+              src="/titunge-logo.png"
+              alt="Titunge"
+              width={120}
+              height={40}
+              className="object-contain"
+            />
           </Link>
 
           {/* Desktop nav */}
@@ -70,7 +72,7 @@ export function MarketingNav() {
               className="text-sm font-medium text-white rounded-full px-5 py-2 transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#5fa8a0" }}
             >
-              Get started free
+              Start free trial
             </Link>
           </div>
 
@@ -108,7 +110,7 @@ export function MarketingNav() {
               style={{ backgroundColor: "#5fa8a0" }}
               onClick={() => setMobileOpen(false)}
             >
-              Get started free
+              Start free trial
             </Link>
           </div>
         </div>

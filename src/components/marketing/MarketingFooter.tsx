@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Scissors } from "lucide-react";
+import Image from "next/image";
 
 const LINKS = {
   Product: [
@@ -24,13 +24,14 @@ export function MarketingFooter() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1 space-y-4">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: "#5fa8a0" }}>
-                <Scissors size={14} className="text-white" strokeWidth={2} />
-              </div>
-              <span className="text-sm font-semibold text-gray-900" style={{ fontFamily: "var(--font-canter)" }}>
-                Titunge
-              </span>
+            <Link href="/">
+              <Image
+                src="/titunge-logo.png"
+                alt="Titunge"
+                width={120}
+                height={40}
+                className="object-contain"
+              />
             </Link>
             <p className="text-sm text-gray-500 leading-relaxed max-w-[200px]">
               ERP software for tailoring and garment workshops.
