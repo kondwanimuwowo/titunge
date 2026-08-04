@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { Mail, Lock, Scissors, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -47,13 +48,14 @@ export default function LoginPage() {
       <div className="bg-card border border-border rounded-xl shadow-sm p-8">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-            <Scissors className="text-primary" size={22} />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground" style={{ fontFamily: "var(--font-canter)" }}>
-            Titunge
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">
+          <Image
+            src="/titunge-logo.png"
+            alt="Titunge"
+            width={180}
+            height={60}
+            className="object-contain mb-3"
+          />
+          <p className="text-xs text-muted-foreground">
             Sign in to your workspace
           </p>
         </div>

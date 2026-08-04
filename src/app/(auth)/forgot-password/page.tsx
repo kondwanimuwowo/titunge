@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Scissors, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
+import { Mail, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -42,10 +43,13 @@ export default function ForgotPasswordPage() {
     >
       <div className="bg-card border border-border rounded-xl shadow-sm p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-            <Scissors className="text-primary" size={22} />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground" style={{ fontFamily: "var(--font-canter)" }}>Titunge</h1>
+          <Image
+            src="/titunge-logo.png"
+            alt="Titunge"
+            width={180}
+            height={60}
+            className="object-contain mb-3"
+          />
           <p className="text-xs text-muted-foreground mt-1">
             Password reset
           </p>

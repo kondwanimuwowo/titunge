@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Scissors, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
 import type { BusinessRole } from "@/lib/business-context";
 
@@ -30,25 +30,15 @@ export default function Sidebar({
         className="flex-shrink-0 px-4 py-3.5 border-b"
         style={{ borderColor: "hsl(200 12% 16%)" }}
       >
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0"
-            style={{ background: "hsl(var(--primary) / 0.2)" }}
-          >
-            {logoUrl ? (
-              <Image
-                src={logoUrl}
-                alt={businessName}
-                width={32}
-                height={32}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Scissors
-                size={16}
-                style={{ color: "hsl(var(--primary))" }}
-              />
-            )}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-white">
+            <Image
+              src="/titunge-logo-mark.png"
+              alt="Titunge"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="min-w-0">
             <p

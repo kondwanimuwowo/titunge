@@ -35,6 +35,10 @@ export const metadata: Metadata = {
   title: "Titunge — ERP for tailoring businesses",
   description:
     "Track orders, measurements, inventory, and payments for your tailoring or garment business.",
+  icons: {
+    icon: "/titunge-fav.png",
+    apple: "/titunge-fav.png",
+  },
 };
 
 export default function RootLayout({
