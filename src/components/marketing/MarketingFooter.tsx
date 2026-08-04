@@ -24,20 +24,14 @@ export function MarketingFooter() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           {/* Brand — wider column */}
           <div className="col-span-2 space-y-3">
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link href="/">
               <Image
-                src="/titunge-logo-mark.png"
+                src="/titunge-logo.png"
                 alt="Titunge"
-                width={32}
-                height={32}
+                width={140}
+                height={42}
                 className="object-contain"
               />
-              <span
-                className="text-sm font-semibold text-gray-900"
-                style={{ fontFamily: "var(--font-canter)" }}
-              >
-                Titunge
-              </span>
             </Link>
             <p className="text-sm text-gray-500 leading-relaxed max-w-[220px]">
               ERP software built for tailoring and garment workshops.

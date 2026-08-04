@@ -27,34 +27,28 @@ export default function Sidebar({
     >
       {/* Business identity */}
       <div
-        className="flex-shrink-0 px-4 py-3.5 border-b"
+        className="flex-shrink-0 px-4 py-4 border-b"
         style={{ borderColor: "hsl(200 12% 16%)" }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-white">
-            <Image
-              src="/titunge-logo-mark.png"
-              alt="Titunge"
-              width={40}
-              height={40}
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <div className="min-w-0">
-            <p
-              className="text-xs font-bold truncate leading-tight"
-              style={{ color: "hsl(var(--primary) / 0.9)" }}
-            >
-              {businessName}
-            </p>
-            <p
-              className="text-[10px] uppercase tracking-widest"
-              style={{ color: "hsl(200 8% 45%)" }}
-            >
-              Titunge ERP
-            </p>
-          </div>
-        </div>
+        <Image
+          src="/titunge-logo.png"
+          alt="Titunge"
+          width={140}
+          height={42}
+          className="object-contain brightness-0 invert mb-2"
+        />
+        <p
+          className="text-xs font-bold truncate leading-tight"
+          style={{ color: "hsl(var(--primary) / 0.9)" }}
+        >
+          {businessName}
+        </p>
+        <p
+          className="text-[10px] uppercase tracking-widest"
+          style={{ color: "hsl(200 8% 45%)" }}
+        >
+          Titunge ERP
+        </p>
       </div>
 
       {/* Nav */}

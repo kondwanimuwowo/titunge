@@ -36,8 +36,8 @@ export const metadata: Metadata = {
   description:
     "Track orders, measurements, inventory, and payments for your tailoring or garment business.",
   icons: {
-    icon: "/titunge-fav.png",
-    apple: "/titunge-fav.png",
+    icon: "/titunge-logo-mark.png",
+    apple: "/titunge-logo-mark.png",
   },
 };
 

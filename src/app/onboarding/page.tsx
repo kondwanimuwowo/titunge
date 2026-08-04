@@ -174,8 +174,8 @@ export default function OnboardingPage() {
           <Image
             src="/titunge-logo.png"
             alt="Titunge"
-            width={52}
-            height={52}
+            width={160}
+            height={48}
             className="object-contain brightness-0 invert"
           />
         </Link>
