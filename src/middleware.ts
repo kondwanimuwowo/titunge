@@ -3,6 +3,16 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
+/** Returns `.titunge.com` when the request is on the production domain (or a subdomain),
+ *  so Supabase session cookies are shared across all subdomains. Returns undefined on
+ *  workers.dev or localhost so cookies stay scoped to the current host. */
+function getSessionCookieDomain(host: string): string | undefined {
+  if (host === APP_DOMAIN || host.endsWith(`.${APP_DOMAIN}`)) {
+    return `.${APP_DOMAIN}`;
+  }
+  return undefined;
+}
+
 function resolveBusinessSlug(request: NextRequest): string | null {
   const host = request.headers.get("host") ?? "";
 
@@ -27,6 +37,8 @@ const PUBLIC_PREFIXES = ["/catalog", "/api/catalog"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host") ?? "";
+  const cookieDomain = getSessionCookieDomain(host);
 
   // Pass business slug to server components via request header
   const businessSlug = resolveBusinessSlug(request);
@@ -55,7 +67,10 @@ export async function middleware(request: NextRequest) {
             request: { headers: requestHeaders },
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              ...(cookieDomain ? { domain: cookieDomain } : {}),
+            })
           );
         },
       },
@@ -74,6 +89,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/pricing") ||
     pathname.startsWith("/features") ||
     pathname.startsWith("/about") ||
+    pathname.startsWith("/contact") ||
     pathname.startsWith("/onboarding");
 
   // Unauthenticated: redirect to login for protected routes
