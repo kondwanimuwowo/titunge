@@ -14,15 +14,9 @@ export default async function AppLayout({
   const { business, businessId, role, userId } = await getBusinessContext();
 
   const supabase = await createClient();
-  const { data: profileData } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const [unreadCount, recentNotifications, inquiryStats] = await Promise.all([
+  const [{ data: { user } }, profileResult, unreadCount, recentNotifications, inquiryStats] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from("user_profiles").select("*").eq("id", userId).maybeSingle(),
     getUnreadCount(businessId),
     getNotifications(businessId, 5),
     getInquiryStats(businessId),
@@ -45,7 +39,7 @@ export default async function AppLayout({
           />
         }
         user={user!}
-        profile={profileData}
+        profile={profileResult.data}
         role={role}
         unreadCount={unreadCount}
         recentNotifications={recentNotifications}

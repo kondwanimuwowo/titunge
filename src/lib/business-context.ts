@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -18,7 +19,7 @@ export interface BusinessContext {
  * then fetches the business + verifies the user is a member.
  * Redirects to /onboarding if no valid business context exists.
  */
-export async function getBusinessContext(): Promise<BusinessContext> {
+export const getBusinessContext = cache(async function getBusinessContext(): Promise<BusinessContext> {
   const supabase = await createClient();
   const headersList = await headers();
   const slug = headersList.get("x-business-slug");
@@ -56,7 +57,7 @@ export async function getBusinessContext(): Promise<BusinessContext> {
     role: membership.role as BusinessRole,
     userId: user.id,
   };
-}
+});
 
 /**
  * Lightweight variant for server actions: returns businessId + userId

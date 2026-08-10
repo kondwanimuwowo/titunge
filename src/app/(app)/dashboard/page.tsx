@@ -1,11 +1,10 @@
-import { redirect } from "next/navigation";
 import { DollarSign, ShoppingCart, TrendingUp, AlertCircle, Package, Calendar } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
-import { createClient } from "@/lib/supabase/server";
 import { getDashboardStats } from "@/lib/data/dashboard";
 import { getBusinessContext } from "@/lib/business-context";
+import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/layout/PageHeader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import DashboardRealtime from "@/components/dashboard/DashboardRealtime";
@@ -17,23 +16,16 @@ import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import type { OrderStatus } from "@/lib/types/database";
 
 export default async function DashboardPage() {
+  const { businessId, userId } = await getBusinessContext();
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { data: profileData } = await supabase
     .from("user_profiles")
-    .select("full_name, role")
-    .eq("id", user.id)
-    .single();
+    .select("full_name")
+    .eq("id", userId)
+    .maybeSingle();
 
-  const profile = profileData as any;
-  const firstName = profile?.full_name?.split(" ")[0];
-
-  const { businessId } = await getBusinessContext();
+  const firstName = (profileData as any)?.full_name?.split(" ")[0];
   const data = await getDashboardStats(businessId);
 
   const clockedInToday = data.raw.todayAttendance.filter((a: any) => !a.clock_out).length;
