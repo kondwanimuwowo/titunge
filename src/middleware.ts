@@ -106,6 +106,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // On the production root domain, always push authenticated users to their subdomain.
+  // This handles both cookie-resolved slugs and fresh sessions.
+  if (user && businessSlug && host === APP_DOMAIN && !isPublicRoute && !isAuthRoute) {
+    const targetUrl = request.nextUrl.clone();
+    targetUrl.hostname = `${businessSlug}.${APP_DOMAIN}`;
+    return NextResponse.redirect(targetUrl);
+  }
+
   // Authenticated with no business slug (e.g. workers.dev flat URL, cleared cookies)
   // Auto-resolve slug from the user's first active business membership and set cookie.
   if (user && !businessSlug && !isAuthRoute && !isPublicRoute) {
