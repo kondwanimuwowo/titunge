@@ -122,14 +122,22 @@ export async function middleware(request: NextRequest) {
       ? (businesses[0] as { slug: string } | undefined)?.slug
       : (businesses as unknown as { slug: string } | null)?.slug;
     if (slug) {
-      const url = request.nextUrl.clone();
-      const response = NextResponse.redirect(url);
-      response.cookies.set("titunge-business", slug, {
-        path: "/",
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        sameSite: "lax",
-      });
-      return response;
+      if (host === APP_DOMAIN) {
+        // Production root domain: redirect to the business's subdomain
+        const targetUrl = request.nextUrl.clone();
+        targetUrl.hostname = `${slug}.${APP_DOMAIN}`;
+        return NextResponse.redirect(targetUrl);
+      } else {
+        // Dev / workers.dev: set cookie and stay on flat URL
+        const url = request.nextUrl.clone();
+        const response = NextResponse.redirect(url);
+        response.cookies.set("titunge-business", slug, {
+          path: "/",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          sameSite: "lax",
+        });
+        return response;
+      }
     }
     // No business found — fall through to onboarding
   }
