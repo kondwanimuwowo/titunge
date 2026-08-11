@@ -13,7 +13,7 @@ export function Hero() {
       />
       <div
         className="absolute inset-y-0 left-0 w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 py-12"
-        style={{ backgroundColor: "#0e1a18" }}
+        style={{ backgroundColor: "rgba(14,26,24,0.88)" }}
       >
         <FadeIn>
           <h1
