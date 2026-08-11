@@ -11,15 +11,16 @@ export async function createUserAction(data: {
   password: string;
   role: "admin" | "manager" | "employee";
 }): Promise<{ success: boolean; message?: string }> {
-  // requireBusinessContext for auth only — user_profiles is global, no business_id scoping
-  await requireBusinessContext();
+  const { businessId } = await requireBusinessContext();
 
-  const adminClient = createAdminClient(
+  const admin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+  // Create auth user. If already registered, find their existing ID.
+  let userId: string;
+  const { data: authData, error: authError } = await admin.auth.admin.createUser({
     email: data.email,
     password: data.password,
     email_confirm: true,
@@ -27,21 +28,31 @@ export async function createUserAction(data: {
   });
 
   if (authError) {
-    return { success: false, message: authError.message };
+    if (!authError.message.toLowerCase().includes("already been registered")) {
+      return { success: false, message: authError.message };
+    }
+    // User exists in auth — find them by email.
+    const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
+    const existing = list?.users.find((u) => u.email === data.email);
+    if (!existing) return { success: false, message: "User already exists but could not be found." };
+    userId = existing.id;
+  } else {
+    userId = authData.user.id;
   }
 
-  const { error: profileError } = await adminClient
+  // Upsert the user profile (only columns that exist on user_profiles).
+  await admin
     .from("user_profiles")
-    .upsert({
-      id: authData.user.id,
-      full_name: data.fullName,
-      email: data.email,
-      role: data.role,
-      active: true,
-    });
+    .upsert({ id: userId, full_name: data.fullName, email: data.email }, { onConflict: "id" });
 
-  if (profileError) {
-    return { success: false, message: profileError.message };
+  // Add or update membership for this business.
+  const { error: memberError } = await admin.from("business_users").upsert(
+    { business_id: businessId, user_id: userId, role: data.role, active: true },
+    { onConflict: "user_id,business_id", ignoreDuplicates: false }
+  );
+
+  if (memberError) {
+    return { success: false, message: memberError.message };
   }
 
   revalidatePath("/users");
@@ -49,16 +60,17 @@ export async function createUserAction(data: {
 }
 
 export async function updateUserRole(
-  id: string,
+  userId: string,
   role: "admin" | "manager" | "employee"
 ) {
-  // requireBusinessContext for auth only — user_profiles is global, no business_id scoping
-  await requireBusinessContext();
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("user_profiles") as any)
-    .update({ role, updated_at: new Date().toISOString() })
-    .eq("id", id);
+  const { error } = await supabase
+    .from("business_users")
+    .update({ role })
+    .eq("user_id", userId)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Update user role error:", error);
@@ -69,14 +81,15 @@ export async function updateUserRole(
   return { success: true };
 }
 
-export async function toggleUserActive(id: string, active: boolean) {
-  // requireBusinessContext for auth only — user_profiles is global, no business_id scoping
-  await requireBusinessContext();
+export async function toggleUserActive(userId: string, active: boolean) {
+  const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
-  const { error } = await (supabase.from("user_profiles") as any)
-    .update({ active, updated_at: new Date().toISOString() })
-    .eq("id", id);
+  const { error } = await supabase
+    .from("business_users")
+    .update({ active })
+    .eq("user_id", userId)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Toggle user active error:", error);

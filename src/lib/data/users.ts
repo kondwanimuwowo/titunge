@@ -10,7 +10,7 @@ export async function getUsers(businessId: string) {
     .from("business_users")
     .select("*")
     .eq("business_id", businessId)
-    .order("joined_at", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (error) {
     console.error("Error fetching users:", error);
@@ -28,10 +28,16 @@ export async function getUsers(businessId: string) {
 
   const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
 
-  return members.map((m) => ({
-    ...m,
-    user_profiles: profileMap[m.user_id] ?? null,
-  }));
+  return members.map((m) => {
+    const profile = profileMap[m.user_id] ?? null;
+    return {
+      ...m,
+      full_name: profile?.full_name ?? null,
+      email: profile?.email ?? null,
+      avatar_url: profile?.avatar_url ?? null,
+      user_profiles: profile,
+    };
+  });
 }
 
 export async function getUserById(businessId: string, userId: string) {
