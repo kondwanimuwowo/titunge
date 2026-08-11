@@ -37,6 +37,27 @@ export async function signInAction(email: string, password: string): Promise<{ s
   return { success: true };
 }
 
+export async function getMyBusinessSlug(): Promise<{ authenticated: boolean; slug: string | null }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { authenticated: false, slug: null };
+
+  const { data } = await supabase
+    .from("business_users")
+    .select("businesses!inner(slug)")
+    .eq("user_id", user.id)
+    .eq("active", true)
+    .limit(1)
+    .single();
+
+  const businesses = data?.businesses;
+  const slug = Array.isArray(businesses)
+    ? (businesses[0] as { slug: string } | undefined)?.slug ?? null
+    : (businesses as unknown as { slug: string } | null)?.slug ?? null;
+
+  return { authenticated: true, slug };
+}
+
 export async function checkSlugAvailable(slug: string): Promise<{ available: boolean }> {
   const admin = createAdminClient();
   const { data } = await admin

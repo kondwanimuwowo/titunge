@@ -7,7 +7,10 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { getMyBusinessSlug } from "@/app/actions/onboarding";
 import { cn } from "@/lib/utils";
+
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,10 +26,7 @@ export default function LoginPage() {
     setError(null);
 
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError) {
       setError(signInError.message);
@@ -34,8 +34,26 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    // Resolve the user's business and navigate directly to the correct workspace.
+    const { authenticated, slug } = await getMyBusinessSlug();
+
+    if (!authenticated) {
+      setError("Sign in succeeded but session could not be verified. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    if (slug) {
+      if (process.env.NODE_ENV === "development") {
+        document.cookie = `titunge-business=${slug}; path=/; max-age=${60 * 60 * 24 * 30}`;
+        router.push("/dashboard");
+      } else {
+        window.location.href = `https://${slug}.${APP_DOMAIN}/dashboard`;
+      }
+    } else {
+      // Authenticated but no business yet — go straight to workspace setup.
+      router.push("/onboarding");
+    }
   };
 
   return (
@@ -46,7 +64,6 @@ export default function LoginPage() {
       className="w-full max-w-md"
     >
       <div className="bg-card border border-border rounded-xl shadow-sm p-8">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <Image
             src="/titunge-logo.png"
@@ -55,22 +72,16 @@ export default function LoginPage() {
             height={60}
             className="object-contain mb-3"
           />
-          <p className="text-xs text-muted-foreground">
-            Sign in to your workspace
-          </p>
+          <p className="text-xs text-muted-foreground">Sign in to your workspace</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-sm font-medium text-foreground">
-              Email Address
+              Email address
             </label>
             <div className="relative">
-              <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={15}
-              />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={15} />
               <input
                 id="email"
                 type="email"
@@ -84,7 +95,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Password */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label htmlFor="password" className="text-sm font-medium text-foreground">
@@ -95,10 +105,7 @@ export default function LoginPage() {
               </Link>
             </div>
             <div className="relative">
-              <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={15}
-              />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={15} />
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -119,14 +126,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Error */}
           {error && (
             <p className="text-xs text-destructive font-medium bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2">
               {error}
             </p>
           )}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
@@ -138,16 +143,19 @@ export default function LoginPage() {
             {loading ? (
               <>
                 <Loader2 size={15} className="animate-spin" />
-                Signing In...
+                Signing in...
               </>
             ) : (
-              "Sign In"
+              "Sign in"
             )}
           </button>
         </form>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          &copy; {new Date().getFullYear()} Titunge. All rights reserved.
+          Don&apos;t have an account?{" "}
+          <Link href="/onboarding" className="text-primary hover:underline">
+            Get started
+          </Link>
         </p>
       </div>
     </motion.div>

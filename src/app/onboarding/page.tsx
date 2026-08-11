@@ -1,15 +1,23 @@
 "use client";
 
-import { useState, useTransition, useCallback } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Loader2, Check, AlertCircle, Eye, EyeOff, ArrowLeft, ArrowRight } from "lucide-react";
+import { Loader2, Check, AlertCircle, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { signUpAction, signInAction, checkSlugAvailable, createBusinessAction } from "@/app/actions/onboarding";
+import {
+  signUpAction,
+  signInAction,
+  checkSlugAvailable,
+  createBusinessAction,
+  getMyBusinessSlug,
+} from "@/app/actions/onboarding";
 
 type Step = "account" | "business" | "done";
+
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
 const CURRENCIES = [
   { code: "USD", label: "USD - US Dollar" },
@@ -44,9 +52,19 @@ function slugify(name: string) {
     .slice(0, 40);
 }
 
+function redirectToDashboard(slug: string) {
+  if (process.env.NODE_ENV === "development") {
+    document.cookie = `titunge-business=${slug}; path=/; max-age=${60 * 60 * 24 * 30}`;
+    window.location.href = "/dashboard";
+  } else {
+    window.location.href = `https://${slug}.${APP_DOMAIN}/dashboard`;
+  }
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("account");
+  const [checking, setChecking] = useState(true);
   const [isPending, startTransition] = useTransition();
 
   // Account step
@@ -54,26 +72,39 @@ export default function OnboardingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [existingUser, setExistingUser] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
 
   // Business step
   const [businessName, setBusinessName] = useState("");
   const [slug, setSlug] = useState("");
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "taken" | "available">("idle");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("ZMW");
   const [timezone, setTimezone] = useState("Africa/Lusaka");
   const [businessError, setBusinessError] = useState<string | null>(null);
   const [workspaceUrl, setWorkspaceUrl] = useState("");
   const [isDev, setIsDev] = useState(false);
 
+  // On mount: check auth state and redirect accordingly.
+  useEffect(() => {
+    getMyBusinessSlug().then(({ authenticated, slug: existingSlug }) => {
+      if (existingSlug) {
+        // Already has a workspace — send them there.
+        redirectToDashboard(existingSlug);
+      } else if (authenticated) {
+        // Logged in but no workspace yet — skip account creation.
+        setStep("business");
+        setChecking(false);
+      } else {
+        setChecking(false);
+      }
+    });
+  }, []);
+
   const handleSlugChange = useCallback((raw: string) => {
     const clean = slugify(raw);
     setSlug(clean);
     setSlugStatus("idle");
-
     if (clean.length < 3) return;
-
     const timer = setTimeout(() => {
       setSlugStatus("checking");
       checkSlugAvailable(clean).then(({ available }) => {
@@ -101,31 +132,20 @@ export default function OnboardingPage() {
   const handleAccountSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setAccountError(null);
-
     if (password.length < 8) {
       setAccountError("Password must be at least 8 characters.");
       return;
     }
-
     startTransition(async () => {
-      if (existingUser) {
-        const result = await signInAction(email, password);
-        if (!result.success) {
-          setAccountError(result.message ?? "Sign in failed");
-          return;
-        }
-      } else {
-        const result = await signUpAction({ fullName, email, password });
-        if (!result.success) {
-          setAccountError(result.message ?? "Sign up failed");
-          return;
-        }
-        // After signup, sign in to get session
-        const signIn = await signInAction(email, password);
-        if (!signIn.success) {
-          setAccountError(signIn.message ?? "Could not sign in after registration");
-          return;
-        }
+      const result = await signUpAction({ fullName, email, password });
+      if (!result.success) {
+        setAccountError(result.message ?? "Sign up failed");
+        return;
+      }
+      const signIn = await signInAction(email, password);
+      if (!signIn.success) {
+        setAccountError(signIn.message ?? "Could not sign in after registration");
+        return;
       }
       setStep("business");
     });
@@ -134,27 +154,24 @@ export default function OnboardingPage() {
   const handleBusinessSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setBusinessError(null);
-
     if (slugStatus === "taken") {
       setBusinessError("That workspace URL is taken. Choose a different one.");
       return;
     }
-
     startTransition(async () => {
       const result = await createBusinessAction({ name: businessName, slug, currency, timezone });
       if (!result.success) {
         setBusinessError(result.message ?? "Failed to create workspace");
         return;
       }
-
-      const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
       setIsDev(!!result.isDev);
+      setWorkspaceUrl(
+        result.isDev
+          ? "http://localhost:3000/dashboard"
+          : `https://${result.slug}.${APP_DOMAIN}/dashboard`
+      );
       if (result.isDev) {
-        // In dev, set the fallback cookie so middleware can resolve the tenant
-        document.cookie = `titunge-business=${result.slug}; path=/; max-age=86400`;
-        setWorkspaceUrl("http://localhost:3000/dashboard");
-      } else {
-        setWorkspaceUrl(`https://${result.slug}.${appDomain}/dashboard`);
+        document.cookie = `titunge-business=${result.slug}; path=/; max-age=${60 * 60 * 24 * 30}`;
       }
       setStep("done");
     });
@@ -165,6 +182,15 @@ export default function OnboardingPage() {
     center: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -24 },
   };
+
+  // Show nothing while checking auth — avoids a flash of the wrong step.
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#f5f1ee" }}>
+        <Loader2 className="animate-spin text-[#5fa8a0]" size={28} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: "#f5f1ee" }}>
@@ -187,7 +213,6 @@ export default function OnboardingPage() {
             const thisIndex = steps.indexOf(s);
             const done = thisIndex < currentIndex;
             const active = s === step;
-
             return (
               <div key={s} className="flex items-center gap-3">
                 <div
@@ -233,28 +258,24 @@ export default function OnboardingPage() {
               >
                 <div className="bg-white rounded-2xl p-8" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
                   <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: "var(--font-canter)" }}>
-                    {existingUser ? "Sign in to your account" : "Create your account"}
+                    Create your account
                   </h1>
                   <p className="text-sm text-gray-500 mb-6">
-                    {existingUser
-                      ? "Sign in to continue setting up your workspace."
-                      : "Start with your personal details. Your workspace comes next."}
+                    Start with your personal details. Your workspace comes next.
                   </p>
 
                   <form onSubmit={handleAccountSubmit} className="space-y-4">
-                    {!existingUser && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1.5">Full name</label>
-                        <input
-                          type="text"
-                          required
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          placeholder="Jane Mwale"
-                          className="w-full px-4 py-2.5 text-sm rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5fa8a0]/30 focus:bg-white transition-all"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1.5">Full name</label>
+                      <input
+                        type="text"
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Jane Mwale"
+                        className="w-full px-4 py-2.5 text-sm rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5fa8a0]/30 focus:bg-white transition-all"
+                      />
+                    </div>
 
                     <div>
                       <label className="text-sm font-medium text-gray-700 block mb-1.5">Email address</label>
@@ -306,20 +327,16 @@ export default function OnboardingPage() {
                       style={{ backgroundColor: "#5fa8a0" }}
                     >
                       {isPending ? <Loader2 size={15} className="animate-spin" /> : null}
-                      {isPending ? "Working..." : existingUser ? "Sign in and continue" : "Continue"}
+                      {isPending ? "Working..." : "Continue"}
                       {!isPending && <ArrowRight size={15} />}
                     </button>
                   </form>
 
                   <p className="text-xs text-gray-400 text-center mt-6">
-                    {existingUser ? "New here?" : "Already have an account?"}{" "}
-                    <button
-                      type="button"
-                      className="text-gray-600 underline underline-offset-4 hover:text-gray-900"
-                      onClick={() => { setExistingUser((v) => !v); setAccountError(null); }}
-                    >
-                      {existingUser ? "Create account" : "Sign in instead"}
-                    </button>
+                    Already have an account?{" "}
+                    <Link href="/login" className="text-gray-600 underline underline-offset-4 hover:text-gray-900">
+                      Sign in
+                    </Link>
                   </p>
                 </div>
               </motion.div>
@@ -335,13 +352,6 @@ export default function OnboardingPage() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
                 <div className="bg-white rounded-2xl p-8" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
-                  <button
-                    onClick={() => setStep("account")}
-                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 mb-6 transition-colors"
-                  >
-                    <ArrowLeft size={13} /> Back
-                  </button>
-
                   <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: "var(--font-canter)" }}>
                     Set up your workspace
                   </h1>
@@ -363,9 +373,7 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                        Workspace URL
-                      </label>
+                      <label className="text-sm font-medium text-gray-700 block mb-1.5">Workspace URL</label>
                       <div className="flex items-center rounded-xl bg-gray-50 overflow-hidden focus-within:ring-2 focus-within:ring-[#5fa8a0]/30 focus-within:bg-white transition-all">
                         <input
                           type="text"
@@ -432,7 +440,7 @@ export default function OnboardingPage() {
                       disabled={isPending || slugStatus === "taken" || slug.length < 3}
                       className={cn(
                         "w-full h-11 flex items-center justify-center gap-2 rounded-full text-sm font-semibold text-white transition-opacity mt-1",
-                        (isPending || slugStatus === "taken" || slug.length < 3)
+                        isPending || slugStatus === "taken" || slug.length < 3
                           ? "opacity-50 cursor-not-allowed"
                           : "hover:opacity-90"
                       )}
@@ -471,25 +479,14 @@ export default function OnboardingPage() {
                     Your workspace is ready. Open it to start adding orders, customers, and inventory.
                   </p>
 
-                  {isDev ? (
-                    <button
-                      onClick={() => router.push("/dashboard")}
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-white rounded-full px-8 py-3.5 transition-opacity hover:opacity-90"
-                      style={{ backgroundColor: "#5fa8a0" }}
-                    >
-                      Open your workspace
-                      <ArrowRight size={15} />
-                    </button>
-                  ) : (
-                    <a
-                      href={workspaceUrl}
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-white rounded-full px-8 py-3.5 transition-opacity hover:opacity-90"
-                      style={{ backgroundColor: "#5fa8a0" }}
-                    >
-                      Open your workspace
-                      <ArrowRight size={15} />
-                    </a>
-                  )}
+                  <a
+                    href={workspaceUrl}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-white rounded-full px-8 py-3.5 transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: "#5fa8a0" }}
+                  >
+                    Open your workspace
+                    <ArrowRight size={15} />
+                  </a>
 
                   <p className="text-xs text-gray-400 mt-4 break-all">{workspaceUrl}</p>
                 </div>
