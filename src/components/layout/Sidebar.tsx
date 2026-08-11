@@ -38,16 +38,10 @@ export default function Sidebar({
           className="object-contain brightness-0 invert mb-2"
         />
         <p
-          className="text-xs font-bold truncate leading-tight"
+          className="text-sm font-bold truncate leading-tight"
           style={{ color: "hsl(var(--primary) / 0.9)" }}
         >
           {businessName}
-        </p>
-        <p
-          className="text-[10px] uppercase tracking-widest"
-          style={{ color: "hsl(200 8% 45%)" }}
-        >
-          Titunge ERP
         </p>
       </div>
 
