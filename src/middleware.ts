@@ -99,11 +99,41 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Authenticated on auth route: redirect to dashboard
+  // Authenticated on auth route: resolve business and redirect to the correct subdomain dashboard.
+  // Doing the lookup here avoids the intermediate root-domain /dashboard hop, which triggers
+  // getBusinessContext() with no x-business-slug header and redirects to /onboarding.
   if (user && isAuthRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+    if (host === APP_DOMAIN) {
+      // Production root domain — find the user's business and redirect to subdomain
+      const { data } = await supabase
+        .from("business_users")
+        .select("businesses!inner(slug)")
+        .eq("user_id", user.id)
+        .eq("active", true)
+        .limit(1)
+        .single();
+
+      const businesses = data?.businesses;
+      const slug = Array.isArray(businesses)
+        ? (businesses[0] as { slug: string } | undefined)?.slug
+        : (businesses as unknown as { slug: string } | null)?.slug;
+
+      if (slug) {
+        const targetUrl = request.nextUrl.clone();
+        targetUrl.hostname = `${slug}.${APP_DOMAIN}`;
+        targetUrl.pathname = "/dashboard";
+        return NextResponse.redirect(targetUrl);
+      }
+      // No business found — send to onboarding
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    } else {
+      // Dev / workers.dev / subdomain: redirect to /dashboard on same host
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   // On the production root domain, always push authenticated users to their subdomain.
