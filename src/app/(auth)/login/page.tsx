@@ -10,8 +10,6 @@ import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessSlug } from "@/app/actions/onboarding";
 import { cn } from "@/lib/utils";
 
-const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
-
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -50,26 +48,10 @@ export default function LoginPage() {
       return;
     }
 
-    // Resolve the user's business and navigate directly to the correct workspace.
-    const { authenticated, slug } = await getMyBusinessSlug();
-
-    if (!authenticated) {
-      setError("Sign in succeeded but session could not be verified. Please try again.");
-      setLoading(false);
-      return;
-    }
-
-    if (slug) {
-      if (process.env.NODE_ENV === "development") {
-        document.cookie = `titunge-business=${slug}; path=/; max-age=${60 * 60 * 24 * 30}`;
-        router.push("/dashboard");
-      } else {
-        window.location.href = `https://${slug}.${APP_DOMAIN}/dashboard`;
-      }
-    } else {
-      // Authenticated but no business yet — go straight to workspace setup.
-      router.push("/onboarding");
-    }
+    // Hard navigate to /dashboard — middleware does the business lookup and
+    // redirects to the correct subdomain. Avoids a server-action round-trip
+    // immediately after signInWithPassword (cookie sync race condition).
+    window.location.href = "/dashboard";
   };
 
   return (

@@ -60,7 +60,7 @@ export async function createUserAction(data: {
 }
 
 export async function updateUserRole(
-  userId: string,
+  membershipId: string,
   role: "admin" | "manager" | "employee"
 ) {
   const { businessId } = await requireBusinessContext();
@@ -69,7 +69,7 @@ export async function updateUserRole(
   const { error } = await supabase
     .from("business_users")
     .update({ role })
-    .eq("user_id", userId)
+    .eq("id", membershipId)
     .eq("business_id", businessId);
 
   if (error) {
@@ -81,14 +81,14 @@ export async function updateUserRole(
   return { success: true };
 }
 
-export async function toggleUserActive(userId: string, active: boolean) {
+export async function toggleUserActive(membershipId: string, active: boolean) {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("business_users")
     .update({ active })
-    .eq("user_id", userId)
+    .eq("id", membershipId)
     .eq("business_id", businessId);
 
   if (error) {
