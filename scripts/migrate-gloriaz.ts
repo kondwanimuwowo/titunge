@@ -25,7 +25,7 @@ const tt = createClient(TT_URL, TT_KEY, { auth: { persistSession: false } });
 
 const BUSINESS_SLUG = "gloriaz-daughter";
 
-async function fetchAll<T>(client: ReturnType<typeof createClient>, table: string): Promise<T[]> {
+async function fetchAll<T>(client: ReturnType<typeof createClient<any>>, table: string): Promise<T[]> {
   const rows: T[] = [];
   let from = 0;
   const PAGE = 1000;
