@@ -6,6 +6,9 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getMyBusinessSlug } from "@/app/actions/onboarding";
+
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
 const NAV_LINKS = [
   { href: "/features", label: "Features" },
@@ -16,12 +19,24 @@ const NAV_LINKS = [
 export function MarketingNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [dashboardUrl, setDashboardUrl] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    getMyBusinessSlug().then(({ slug }) => {
+      if (!slug) return;
+      if (process.env.NODE_ENV === "development") {
+        setDashboardUrl("/dashboard");
+      } else {
+        setDashboardUrl(`https://${slug}.${APP_DOMAIN}/dashboard`);
+      }
+    });
   }, []);
 
   return (
@@ -64,16 +79,28 @@ export function MarketingNav() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-              Sign in
-            </Link>
-            <Link
-              href="/onboarding"
-              className="text-sm font-medium text-white rounded-full px-5 py-2 transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#5fa8a0" }}
-            >
-              Start free trial
-            </Link>
+            {dashboardUrl ? (
+              <a
+                href={dashboardUrl}
+                className="text-sm font-medium text-white rounded-full px-5 py-2 transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "#5fa8a0" }}
+              >
+                Go to dashboard
+              </a>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+                  Sign in
+                </Link>
+                <Link
+                  href="/onboarding"
+                  className="text-sm font-medium text-white rounded-full px-5 py-2 transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "#5fa8a0" }}
+                >
+                  Start free trial
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile toggle */}
@@ -101,17 +128,30 @@ export function MarketingNav() {
             </Link>
           ))}
           <div className="pt-2 space-y-3">
-            <Link href="/login" className="block text-sm text-gray-500" onClick={() => setMobileOpen(false)}>
-              Sign in
-            </Link>
-            <Link
-              href="/onboarding"
-              className="inline-block text-sm font-medium text-white rounded-full px-5 py-2"
-              style={{ backgroundColor: "#5fa8a0" }}
-              onClick={() => setMobileOpen(false)}
-            >
-              Start free trial
-            </Link>
+            {dashboardUrl ? (
+              <a
+                href={dashboardUrl}
+                className="inline-block text-sm font-medium text-white rounded-full px-5 py-2"
+                style={{ backgroundColor: "#5fa8a0" }}
+                onClick={() => setMobileOpen(false)}
+              >
+                Go to dashboard
+              </a>
+            ) : (
+              <>
+                <Link href="/login" className="block text-sm text-gray-500" onClick={() => setMobileOpen(false)}>
+                  Sign in
+                </Link>
+                <Link
+                  href="/onboarding"
+                  className="inline-block text-sm font-medium text-white rounded-full px-5 py-2"
+                  style={{ backgroundColor: "#5fa8a0" }}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Start free trial
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
