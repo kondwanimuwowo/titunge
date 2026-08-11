@@ -20,11 +20,6 @@ function StockStatusBadge({ stock, min }: { stock: number; min: number }) {
 
 export default async function MaterialDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
   const { businessId } = await getBusinessContext();
   const [material, history] = await Promise.all([
     getMaterialById(businessId, id),

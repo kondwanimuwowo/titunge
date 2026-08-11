@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
 import { ShoppingCart, TrendingUp, Clock } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { getOrders, getOrderStats } from "@/lib/data/orders";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -11,13 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
 export default async function OrdersPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   // Fetch data concurrently
   const [orders, stats] = await Promise.all([

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  body { font-family: 'Manrope', sans-serif; color: #0e1a18; }
+  a { color: #5fa8a0; text-decoration: none; }
+  a:hover { color: #0e1a18; }
+  input, select, textarea, button { font-family: 'Manrope', sans-serif; }
+  ::placeholder { color: #6b7573; }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; background: #ffffff;">
+
+<nav data-screen-label="Nav" style="position: sticky; top: 0; z-index: 50; background: #ffffff; box-shadow: 0 2px 12px rgba(14,26,24,0.10); display: flex; align-items: center; gap: 32px; padding: 16px 48px;">
+  <a href="Marketplace%20Homepage.dc.html" style="flex-shrink: 0; display: flex; align-items: center;">
+    <img src="public/titunge-logo.png" alt="Titunge" style="height: 36px; display: block;">
+  </a>
+  <div style="flex: 1; display: flex; justify-content: center;">
+    <div style="display: flex; align-items: center; width: 100%; max-width: 640px; background: #f5f5f5; border-radius: 999px; padding: 6px 6px 6px 24px; gap: 16px;">
+      <input type="text" placeholder="Search fabric, garments, and makers" style="flex: 1; background: none; border: none; outline: none; font-size: 15px; color: #0e1a18; padding: 8px 0;">
+      <button aria-label="Search" style="background: #5fa8a0; border: none; border-radius: 999px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" style-hover="background: #4f958d;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff"><path d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0 0 10 2zm0 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"></path></svg>
+      </button>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 24px; flex-shrink: 0;">
+    <a href="Sell%20on%20Titunge.dc.html" style="font-size: 15px; font-weight: 600; color: #0e1a18; white-space: nowrap;" style-hover="color: #5fa8a0;">Sell on Titunge</a>
+    <a href="#" style="background: #0e1a18; color: #ffffff; font-size: 15px; font-weight: 600; border-radius: 999px; padding: 12px 24px; white-space: nowrap;" style-hover="background: #1c2f2c; color: #ffffff;">Go to Titunge for Business</a>
+  </div>
+</nav>
+
+<section data-screen-label="Browse results" style="padding: 32px 0 64px;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
+    <div style="display: flex; gap: 8px; align-items: center; font-size: 14px; margin-bottom: 16px;">
+      <a href="Marketplace%20Homepage.dc.html" style="color: #6b7573;" style-hover="color: #0e1a18;">Home</a>
+      <span style="color: #6b7573;">/</span>
+      <span style="font-weight: 600;">Ready-to-wear</span>
+    </div>
+    <h1 style="margin: 0 0 32px; font-size: 36px; font-weight: 800; letter-spacing: -0.01em;">Ready-to-wear</h1>
+    <div style="display: grid; grid-template-columns: 240px 1fr; gap: 48px; align-items: start;">
+      <div style="display: flex; flex-direction: column; gap: 32px;">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 14px; font-weight: 700;">Category</div>
+          <a href="#" style="font-size: 14px; font-weight: 700; color: #0e1a18;">All ready-to-wear</a>
+          <a href="#" style="font-size: 14px; color: #3d4a47;" style-hover="color: #0e1a18;">Dresses</a>
+          <a href="#" style="font-size: 14px; color: #3d4a47;" style-hover="color: #0e1a18;">Shirts</a>
+          <a href="#" style="font-size: 14px; color: #3d4a47;" style-hover="color: #0e1a18;">Trousers</a>
+          <a href="#" style="font-size: 14px; color: #3d4a47;" style-hover="color: #0e1a18;">Outerwear</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 14px; font-weight: 700;">Price</div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" placeholder="Min" style="background: #f5f5f5; border: none; outline: none; border-radius: 12px; padding: 10px 14px; font-size: 14px; width: 100%; box-sizing: border-box;">
+            <input type="text" placeholder="Max" style="background: #f5f5f5; border: none; outline: none; border-radius: 12px; padding: 10px 14px; font-size: 14px; width: 100%; box-sizing: border-box;">
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 14px; font-weight: 700;">Ships from</div>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #3d4a47;"><input type="checkbox" checked style="accent-color: #5fa8a0; width: 16px; height: 16px; margin: 0;">Zambia</label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #3d4a47;"><input type="checkbox"  style="accent-color: #5fa8a0; width: 16px; height: 16px; margin: 0;">Ghana</label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #3d4a47;"><input type="checkbox"  style="accent-color: #5fa8a0; width: 16px; height: 16px; margin: 0;">Nigeria</label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #3d4a47;"><input type="checkbox"  style="accent-color: #5fa8a0; width: 16px; height: 16px; margin: 0;">Kenya</label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #3d4a47;"><input type="checkbox"  style="accent-color: #5fa8a0; width: 16px; height: 16px; margin: 0;">Senegal</label>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 14px; font-weight: 700;">Rating</div>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #3d4a47;"><input type="checkbox" checked style="accent-color: #5fa8a0; width: 16px; height: 16px; margin: 0;">4 stars and up</label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #3d4a47;"><input type="checkbox"  style="accent-color: #5fa8a0; width: 16px; height: 16px; margin: 0;">3 stars and up</label>
+        </div>
+        <button style="background: #0e1a18; color: #ffffff; border: none; border-radius: 999px; padding: 12px 24px; font-size: 14px; font-weight: 700; align-self: flex-start;" style-hover="background: #1c2f2c;">Apply filters</button>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div style="font-size: 14px; color: #6b7573;">128 results</div>
+          <select style="background: #f5f5f5; border: none; outline: none; border-radius: 999px; padding: 10px 20px; font-size: 14px; font-weight: 600; color: #0e1a18;">
+            <option>Newest</option>
+            <option>Price, low to high</option>
+            <option>Price, high to low</option>
+            <option>Top rated</option>
+          </select>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+          <a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-1" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Ankara wrap dress</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">Chipo Designs, Lusaka</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K1,566</div>
+  </div>
+</a>
+<a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-2" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Tailored linen shirt</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">Banda & Sons, Lilongwe</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K1,134</div>
+  </div>
+</a>
+<a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-3" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Wax print shirt dress</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">Chipo Designs, Lusaka</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K1,674</div>
+  </div>
+</a>
+<a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-4" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Aso oke agbada set</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">Adeyemi Bespoke, Lagos</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K4,860</div>
+  </div>
+</a>
+<a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-5" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Mudcloth bomber jacket</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">Keita Atelier, Bamako</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K2,592</div>
+  </div>
+</a>
+<a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-6" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Two piece chitenge set</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">Chipo Designs, Lusaka</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K2,268</div>
+  </div>
+</a>
+<a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-7" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Off shoulder occasion dress</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">House of Nia, Accra</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K2,592</div>
+  </div>
+</a>
+<a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-8" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Wide leg wax print trousers</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">Zuwa Studio, Lusaka</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K1,458</div>
+  </div>
+</a>
+<a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+  <div style="position: relative; aspect-ratio: 1;">
+    <image-slot id="br-9" shape="rect" placeholder="Product photo"></image-slot>
+    <div style="position: absolute; top: 12px; right: 12px; padding: 4px; display: flex;"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg></div>
+  </div>
+  <div style="padding: 16px;">
+    <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">Chitenge midi skirt</div>
+    <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">Chipo Designs, Lusaka</div>
+    <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">K1,026</div>
+  </div>
+</a>
+        </div>
+        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 48px;">
+          <a href="#" style="background: #0e1a18; color: #ffffff; border-radius: 999px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;" style-hover="color: #ffffff;">1</a>
+          <a href="#" style="background: #f5f5f5; color: #0e1a18; border-radius: 999px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;" style-hover="background: #ecebeb; color: #0e1a18;">2</a>
+          <a href="#" style="background: #f5f5f5; color: #0e1a18; border-radius: 999px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;" style-hover="background: #ecebeb; color: #0e1a18;">3</a>
+          <a href="#" style="background: #f5f5f5; color: #0e1a18; border-radius: 999px; padding: 0 20px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;" style-hover="background: #ecebeb; color: #0e1a18;">Next</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer data-screen-label="Footer" style="background: #0e1a18; color: #ffffff; padding: 64px 0 32px;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px;">
+      <div style="display: flex; flex-direction: column; gap: 16px; align-items: flex-start;">
+        <img src="public/titunge-logo.png" alt="Titunge" style="height: 32px; display: block;">
+        <p style="margin: 0; color: #c9d4d2; font-size: 14px; line-height: 1.5; max-width: 280px;">A marketplace for fashion and tailoring, made in Africa.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Shop</div>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Ankara fabric</a>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Kente</a>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Ready-to-wear</a>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Bespoke tailoring</a>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Bridal</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Sell</div>
+        <a href="Sell%20on%20Titunge.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Start selling</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Seller handbook</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Fees</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Titunge for Business</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Company</div>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">About</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Careers</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Contact</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Help center</a>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 48px; padding-top: 24px;">
+      <div style="font-size: 13px; color: #c9d4d2;">© 2026 Titunge</div>
+      <div style="display: flex; gap: 24px;">
+        <a href="#" style="color: #c9d4d2; font-size: 13px;" style-hover="color: #ffffff;">Privacy</a>
+        <a href="#" style="color: #c9d4d2; font-size: 13px;" style-hover="color: #ffffff;">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

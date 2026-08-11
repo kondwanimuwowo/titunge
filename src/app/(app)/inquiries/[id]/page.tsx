@@ -22,11 +22,6 @@ function StatusBadge({ status }: { status: string }) {
 
 export default async function InquiryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
   const { businessId } = await getBusinessContext();
   const inquiry = await getInquiryById(businessId, id);
   if (!inquiry) notFound();

@@ -1,7 +1,3 @@
-"use server";
-
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getNotifications } from "@/lib/data/notifications";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";

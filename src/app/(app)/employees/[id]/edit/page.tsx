@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { getEmployeeById } from "@/lib/data/employees";
 import { getBusinessContext } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
@@ -9,13 +8,6 @@ import EmployeeForm from "@/components/employees/EmployeeForm";
 
 export default async function EditEmployeePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   const employee = await getEmployeeById(businessId, id);
   if (!employee) notFound();

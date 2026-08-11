@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
-import { createClient } from "@/lib/supabase/server";
 import { getAllInventoryTransactions, getMaterials } from "@/lib/data/inventory";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -36,10 +34,6 @@ export default async function InventoryAuditPage({
 }: {
   searchParams: Promise<{ material?: string; type?: string; from?: string; to?: string }>;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
   const params = await searchParams;
   const { businessId } = await getBusinessContext();
 

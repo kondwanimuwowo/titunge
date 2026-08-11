@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  body { font-family: 'Manrope', sans-serif; color: #0e1a18; }
+  a { color: #5fa8a0; text-decoration: none; }
+  a:hover { color: #0e1a18; }
+  input { font-family: 'Manrope', sans-serif; }
+  ::placeholder { color: #6b7573; }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; background: #ffffff;">
+
+<!-- Nav -->
+<nav data-screen-label="Nav" style="position: sticky; top: 0; z-index: 50; background: #ffffff; box-shadow: 0 2px 12px rgba(14,26,24,0.10); display: flex; align-items: center; gap: 32px; padding: 16px 48px;">
+  <a href="#" style="flex-shrink: 0; display: flex; align-items: center;">
+    <img src="public/titunge-logo.png" alt="Titunge" style="height: 36px; display: block;">
+  </a>
+  <div style="flex: 1; display: flex; justify-content: center;">
+    <div style="display: flex; align-items: center; width: 100%; max-width: 640px; background: #f5f5f5; border-radius: 999px; padding: 6px 6px 6px 24px; gap: 16px;">
+      <input type="text" placeholder="Search fabric, garments, and makers" style="flex: 1; background: none; border: none; outline: none; font-size: 15px; color: #0e1a18; padding: 8px 0;">
+      <button aria-label="Search" style="background: #5fa8a0; border: none; border-radius: 999px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" style-hover="background: #4f958d;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff"><path d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0 0 10 2zm0 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"></path></svg>
+      </button>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 24px; flex-shrink: 0;">
+    <a href="Sell%20on%20Titunge.dc.html" style="font-size: 15px; font-weight: 600; color: #0e1a18; white-space: nowrap;" style-hover="color: #5fa8a0;">Sell on Titunge</a>
+    <a href="#" style="background: #0e1a18; color: #ffffff; font-size: 15px; font-weight: 600; border-radius: 999px; padding: 12px 24px; white-space: nowrap;" style-hover="background: #1c2f2c; color: #ffffff;">Go to Titunge for Business</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section data-screen-label="Hero" style="position: relative; height: 560px;">
+  <image-slot id="hero-bg" shape="rect" placeholder="Tailor's workshop or African fashion photo"></image-slot>
+  <div style="position: absolute; top: 0; left: 0; bottom: 0; width: 50%; background: #0e1a18; display: flex; flex-direction: column; justify-content: center; padding: 64px; box-sizing: border-box;">
+    <h1 style="margin: 0 0 16px; color: #ffffff; font-size: 52px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; text-wrap: pretty;">Handmade and tailored, straight from the maker.</h1>
+    <p style="margin: 0 0 32px; color: #c9d4d2; font-size: 18px; line-height: 1.5;">Fabric, garments, and custom pieces from independent makers across Africa.</p>
+    <div style="display: flex; gap: 16px;">
+      <a href="#new" style="background: #5fa8a0; color: #ffffff; font-size: 16px; font-weight: 700; border-radius: 999px; padding: 14px 32px;" style-hover="background: #4f958d; color: #ffffff;">Shop now</a>
+      <a href="#sell" style="background: #ffffff; color: #0e1a18; font-size: 16px; font-weight: 700; border-radius: 999px; padding: 14px 32px;" style-hover="background: #f5f5f5;">Start selling</a>
+    </div>
+  </div>
+</section>
+
+<!-- Categories -->
+<section data-screen-label="Categories" style="padding: 48px 0;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
+    <sc-if value="{{ isCards }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; gap: 16px; overflow-x: auto; overflow-y: hidden; padding-bottom: 16px;">
+        <a href="#" style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #f5f5f5; border-radius: 12px; padding: 24px 32px; min-width: 120px; color: #0e1a18;" style-hover="background: #ecebeb; color: #0e1a18;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#0e1a18"><rect x="2" y="8" width="15" height="8" rx="2"></rect><circle cx="19" cy="12" r="3.5"></circle><circle cx="19" cy="12" r="1.2" fill="#f5f5f5"></circle></svg>
+          <span style="font-size: 14px; font-weight: 600; white-space: nowrap;">Ankara fabric</span>
+        </a>
+        <a href="#" style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #f5f5f5; border-radius: 12px; padding: 24px 32px; min-width: 120px; color: #0e1a18;" style-hover="background: #ecebeb; color: #0e1a18;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#0e1a18"><rect x="3" y="3" width="8" height="8" rx="1"></rect><rect x="13" y="3" width="8" height="8" rx="1"></rect><rect x="3" y="13" width="8" height="8" rx="1"></rect><rect x="13" y="13" width="8" height="8" rx="1"></rect></svg>
+          <span style="font-size: 14px; font-weight: 600; white-space: nowrap;">Kente</span>
+        </a>
+        <a href="#" style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #f5f5f5; border-radius: 12px; padding: 24px 32px; min-width: 120px; color: #0e1a18;" style-hover="background: #ecebeb; color: #0e1a18;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#0e1a18"><path d="M16 3l5 3-2 4-2-1v12H7V9l-2 1-3-4 5-3a4 4 0 0 0 8 0z"></path></svg>
+          <span style="font-size: 14px; font-weight: 600; white-space: nowrap;">Ready-to-wear</span>
+        </a>
+        <a href="#" style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #f5f5f5; border-radius: 12px; padding: 24px 32px; min-width: 120px; color: #0e1a18;" style-hover="background: #ecebeb; color: #0e1a18;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#0e1a18"><path d="M9.64 7.64A3.5 3.5 0 1 0 8 9.9L10.1 12 8 14.1a3.5 3.5 0 1 0 1.64 2.26L12 14l7 7h3v-1L9.64 7.64zM6 8.5A1.5 1.5 0 1 1 6 5.5a1.5 1.5 0 0 1 0 3zm0 10a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM19 3l-5.5 5.5 1.9 1.9L22 4V3h-3z"></path></svg>
+          <span style="font-size: 14px; font-weight: 600; white-space: nowrap;">Bespoke tailoring</span>
+        </a>
+        <a href="#" style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #f5f5f5; border-radius: 12px; padding: 24px 32px; min-width: 120px; color: #0e1a18;" style-hover="background: #ecebeb; color: #0e1a18;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#0e1a18"><path d="M8 7V6a4 4 0 1 1 8 0v1h4l-1.2 14H5.2L4 7h4zm2 0h4V6a2 2 0 1 0-4 0v1z"></path></svg>
+          <span style="font-size: 14px; font-weight: 600; white-space: nowrap;">Accessories</span>
+        </a>
+        <a href="#" style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #f5f5f5; border-radius: 12px; padding: 24px 32px; min-width: 120px; color: #0e1a18;" style-hover="background: #ecebeb; color: #0e1a18;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#0e1a18"><path d="M8 2h8l4 5-8 15L4 7l4-5z"></path></svg>
+          <span style="font-size: 14px; font-weight: 600; white-space: nowrap;">Bridal</span>
+        </a>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isPills }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; gap: 16px; overflow-x: auto; overflow-y: hidden; padding-bottom: 16px;">
+        <a href="#" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 999px; padding: 12px 24px; color: #0e1a18; font-size: 14px; font-weight: 600; white-space: nowrap;" style-hover="background: #ecebeb; color: #0e1a18;">Ankara fabric</a>
+        <a href="#" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 999px; padding: 12px 24px; color: #0e1a18; font-size: 14px; font-weight: 600; white-space: nowrap;" style-hover="background: #ecebeb; color: #0e1a18;">Kente</a>
+        <a href="#" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 999px; padding: 12px 24px; color: #0e1a18; font-size: 14px; font-weight: 600; white-space: nowrap;" style-hover="background: #ecebeb; color: #0e1a18;">Ready-to-wear</a>
+        <a href="#" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 999px; padding: 12px 24px; color: #0e1a18; font-size: 14px; font-weight: 600; white-space: nowrap;" style-hover="background: #ecebeb; color: #0e1a18;">Bespoke tailoring</a>
+        <a href="#" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 999px; padding: 12px 24px; color: #0e1a18; font-size: 14px; font-weight: 600; white-space: nowrap;" style-hover="background: #ecebeb; color: #0e1a18;">Accessories</a>
+        <a href="#" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 999px; padding: 12px 24px; color: #0e1a18; font-size: 14px; font-weight: 600; white-space: nowrap;" style-hover="background: #ecebeb; color: #0e1a18;">Bridal</a>
+      </div>
+    </sc-if>
+  </div>
+</section>
+
+<!-- Featured listings -->
+<section id="new" data-screen-label="New this week" style="padding: 16px 0 64px;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
+    <h2 style="margin: 0 0 32px; font-size: 32px; font-weight: 800; letter-spacing: -0.01em;">New this week</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+      <sc-for list="{{ products }}" as="item" hint-placeholder-count="8">
+        <a href="Product%20Detail.dc.html" style="display: block; background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.10); overflow: hidden; color: #0e1a18;" style-hover="color: #0e1a18;">
+          <div style="position: relative; aspect-ratio: 1;">
+            <image-slot id="{{ item.slotId }}" shape="rect" placeholder="Product photo"></image-slot>
+            <button aria-label="Save" onClick="{{ item.toggle }}" style="position: absolute; top: 12px; right: 12px; background: none; border: none; padding: 4px; display: flex;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="{{ item.heartFill }}"><path d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"></path></svg>
+            </button>
+          </div>
+          <div style="padding: 16px;">
+            <div style="font-size: 15px; font-weight: 700; line-height: 1.3;">{{ item.name }}</div>
+            <div style="font-size: 13px; color: #6b7573; margin-top: 4px;">{{ item.seller }}</div>
+            <div style="font-size: 16px; font-weight: 800; margin-top: 8px;">{{ item.price }}</div>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<!-- Seller spotlight -->
+<section data-screen-label="Makers" style="background: #f9f7f5; padding: 64px 0;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
+    <h2 style="margin: 0 0 32px; font-size: 32px; font-weight: 800; letter-spacing: -0.01em;">Makers behind the work</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+      <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.08); padding: 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+        <image-slot id="seller-1" shape="circle" style="width: 96px; height: 96px;" placeholder="Photo"></image-slot>
+        <div style="font-size: 18px; font-weight: 700; margin-top: 8px;">Chipo Mwale</div>
+        <div style="font-size: 14px; color: #6b7573;">Lusaka, Zambia</div>
+        <div style="font-size: 14px; line-height: 1.5;">Chitenge dresses and wax print separates, made to order.</div>
+        <div style="font-size: 13px; color: #6b7573;">48 items</div>
+        <a href="Shop%20Page.dc.html" style="margin-top: 8px; background: #0e1a18; color: #ffffff; font-size: 14px; font-weight: 600; border-radius: 999px; padding: 10px 24px;" style-hover="background: #1c2f2c; color: #ffffff;">Visit shop</a>
+      </div>
+      <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.08); padding: 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+        <image-slot id="seller-2" shape="circle" style="width: 96px; height: 96px;" placeholder="Photo"></image-slot>
+        <div style="font-size: 18px; font-weight: 700; margin-top: 8px;">Kwame Mensah</div>
+        <div style="font-size: 14px; color: #6b7573;">Kumasi, Ghana</div>
+        <div style="font-size: 14px; line-height: 1.5;">Handwoven kente stoles and cloth in traditional patterns.</div>
+        <div style="font-size: 13px; color: #6b7573;">32 items</div>
+        <a href="Shop%20Page.dc.html" style="margin-top: 8px; background: #0e1a18; color: #ffffff; font-size: 14px; font-weight: 600; border-radius: 999px; padding: 10px 24px;" style-hover="background: #1c2f2c; color: #ffffff;">Visit shop</a>
+      </div>
+      <div style="background: #ffffff; border-radius: 12px; box-shadow: 0 2px 12px rgba(14,26,24,0.08); padding: 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+        <image-slot id="seller-3" shape="circle" style="width: 96px; height: 96px;" placeholder="Photo"></image-slot>
+        <div style="font-size: 18px; font-weight: 700; margin-top: 8px;">Amina Diallo</div>
+        <div style="font-size: 14px; color: #6b7573;">Dakar, Senegal</div>
+        <div style="font-size: 14px; line-height: 1.5;">Bespoke boubous and occasion wear for men and women.</div>
+        <div style="font-size: 13px; color: #6b7573;">61 items</div>
+        <a href="Shop%20Page.dc.html" style="margin-top: 8px; background: #0e1a18; color: #ffffff; font-size: 14px; font-weight: 600; border-radius: 999px; padding: 10px 24px;" style-hover="background: #1c2f2c; color: #ffffff;">Visit shop</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Dual CTA -->
+<section id="sell" data-screen-label="Dual CTA" style="display: grid; grid-template-columns: 1fr 1fr;">
+  <div style="background: #0e1a18; padding: 64px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px;">
+    <h2 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 800; letter-spacing: -0.01em;">Sell your craft</h2>
+    <p style="margin: 0; color: #c9d4d2; font-size: 16px; line-height: 1.5; max-width: 420px;">Open a shop on Titunge and reach customers across the continent. Listing is free and you keep control of your prices.</p>
+    <a href="Sell%20on%20Titunge.dc.html" style="margin-top: 8px; background: #ffffff; color: #0e1a18; font-size: 15px; font-weight: 700; border-radius: 999px; padding: 12px 28px;" style-hover="background: #f5f5f5;">Start selling</a>
+  </div>
+  <div style="background: #5fa8a0; padding: 64px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px;">
+    <h2 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 800; letter-spacing: -0.01em;">Run your business</h2>
+    <p style="margin: 0; color: #eef5f4; font-size: 16px; line-height: 1.5; max-width: 420px;">Titunge for Business tracks orders, measurements, inventory, and payments for your tailoring shop.</p>
+    <a href="#" style="margin-top: 8px; background: #0e1a18; color: #ffffff; font-size: 15px; font-weight: 700; border-radius: 999px; padding: 12px 28px;" style-hover="background: #1c2f2c; color: #ffffff;">Go to Titunge for Business</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer data-screen-label="Footer" style="background: #0e1a18; color: #ffffff; padding: 64px 0 32px;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px;">
+      <div style="display: flex; flex-direction: column; gap: 16px; align-items: flex-start;">
+        <img src="public/titunge-logo.png" alt="Titunge" style="height: 32px; display: block;">
+        <p style="margin: 0; color: #c9d4d2; font-size: 14px; line-height: 1.5; max-width: 280px;">A marketplace for fashion and tailoring, made in Africa.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Shop</div>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Ankara fabric</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Kente</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Ready-to-wear</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Bespoke tailoring</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Bridal</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Sell</div>
+        <a href="Sell%20on%20Titunge.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Start selling</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Seller handbook</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Fees</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Titunge for Business</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Company</div>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">About</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Careers</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Contact</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Help center</a>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 48px; padding-top: 24px;">
+      <div style="font-size: 13px; color: #c9d4d2;">© 2026 Titunge</div>
+      <div style="display: flex; gap: 24px;">
+        <a href="#" style="color: #c9d4d2; font-size: 13px;" style-hover="color: #ffffff;">Privacy</a>
+        <a href="#" style="color: #c9d4d2; font-size: 13px;" style-hover="color: #ffffff;">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;currency&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;ZMW&quot;,&quot;options&quot;:[&quot;USD&quot;,&quot;ZMW&quot;,&quot;NGN&quot;,&quot;GHS&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;categoryStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;cards&quot;,&quot;options&quot;:[&quot;cards&quot;,&quot;pills&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Layout&quot;}}">
+class Component extends DCLogic {
+  state = { favs: {} };
+  renderVals() {
+    const cur = this.props.currency ?? "USD";
+    const rates = { USD: ["$", 1], ZMW: ["K", 27], NGN: ["\u20a6", 1500], GHS: ["GH\u20b5", 15] };
+    const [sym, r] = rates[cur] ?? rates.USD;
+    const base = [
+      { id: "p1", name: "Ankara wrap dress", seller: "Chipo Designs, Lusaka", usd: 58 },
+      { id: "p2", name: "Handwoven kente stole", seller: "Mensah Weaves, Kumasi", usd: 74 },
+      { id: "p3", name: "Tailored linen shirt", seller: "Banda & Sons, Lilongwe", usd: 42 },
+      { id: "p4", name: "Beaded collar necklace", seller: "Amara Beads, Nairobi", usd: 29 },
+      { id: "p5", name: "Aso oke agbada set", seller: "Adeyemi Bespoke, Lagos", usd: 180 },
+      { id: "p6", name: "Chitenge tote bag", seller: "Zuwa Studio, Lusaka", usd: 24 },
+      { id: "p7", name: "Mudcloth bomber jacket", seller: "Keita Atelier, Bamako", usd: 96 },
+      { id: "p8", name: "Bridal lace gown, made to measure", seller: "House of Nia, Accra", usd: 310 }
+    ];
+    const favs = this.state.favs;
+    const products = base.map(p => ({
+      ...p,
+      slotId: "prod-" + p.id,
+      price: sym + Math.round(p.usd * r).toLocaleString(),
+      heartFill: favs[p.id] ? "#5fa8a0" : "#ffffff",
+      toggle: e => { e.preventDefault(); this.setState(s => ({ favs: { ...s.favs, [p.id]: !s.favs[p.id] } })); }
+    }));
+    const style = this.props.categoryStyle ?? "cards";
+    return { products, isCards: style === "cards", isPills: style === "pills" };
+  }
+}
+</script>
+</body>
+</html>

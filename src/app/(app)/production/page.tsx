@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getBatches, getProductionStats, getBottlenecks } from "@/lib/data/production";
 import { getBusinessContext } from "@/lib/business-context";
 import { getProducts } from "@/lib/data/products";
@@ -10,13 +8,6 @@ import ProductionList from "@/components/production/ProductionList";
 import { Zap, TrendingUp, AlertCircle } from "lucide-react";
 
 export default async function ProductionPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   const [batches, stats, products, materials, bottlenecks] = await Promise.all([
     getBatches(businessId),

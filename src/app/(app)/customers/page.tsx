@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
 import { Plus, User, TrendingUp, Ruler } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { getCustomers } from "@/lib/data/customers";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -10,13 +8,6 @@ import CustomerList from "@/components/customers/CustomerList";
 import { Button } from "@/components/ui/button";
 
 export default async function CustomersPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   const customers = await getCustomers(businessId);
 

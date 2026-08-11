@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getEmployeeById, getEmployeeAttendance } from "@/lib/data/employees";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -7,13 +6,6 @@ import { format } from "date-fns";
 
 export default async function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   const employee = await getEmployeeById(businessId, id);
 

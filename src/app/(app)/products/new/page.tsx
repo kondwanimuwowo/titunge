@@ -1,18 +1,9 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import ProductForm from "@/components/products/ProductForm";
 
 export default async function NewProductPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   return (
     <div className="p-6 md:p-8 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">

@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import {
   getFinancialSummary,
@@ -13,15 +11,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import FinanceTabs from "@/components/finance/FinanceTabs";
 
 export default async function FinancePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   const now = new Date();
   const monthStart = format(startOfMonth(now), "yyyy-MM-dd");

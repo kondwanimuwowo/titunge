@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/server";
 import { getBusinessContext } from "@/lib/business-context";
 import { getOrderById } from "@/lib/data/orders";
 import { getMaterials } from "@/lib/data/inventory";
@@ -11,13 +10,6 @@ import { Button } from "@/components/ui/button";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   let order;
   let availableMaterials;

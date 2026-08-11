@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { getCustomerById } from "@/lib/data/customers";
 import { getBusinessContext } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
@@ -9,13 +8,6 @@ import CustomerForm from "@/components/customers/CustomerForm";
 
 export default async function EditCustomerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
 
   let customer;

@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { getBusinessContext } from "@/lib/business-context";
 import { getCustomers } from "@/lib/data/customers";
 import { getEmployees } from "@/lib/data/employees";
@@ -20,10 +18,6 @@ export default async function NewOrderPage({
 }: {
   searchParams: Promise<{ inquiry_id?: string }>;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
   const { businessId } = await getBusinessContext();
   const params = await searchParams;
 

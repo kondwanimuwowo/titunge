@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { getMaterialById } from "@/lib/data/inventory";
 import { getBusinessContext } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
@@ -17,13 +16,6 @@ export default async function StockUpdatePage({
   const { id } = await params;
   const { mode: rawMode } = await searchParams;
   const mode: "add" | "deduct" = rawMode === "deduct" ? "deduct" : "add";
-
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
 
   const { businessId } = await getBusinessContext();
   const material = await getMaterialById(businessId, id);

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  body { font-family: 'Manrope', sans-serif; color: #0e1a18; }
+  a { color: #5fa8a0; text-decoration: none; }
+  a:hover { color: #0e1a18; }
+  input, select, textarea, button { font-family: 'Manrope', sans-serif; }
+  ::placeholder { color: #6b7573; }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; background: #ffffff;">
+
+<nav data-screen-label="Nav" style="position: sticky; top: 0; z-index: 50; background: #ffffff; box-shadow: 0 2px 12px rgba(14,26,24,0.10); display: flex; align-items: center; gap: 32px; padding: 16px 48px;">
+  <a href="Marketplace%20Homepage.dc.html" style="flex-shrink: 0; display: flex; align-items: center;">
+    <img src="public/titunge-logo.png" alt="Titunge" style="height: 36px; display: block;">
+  </a>
+  <div style="flex: 1; display: flex; justify-content: center;">
+    <div style="display: flex; align-items: center; width: 100%; max-width: 640px; background: #f5f5f5; border-radius: 999px; padding: 6px 6px 6px 24px; gap: 16px;">
+      <input type="text" placeholder="Search fabric, garments, and makers" style="flex: 1; background: none; border: none; outline: none; font-size: 15px; color: #0e1a18; padding: 8px 0;">
+      <button aria-label="Search" style="background: #5fa8a0; border: none; border-radius: 999px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" style-hover="background: #4f958d;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff"><path d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0 0 10 2zm0 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"></path></svg>
+      </button>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 24px; flex-shrink: 0;">
+    <a href="Sell%20on%20Titunge.dc.html" style="font-size: 15px; font-weight: 600; color: #0e1a18; white-space: nowrap;" style-hover="color: #5fa8a0;">Sell on Titunge</a>
+    <a href="#" style="background: #0e1a18; color: #ffffff; font-size: 15px; font-weight: 600; border-radius: 999px; padding: 12px 24px; white-space: nowrap;" style-hover="background: #1c2f2c; color: #ffffff;">Go to Titunge for Business</a>
+  </div>
+</nav>
+
+<section data-screen-label="Sell hero" style="position: relative; height: 480px;">
+  <image-slot id="sell-hero" shape="rect" placeholder="Maker at work photo"></image-slot>
+  <div style="position: absolute; top: 0; left: 0; bottom: 0; width: 50%; background: #0e1a18; display: flex; flex-direction: column; justify-content: center; padding: 64px; box-sizing: border-box;">
+    <h1 style="margin: 0 0 16px; color: #ffffff; font-size: 48px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; text-wrap: pretty;">Sell your craft on Titunge</h1>
+    <p style="margin: 0 0 32px; color: #c9d4d2; font-size: 18px; line-height: 1.5;">Open a free shop, reach buyers across Africa, and get paid in your own currency.</p>
+    <a href="#" style="background: #5fa8a0; color: #ffffff; font-size: 16px; font-weight: 700; border-radius: 999px; padding: 14px 32px; align-self: flex-start;" style-hover="background: #4f958d; color: #ffffff;">Open your shop</a>
+  </div>
+</section>
+
+<section data-screen-label="Sell features" style="padding: 64px 0;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+      <div style="background: #f5f5f5; border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 12px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#0e1a18"><path d="M8 7V6a4 4 0 1 1 8 0v1h4l-1.2 14H5.2L4 7h4zm2 0h4V6a2 2 0 1 0-4 0v1z"></path></svg>
+        <div style="font-size: 18px; font-weight: 800;">Free to start</div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #3d4a47;">No listing fees. Titunge takes 5% when you make a sale, and nothing before that.</p>
+      </div>
+      <div style="background: #f5f5f5; border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 12px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#0e1a18"><path d="M9.64 7.64A3.5 3.5 0 1 0 8 9.9L10.1 12 8 14.1a3.5 3.5 0 1 0 1.64 2.26L12 14l7 7h3v-1L9.64 7.64zM6 8.5A1.5 1.5 0 1 1 6 5.5a1.5 1.5 0 0 1 0 3zm0 10a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM19 3l-5.5 5.5 1.9 1.9L22 4V3h-3z"></path></svg>
+        <div style="font-size: 18px; font-weight: 800;">Built for makers</div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #3d4a47;">Made-to-order listings with custom measurements are built in, not a workaround.</p>
+      </div>
+      <div style="background: #f5f5f5; border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 12px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#0e1a18"><rect x="3" y="3" width="8" height="8" rx="1"></rect><rect x="13" y="3" width="8" height="8" rx="1"></rect><rect x="3" y="13" width="8" height="8" rx="1"></rect><rect x="13" y="13" width="8" height="8" rx="1"></rect></svg>
+        <div style="font-size: 18px; font-weight: 800;">Get paid your way</div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #3d4a47;">Weekly payouts by mobile money or bank transfer, in your local currency.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Sell stats" style="background: #f9f7f5; padding: 48px 0;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px; display: flex; justify-content: space-around; text-align: center; gap: 24px;">
+    <div><div style="font-size: 40px; font-weight: 800;">2,400</div><div style="font-size: 14px; color: #6b7573;">makers selling</div></div>
+    <div><div style="font-size: 40px; font-weight: 800;">34</div><div style="font-size: 14px; color: #6b7573;">countries reached</div></div>
+    <div><div style="font-size: 40px; font-weight: 800;">120,000</div><div style="font-size: 14px; color: #6b7573;">orders delivered</div></div>
+  </div>
+</section>
+
+<section data-screen-label="Sell CTA" style="background: #0e1a18; padding: 64px 48px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;">
+  <h2 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 800; letter-spacing: -0.01em;">Ready to open your shop?</h2>
+  <p style="margin: 0; color: #c9d4d2; font-size: 16px; line-height: 1.5;">It takes about ten minutes to list your first item.</p>
+  <a href="#" style="margin-top: 8px; background: #ffffff; color: #0e1a18; font-size: 16px; font-weight: 700; border-radius: 999px; padding: 14px 40px;" style-hover="background: #f5f5f5;">Start selling</a>
+</section>
+
+<footer data-screen-label="Footer" style="background: #0e1a18; color: #ffffff; padding: 64px 0 32px;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px;">
+      <div style="display: flex; flex-direction: column; gap: 16px; align-items: flex-start;">
+        <img src="public/titunge-logo.png" alt="Titunge" style="height: 32px; display: block;">
+        <p style="margin: 0; color: #c9d4d2; font-size: 14px; line-height: 1.5; max-width: 280px;">A marketplace for fashion and tailoring, made in Africa.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Shop</div>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Ankara fabric</a>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Kente</a>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Ready-to-wear</a>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Bespoke tailoring</a>
+        <a href="Browse.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Bridal</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Sell</div>
+        <a href="Sell%20on%20Titunge.dc.html" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Start selling</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Seller handbook</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Fees</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Titunge for Business</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 14px; font-weight: 700;">Company</div>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">About</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Careers</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Contact</a>
+        <a href="#" style="color: #c9d4d2; font-size: 14px;" style-hover="color: #ffffff;">Help center</a>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 48px; padding-top: 24px;">
+      <div style="font-size: 13px; color: #c9d4d2;">© 2026 Titunge</div>
+      <div style="display: flex; gap: 24px;">
+        <a href="#" style="color: #c9d4d2; font-size: 13px;" style-hover="color: #ffffff;">Privacy</a>
+        <a href="#" style="color: #c9d4d2; font-size: 13px;" style-hover="color: #ffffff;">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic { renderVals() { return {}; } }
+</script>
+</body>
+</html>

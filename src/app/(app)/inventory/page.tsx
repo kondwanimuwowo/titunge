@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { getMaterials, getFinishedGoods, getInventoryStats, getLowStockMaterials } from "@/lib/data/inventory";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -11,13 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle, Box, ClipboardList } from "lucide-react";
 
 export default async function InventoryPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   const [materials, finishedGoods, stats, lowStockMaterials] = await Promise.all([
     getMaterials(businessId),

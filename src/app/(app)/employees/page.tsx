@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getEmployees, getTodayAttendance } from "@/lib/data/employees";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -9,13 +7,6 @@ import TimeClockMetric from "@/components/employees/TimeClockMetric";
 import { Users, Clock, Check, UserX } from "lucide-react";
 
 export default async function EmployeesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   const [employees, todayAttendance] = await Promise.all([
     getEmployees(businessId),
