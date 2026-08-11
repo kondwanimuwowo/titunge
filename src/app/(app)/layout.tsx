@@ -1,10 +1,20 @@
+import { Suspense } from "react";
+import { Bell } from "lucide-react";
 import { getBusinessContext } from "@/lib/business-context";
 import { buildThemeVars } from "@/lib/themes";
-import { getUnreadCount, getNotifications } from "@/lib/data/notifications";
 import { getInquiryStats } from "@/lib/data/inquiries";
 import Sidebar from "@/components/layout/Sidebar";
 import AppShell from "@/components/layout/AppShell";
+import NotificationBellServer from "@/components/layout/NotificationBellServer";
 import { createClient } from "@/lib/supabase/server";
+
+function BellPlaceholder() {
+  return (
+    <button className="relative p-1.5 rounded-md" disabled aria-hidden>
+      <Bell size={18} className="text-muted-foreground opacity-30" />
+    </button>
+  );
+}
 
 export default async function AppLayout({
   children,
@@ -14,11 +24,9 @@ export default async function AppLayout({
   const { business, businessId, role, userId } = await getBusinessContext();
 
   const supabase = await createClient();
-  const [{ data: { user } }, profileResult, unreadCount, recentNotifications, inquiryStats] = await Promise.all([
+  const [{ data: { user } }, profileResult, inquiryStats] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from("user_profiles").select("*").eq("id", userId).maybeSingle(),
-    getUnreadCount(businessId),
-    getNotifications(businessId, 5),
     getInquiryStats(businessId),
   ]);
 
@@ -38,11 +46,14 @@ export default async function AppLayout({
             newInquiriesCount={inquiryStats.newCount}
           />
         }
+        notificationBell={
+          <Suspense fallback={<BellPlaceholder />}>
+            <NotificationBellServer />
+          </Suspense>
+        }
         user={user!}
         profile={profileResult.data}
         role={role}
-        unreadCount={unreadCount}
-        recentNotifications={recentNotifications}
       >
         {children}
       </AppShell>

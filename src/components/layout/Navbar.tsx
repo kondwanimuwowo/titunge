@@ -6,7 +6,6 @@ import { User, Settings, LogOut, ChevronDown, Shield, Menu } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import NotificationBell from "./NotificationBell";
 import GlobalSearch from "./GlobalSearch";
 import ThemeToggle from "./ThemeToggle";
 import { ROLE_BADGE_COLORS } from "@/lib/constants";
@@ -17,12 +16,11 @@ interface NavbarProps {
   user: SupabaseUser;
   profile: Tables<"user_profiles"> | null;
   role: UserRole;
-  unreadCount: number;
-  recentNotifications: any[];
+  notificationBell: React.ReactNode;
   onMenuClick?: () => void;
 }
 
-export default function Navbar({ user, profile, role, unreadCount, recentNotifications, onMenuClick }: NavbarProps) {
+export default function Navbar({ user, profile, role, notificationBell, onMenuClick }: NavbarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -83,7 +81,7 @@ export default function Navbar({ user, profile, role, unreadCount, recentNotific
         <ThemeToggle />
 
         {/* Notifications */}
-        <NotificationBell initialUnreadCount={unreadCount} initialNotifications={recentNotifications} />
+        {notificationBell}
 
         {/* Profile Dropdown */}
         <div className="relative" ref={profileMenuRef}>

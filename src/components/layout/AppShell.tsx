@@ -9,21 +9,19 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface AppShellProps {
   sidebar: React.ReactNode;
+  notificationBell: React.ReactNode;
   user: SupabaseUser;
   profile: Tables<"user_profiles"> | null;
   role: UserRole;
-  unreadCount: number;
-  recentNotifications: any[];
   children: React.ReactNode;
 }
 
 export default function AppShell({
   sidebar,
+  notificationBell,
   user,
   profile,
   role,
-  unreadCount,
-  recentNotifications,
   children,
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -61,8 +59,7 @@ export default function AppShell({
           user={user}
           profile={profile}
           role={role}
-          unreadCount={unreadCount}
-          recentNotifications={recentNotifications}
+          notificationBell={notificationBell}
           onMenuClick={() => setSidebarOpen(true)}
         />
         <main className="flex-1 overflow-y-auto main-area-bg custom-scrollbar">

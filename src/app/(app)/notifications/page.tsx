@@ -4,13 +4,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import NotificationsList from "@/components/notifications/NotificationsList";
 
 export default async function NotificationsPage() {
-  const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-
-  if (!userData.user) {
-    redirect("/login");
-  }
-
   const { businessId } = await getBusinessContext();
   const notifications = await getNotifications(businessId);
 
