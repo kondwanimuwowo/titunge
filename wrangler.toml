@@ -4,6 +4,14 @@ compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 usage_model = "unbound"
 
+# esbuild's keep-names default injects a `__name` helper at module scope;
+# next-themes' flash-prevention script gets extracted and evaluated in a
+# separate runtime context (via Function.prototype.toString()) that never
+# sees that helper, throwing "__name is not defined" on every page load.
+# See https://opennext.js.org/cloudflare/howtos/keep_names -- requires
+# Wrangler >= 4.13.0 (this project is on 4.118.0).
+keep_names = false
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
