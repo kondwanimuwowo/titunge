@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/client";
 import { getMyBusinessSlug } from "@/app/actions/onboarding";
 import { cn } from "@/lib/utils";
 
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
