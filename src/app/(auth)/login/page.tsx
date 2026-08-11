@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,6 +19,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+
+  // If already authenticated, redirect to the correct workspace immediately.
+  useEffect(() => {
+    getMyBusinessSlug().then(({ authenticated, slug }) => {
+      if (slug) {
+        if (process.env.NODE_ENV === "development") {
+          document.cookie = `titunge-business=${slug}; path=/; max-age=${60 * 60 * 24 * 30}`;
+          router.push("/dashboard");
+        } else {
+          window.location.href = `https://${slug}.${APP_DOMAIN}/dashboard`;
+        }
+      } else if (authenticated) {
+        router.push("/onboarding");
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

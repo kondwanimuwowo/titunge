@@ -99,12 +99,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Authenticated on auth route: resolve business and redirect to the correct subdomain dashboard.
-  // Doing the lookup here avoids the intermediate root-domain /dashboard hop, which triggers
-  // getBusinessContext() with no x-business-slug header and redirects to /onboarding.
+  // Authenticated on auth route: redirect away.
+  // RSC fetches (Next.js client-side navigation) cannot follow cross-origin redirects,
+  // so we only do the subdomain redirect for full page navigations. RSC requests pass
+  // through so the page itself can handle the redirect via window.location.href.
   if (user && isAuthRoute) {
-    if (host === APP_DOMAIN) {
-      // Production root domain — find the user's business and redirect to subdomain
+    const isRSCFetch = request.headers.get("RSC") === "1";
+    if (!isRSCFetch && host === APP_DOMAIN) {
+      // Full page navigation on root domain — resolve business and redirect to subdomain.
       const { data } = await supabase
         .from("business_users")
         .select("businesses!inner(slug)")
@@ -124,16 +126,17 @@ export async function middleware(request: NextRequest) {
         targetUrl.pathname = "/dashboard";
         return NextResponse.redirect(targetUrl);
       }
-      // No business found — send to onboarding
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);
-    } else {
-      // Dev / workers.dev / subdomain: redirect to /dashboard on same host
+    }
+    if (!isRSCFetch) {
+      // Dev / workers.dev / subdomain: redirect to /dashboard on same host.
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
+    // RSC fetch — fall through; the login/signup page handles the redirect itself.
   }
 
   // On the production root domain, always push authenticated users to their subdomain.
