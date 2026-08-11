@@ -60,8 +60,8 @@ export function MarketplaceFooter() {
         <div className="flex justify-between items-center mt-12 pt-6">
           <p className="text-xs text-[#c9d4d2]">© {new Date().getFullYear()} Titunge</p>
           <div className="flex gap-6">
-            <Link href="#" className="text-xs text-[#c9d4d2] hover:text-white transition-colors">Privacy</Link>
-            <Link href="#" className="text-xs text-[#c9d4d2] hover:text-white transition-colors">Terms</Link>
+            <Link href="/privacy" className="text-xs text-[#c9d4d2] hover:text-white transition-colors">Privacy</Link>
+            <Link href="/terms" className="text-xs text-[#c9d4d2] hover:text-white transition-colors">Terms</Link>
           </div>
         </div>
       </div>

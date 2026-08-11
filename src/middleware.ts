@@ -45,6 +45,8 @@ const PUBLIC_PREFIXES = [
   "/my-orders",
   "/shop",
   "/product",
+  "/privacy",
+  "/terms",
 ];
 
 export async function middleware(request: NextRequest) {

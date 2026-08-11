@@ -12,8 +12,8 @@ const LINKS = {
     { label: "Contact", href: "/contact" },
   ],
   Legal: [
-    { label: "Privacy policy", href: "#" },
-    { label: "Terms of service", href: "#" },
+    { label: "Privacy policy", href: "/privacy" },
+    { label: "Terms of service", href: "/terms" },
   ],
 };
 

@@ -1,5 +1,10 @@
-import { ComingSoon } from "@/components/marketplace/ComingSoon";
+import { Suspense } from "react";
+import { OrderConfirmationClient } from "@/components/marketplace/OrderConfirmationClient";
 
 export default function OrderConfirmationPage() {
-  return <ComingSoon title="Order confirmation" />;
+  return (
+    <Suspense fallback={null}>
+      <OrderConfirmationClient />
+    </Suspense>
+  );
 }

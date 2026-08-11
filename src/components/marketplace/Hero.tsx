@@ -5,7 +5,12 @@ import { ImagePlaceholder } from "./ImagePlaceholder";
 export function Hero() {
   return (
     <section className="relative h-[420px] lg:h-[560px] overflow-hidden">
-      <ImagePlaceholder shape="rect" className="absolute inset-0 rounded-none" />
+      <ImagePlaceholder
+        shape="rect"
+        className="absolute inset-0 rounded-none"
+        src="/pexels-magapls-2149937712-34164160.jpg"
+        alt="Tailor's workshop"
+      />
       <div
         className="absolute inset-y-0 left-0 w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 py-12"
         style={{ backgroundColor: "#0e1a18" }}

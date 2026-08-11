@@ -1,5 +1,10 @@
-import { ComingSoon } from "@/components/marketplace/ComingSoon";
+import { Suspense } from "react";
+import { BrowseClient } from "@/components/marketplace/BrowseClient";
 
 export default function BrowsePage() {
-  return <ComingSoon title="Browse the marketplace" />;
+  return (
+    <Suspense fallback={null}>
+      <BrowseClient />
+    </Suspense>
+  );
 }
