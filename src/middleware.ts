@@ -33,7 +33,19 @@ const AUTH_ROUTES = [
   "/reset-password",
 ];
 
-const PUBLIC_PREFIXES = ["/catalog", "/api/catalog"];
+const PUBLIC_PREFIXES = [
+  "/catalog",
+  "/api/catalog",
+  "/business",
+  "/browse",
+  "/sell",
+  "/cart",
+  "/checkout",
+  "/order-confirmation",
+  "/my-orders",
+  "/shop",
+  "/product",
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -111,7 +111,7 @@ const STEPS = [
   },
 ];
 
-export default function HomePage() {
+export default function BusinessPage() {
   return (
     <>
       {/* Hero */}
