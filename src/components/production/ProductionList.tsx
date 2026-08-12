@@ -193,10 +193,10 @@ export default function ProductionList({
 
                 {/* Quantity and Image */}
                 <div className="flex gap-3 mb-3">
-                  {batch.products?.image_url && (
+                  {batch.products?.images?.[0] && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={batch.products.image_url}
+                      src={batch.products.images[0]}
                       alt={batch.products.name}
                       className="w-16 h-16 rounded object-cover"
                     />

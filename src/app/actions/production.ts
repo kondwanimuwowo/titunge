@@ -111,7 +111,7 @@ export async function updateBatchStatusAction(
     // If completed, add finished goods to inventory
     if (newStatus === "completed") {
       const { data: batch } = await (supabase.from("production_batches") as any)
-        .select("*, products(name, base_price)")
+        .select("*, products(name, price)")
         .eq("id", batchId)
         .eq("business_id", businessId)
         .single();

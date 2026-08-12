@@ -124,7 +124,7 @@ export default function CreateBatchForm({ products, materials }: CreateBatchForm
               <SelectContent>
                 {products.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.name} (K{parseFloat(String(p.base_price || 0)).toFixed(2)})
+                    {p.name} (K{parseFloat(String(p.price || 0)).toFixed(2)})
                   </SelectItem>
                 ))}
               </SelectContent>

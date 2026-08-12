@@ -43,10 +43,10 @@ export async function getBatchById(businessId: string, id: string): Promise<any>
     .select(
       `
       *,
-      products(id, name, image_url, base_price),
+      products(id, name, images, price),
       production_stages(*),
       production_materials(id, material_id, quantity_used, cost, materials(id, name, unit)),
-      production_logs(id, batch_id, user_id, action, details, metadata, created_at, user_profiles(id, name))
+      production_logs(id, batch_id, user_id, action, details, metadata, created_at, user_profiles(id, full_name))
     `
     )
     .eq("business_id", businessId)

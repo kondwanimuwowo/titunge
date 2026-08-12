@@ -108,7 +108,7 @@ export default function BatchDetailsView({ batch }: BatchDetailsViewProps) {
                     <p className="text-xs text-muted-foreground">{log.details}</p>
                     {log.user_profiles && (
                       <p className="text-xs text-gray-600 mt-1">
-                        by {log.user_profiles.name}
+                        by {log.user_profiles.full_name}
                       </p>
                     )}
                   </div>

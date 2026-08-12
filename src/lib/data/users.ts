@@ -10,7 +10,7 @@ export async function getUsers(businessId: string) {
     .from("business_users")
     .select("*")
     .eq("business_id", businessId)
-    .order("created_at", { ascending: true });
+    .order("joined_at", { ascending: true });
 
   if (error) {
     console.error("Error fetching users:", error);

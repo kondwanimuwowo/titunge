@@ -50,7 +50,7 @@ export async function getRecycleBinItems(businessId: string): Promise<RecycleBin
       id: p.id,
       type: "product" as const,
       title: p.name,
-      subtitle: `${p.category || "Uncategorised"} · K${parseFloat(String(p.base_price || 0)).toFixed(2)}`,
+      subtitle: `${p.category || "Uncategorised"} · K${parseFloat(String(p.price || 0)).toFixed(2)}`,
       deletedAt: p.deleted_at,
     })),
     ...materials.map((m: any) => ({
