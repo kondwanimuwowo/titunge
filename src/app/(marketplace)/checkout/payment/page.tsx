@@ -15,14 +15,15 @@ export default function CheckoutPaymentPage() {
   const router = useRouter();
   const { items, subtotal, delivery, total, hydrated, shippingDetails, clearCart } = useCart();
   const [method, setMethod] = useState<"momo" | "card">("momo");
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || orderPlaced) return;
     if (items.length === 0) router.replace("/cart");
     else if (!shippingDetails) router.replace("/checkout");
-  }, [hydrated, items.length, shippingDetails, router]);
+  }, [hydrated, items.length, shippingDetails, orderPlaced, router]);
 
-  if (!hydrated || items.length === 0 || !shippingDetails) return null;
+  if (!hydrated || (!orderPlaced && (items.length === 0 || !shippingDetails))) return null;
 
   const summaryItems: OrderSummaryItem[] = items.map((line) => {
     const product = MARKETPLACE_PRODUCTS.find((p) => p.id === line.productId);
@@ -39,6 +40,7 @@ export default function CheckoutPaymentPage() {
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
     const order = placeOrder(items);
+    setOrderPlaced(true);
     clearCart();
     router.push(`/order-confirmation?order=${order.id}`);
   };
