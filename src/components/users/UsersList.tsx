@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import {
   UserCheck, UserX, ChevronDown, Plus, Shield, UserCog,
-  Users, Eye, EyeOff, Lock, Mail, User, Copy, Check, CheckCircle2, Loader2,
+  Users, Mail, Copy, Check, CheckCircle2, Loader2, Link2, XCircle, Clock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -26,52 +26,58 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { updateUserRole, toggleUserActive, createUserAction } from "@/app/actions/users";
+import { updateUserRole, toggleUserActive } from "@/app/actions/users";
+import { inviteUserAction, revokeInviteAction } from "@/app/actions/invites";
 import { ROLE_BADGE_COLORS } from "@/lib/constants";
 
 const ROLES = ["admin", "manager", "employee"] as const;
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
-// ─── Create User Dialog ─────────────────────────────────────────────────────
-function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
+function inviteLink(token: string) {
+  if (process.env.NODE_ENV === "development") {
+    return `${window.location.origin}/invite/${token}`;
+  }
+  return `https://${APP_DOMAIN}/invite/${token}`;
+}
+
+// ─── Invite User Dialog ─────────────────────────────────────────────────────
+function InviteUserDialog({ onInvited }: { onInvited: () => void }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [successData, setSuccessData] = useState<{ email: string; password: string; fullName: string } | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [successToken, setSuccessToken] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "", role: "employee" },
+    defaultValues: { email: "", role: "employee" },
   });
   const role = watch("role");
 
   const onSubmit = (data: any) => {
     startTransition(async () => {
-      const result = await createUserAction({
-        fullName: data.fullName,
-        email: data.email,
-        password: data.password,
-        role: data.role,
-      });
+      const result = await inviteUserAction({ email: data.email, role: data.role });
       if (result.success) {
-        setSuccessData({ fullName: data.fullName, email: data.email, password: data.password });
+        setSuccessToken(result.token!);
+        setEmailSent(!!result.emailSent);
         reset();
-        onCreated();
+        onInvited();
       } else {
-        toast.error(result.message || "Failed to create user");
+        toast.error(result.message || "Failed to send invite");
       }
     });
   };
 
-  const copyCredentials = () => {
-    navigator.clipboard.writeText(`Email: ${successData!.email}\nPassword: ${successData!.password}`);
+  const copyLink = () => {
+    navigator.clipboard.writeText(inviteLink(successToken!));
     setCopied(true);
-    toast.success("Credentials copied!");
+    toast.success("Invite link copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setSuccessData(null);
+    setSuccessToken(null);
+    setEmailSent(false);
     reset();
   };
 
@@ -79,35 +85,40 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {/* @ts-ignore */}
-        <Button size="sm" className="gap-2"><Plus className="h-4 w-4" /> Add User</Button>
+        <Button size="sm" className="gap-2"><Plus className="h-4 w-4" /> Invite User</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Create New User</DialogTitle>
-          <DialogDescription>Add a new ERP login account.</DialogDescription>
+          <DialogTitle>Invite a User</DialogTitle>
+          <DialogDescription>
+            They'll set up their own login — you never see or set their password.
+          </DialogDescription>
         </DialogHeader>
 
-        {successData ? (
+        {successToken ? (
           <div className="space-y-4 py-2">
             <div className="flex flex-col items-center text-center gap-3 p-6 bg-green-50 rounded-xl border border-green-100">
               <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="font-semibold text-green-900">Account created!</p>
+                <p className="font-semibold text-green-900">
+                  {emailSent ? "Invite email sent!" : "Invite created!"}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Share these credentials securely with <strong>{successData.fullName}</strong>.
+                  {emailSent
+                    ? "They'll get an email with a link to join — it expires in 14 days. You can also share the link directly:"
+                    : "The invite email couldn't be sent — share this link with them directly instead:"}
                 </p>
               </div>
             </div>
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-1 text-sm font-mono">
-              <p className="text-amber-800">Email: {successData.email}</p>
-              <p className="text-amber-800">Password: {successData.password}</p>
+            <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs font-mono break-all text-muted-foreground">
+              {inviteLink(successToken)}
             </div>
             <DialogFooter className="gap-2">
               {/* @ts-ignore */}
-              <Button variant="outline" onClick={copyCredentials} className="flex-1">
-                {copied ? <><Check className="h-4 w-4 mr-2" /> Copied!</> : <><Copy className="h-4 w-4 mr-2" /> Copy Credentials</>}
+              <Button variant="outline" onClick={copyLink} className="flex-1">
+                {copied ? <><Check className="h-4 w-4 mr-2" /> Copied!</> : <><Copy className="h-4 w-4 mr-2" /> Copy Link</>}
               </Button>
               {/* @ts-ignore */}
               <Button onClick={handleClose} className="flex-1">Done</Button>
@@ -116,16 +127,6 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input id="fullName" placeholder="Jane Doe" className="pl-9"
-                  {...register("fullName", { required: "Required", minLength: { value: 2, message: "Too short" } })} />
-              </div>
-              {errors.fullName && <p className="text-xs text-destructive">{String(errors.fullName.message)}</p>}
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -133,33 +134,6 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
                   {...register("email", { required: "Required", pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email" } })} />
               </div>
               {errors.email && <p className="text-xs text-destructive">{String(errors.email.message)}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type={showPassword ? "text" : "password"} placeholder="Min. 6 characters" className="pl-9 pr-10"
-                  {...register("password", { required: "Required", minLength: { value: 6, message: "Min 6 characters" } })} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-xs text-destructive">{String(errors.password.message)}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input id="confirmPassword" type="password" placeholder="Repeat password" className="pl-9"
-                  {...register("confirmPassword", {
-                    required: "Required",
-                    validate: (v) => v === watch("password") || "Passwords do not match",
-                  })} />
-              </div>
-              {errors.confirmPassword && <p className="text-xs text-destructive">{String(errors.confirmPassword.message)}</p>}
             </div>
 
             <div className="space-y-2">
@@ -185,7 +159,7 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
               <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isPending}>Cancel</Button>
               {/* @ts-ignore */}
               <Button type="submit" disabled={isPending}>
-                {isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating...</> : "Create User"}
+                {isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</> : "Send Invite"}
               </Button>
             </DialogFooter>
           </form>
@@ -195,12 +169,67 @@ function CreateUserDialog({ onCreated }: { onCreated: () => void }) {
   );
 }
 
+// ─── Pending Invites ────────────────────────────────────────────────────────
+function PendingInvites({ invites, onChanged }: { invites: any[]; onChanged: () => void }) {
+  const [isPending, startTransition] = useTransition();
+
+  if (invites.length === 0) return null;
+
+  const handleCopy = (token: string) => {
+    navigator.clipboard.writeText(inviteLink(token));
+    toast.success("Invite link copied!");
+  };
+
+  const handleRevoke = (id: string) => {
+    if (!window.confirm("Revoke this invite?")) return;
+    startTransition(async () => {
+      const result = await revokeInviteAction(id);
+      if (result.success) { toast.success("Invite revoked"); onChanged(); }
+      else toast.error(result.message || "Failed to revoke invite");
+    });
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
+        <Clock className="h-4 w-4 text-muted-foreground" />
+        <p className="text-sm font-semibold">Pending Invites</p>
+        <span className="text-xs text-muted-foreground">({invites.length})</span>
+      </div>
+      <div className="divide-y divide-border">
+        {invites.map((invite) => (
+          <div key={invite.id} className="px-4 py-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">{invite.email}</p>
+              <p className="text-xs text-muted-foreground capitalize">
+                Invited as {invite.role} · expires {format(new Date(invite.expires_at), "dd MMM yyyy")}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* @ts-ignore */}
+              <Button variant="outline" size="sm" onClick={() => handleCopy(invite.token)} className="h-8 text-xs gap-1">
+                <Link2 className="h-3.5 w-3.5" /> Copy Link
+              </Button>
+              {/* @ts-ignore */}
+              <Button variant="ghost" size="sm" disabled={isPending} onClick={() => handleRevoke(invite.id)}
+                className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" title="Revoke">
+                <XCircle className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main List ───────────────────────────────────────────────────────────────
 interface UsersListProps {
   initialUsers: any[];
+  initialInvites: any[];
 }
 
-export default function UsersList({ initialUsers }: UsersListProps) {
+export default function UsersList({ initialUsers, initialInvites }: UsersListProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
@@ -305,8 +334,10 @@ export default function UsersList({ initialUsers }: UsersListProps) {
           <span className="text-sm text-muted-foreground">{filtered.length} of {initialUsers.length}</span>
         </div>
 
-        <CreateUserDialog onCreated={() => router.refresh()} />
+        <InviteUserDialog onInvited={() => router.refresh()} />
       </div>
+
+      <PendingInvites invites={initialInvites} onChanged={() => router.refresh()} />
 
       {/* Table */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">

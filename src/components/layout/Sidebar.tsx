@@ -2,20 +2,33 @@ import Image from "next/image";
 import Link from "next/link";
 import { HelpCircle } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
+import BusinessSwitcher from "./BusinessSwitcher";
 import type { BusinessRole } from "@/lib/business-context";
+
+interface SidebarBusiness {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  role: string;
+}
 
 interface SidebarProps {
   role: BusinessRole;
+  businessId: string;
   businessName: string;
   logoUrl?: string | null;
   newInquiriesCount?: number;
+  myBusinesses: SidebarBusiness[];
 }
 
 export default function Sidebar({
   role,
+  businessId,
   businessName,
   logoUrl,
   newInquiriesCount = 0,
+  myBusinesses,
 }: SidebarProps) {
   return (
     <aside
@@ -37,12 +50,11 @@ export default function Sidebar({
           height={42}
           className="object-contain brightness-0 invert mb-2"
         />
-        <p
-          className="text-sm font-bold truncate leading-tight"
-          style={{ color: "hsl(var(--primary) / 0.9)" }}
-        >
-          {businessName}
-        </p>
+        <BusinessSwitcher
+          businesses={myBusinesses}
+          currentBusinessId={businessId}
+          currentBusinessName={businessName}
+        />
       </div>
 
       {/* Nav */}

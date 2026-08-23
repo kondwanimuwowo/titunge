@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Bell } from "lucide-react";
-import { getBusinessContext } from "@/lib/business-context";
+import { getBusinessContext, getMyBusinesses } from "@/lib/business-context";
 import { buildThemeVars } from "@/lib/themes";
 import { getInquiryStats } from "@/lib/data/inquiries";
 import Sidebar from "@/components/layout/Sidebar";
@@ -24,10 +24,11 @@ export default async function AppLayout({
   const { business, businessId, role, userId } = await getBusinessContext();
 
   const supabase = await createClient();
-  const [{ data: { user } }, profileResult, inquiryStats] = await Promise.all([
+  const [{ data: { user } }, profileResult, inquiryStats, myBusinesses] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from("user_profiles").select("*").eq("id", userId).maybeSingle(),
     getInquiryStats(businessId),
+    getMyBusinesses(userId),
   ]);
 
   const themeVars = buildThemeVars(business.theme_key);
@@ -41,9 +42,11 @@ export default async function AppLayout({
         sidebar={
           <Sidebar
             role={role}
+            businessId={businessId}
             businessName={business.name}
             logoUrl={business.logo_url}
             newInquiriesCount={inquiryStats.newCount}
+            myBusinesses={myBusinesses}
           />
         }
         notificationBell={

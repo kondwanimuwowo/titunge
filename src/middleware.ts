@@ -33,7 +33,15 @@ const AUTH_ROUTES = [
   "/reset-password",
 ];
 
+// Subset of AUTH_ROUTES that bounce an already-authenticated visitor away.
+// /reset-password deliberately excluded — a password-recovery link establishes
+// a session via /auth/confirm and then lands here, and the user still needs to
+// see the "set new password" form rather than being redirected to /dashboard.
+const REDIRECT_AWAY_IF_AUTHENTICATED = ["/login", "/signup"];
+
 const PUBLIC_PREFIXES = [
+  "/invite",
+  "/auth/confirm",
   "/catalog",
   "/api/catalog",
   "/business",
@@ -97,6 +105,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
+  const isRedirectAwayRoute = REDIRECT_AWAY_IF_AUTHENTICATED.some((r) => pathname.startsWith(r));
   const isPublicRoute =
     pathname === "/" ||
     PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) ||
@@ -117,7 +126,7 @@ export async function middleware(request: NextRequest) {
   // RSC fetches (Next.js client-side navigation) cannot follow cross-origin redirects,
   // so we only do the subdomain redirect for full page navigations. RSC requests pass
   // through so the page itself can handle the redirect via window.location.href.
-  if (user && isAuthRoute) {
+  if (user && isRedirectAwayRoute) {
     const isRSCFetch = request.headers.get("RSC") === "1";
     if (!isRSCFetch && host === APP_DOMAIN) {
       // Full page navigation on root domain — resolve business and redirect to subdomain.

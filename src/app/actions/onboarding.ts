@@ -2,6 +2,9 @@
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
+const CONFIRM_REDIRECT = `https://${APP_DOMAIN}/auth/confirm?next=/onboarding`;
+
 interface SignUpInput {
   fullName: string;
   email: string;
@@ -15,17 +18,37 @@ interface CreateBusinessInput {
   timezone: string;
 }
 
-export async function signUpAction(input: SignUpInput): Promise<{ success: boolean; message?: string }> {
+export async function signUpAction(
+  input: SignUpInput
+): Promise<{ success: boolean; message?: string; needsConfirmation?: boolean }> {
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
     options: {
       data: { full_name: input.fullName },
+      emailRedirectTo: CONFIRM_REDIRECT,
     },
   });
 
+  if (error) return { success: false, message: error.message };
+
+  // With "Confirm email" enabled, signUp() returns a user but no session
+  // until they click the confirmation link — the caller must not try to
+  // sign in immediately in that case.
+  return { success: true, needsConfirmation: !data.session };
+}
+
+export async function resendConfirmationAction(email: string): Promise<{ success: boolean; message?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: CONFIRM_REDIRECT,
+    },
+  });
   if (error) return { success: false, message: error.message };
   return { success: true };
 }

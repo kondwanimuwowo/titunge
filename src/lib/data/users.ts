@@ -40,6 +40,24 @@ export async function getUsers(businessId: string) {
   });
 }
 
+export async function getPendingInvites(businessId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("business_invites")
+    .select("*")
+    .eq("business_id", businessId)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching invites:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 export async function getUserById(businessId: string, userId: string) {
   const supabase = await createClient();
 

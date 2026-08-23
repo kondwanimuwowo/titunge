@@ -59,6 +59,26 @@ export const getBusinessContext = cache(async function getBusinessContext(): Pro
   };
 });
 
+/** All active businesses the current user belongs to, for the sidebar switcher. */
+export async function getMyBusinesses(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("business_users")
+    .select("role, businesses(id, name, slug, logo_url)")
+    .eq("user_id", userId)
+    .eq("active", true);
+
+  return (data ?? [])
+    .map((row) => {
+      const business = row.businesses as unknown as
+        | { id: string; name: string; slug: string; logo_url: string | null }
+        | null;
+      if (!business) return null;
+      return { ...business, role: row.role as BusinessRole };
+    })
+    .filter((b): b is NonNullable<typeof b> => b !== null);
+}
+
 /**
  * Lightweight variant for server actions: returns businessId + userId
  * without a redirect, throws an error instead.

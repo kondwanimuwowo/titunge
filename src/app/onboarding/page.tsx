@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Loader2, Check, AlertCircle, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Loader2, Check, AlertCircle, Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   signUpAction,
@@ -13,9 +13,10 @@ import {
   checkSlugAvailable,
   createBusinessAction,
   getMyBusinessSlug,
+  resendConfirmationAction,
 } from "@/app/actions/onboarding";
 
-type Step = "account" | "business" | "done";
+type Step = "account" | "verify" | "business" | "done";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
@@ -73,6 +74,7 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   // Business step
   const [businessName, setBusinessName] = useState("");
@@ -142,6 +144,10 @@ export default function OnboardingPage() {
         setAccountError(result.message ?? "Sign up failed");
         return;
       }
+      if (result.needsConfirmation) {
+        setStep("verify");
+        return;
+      }
       const signIn = await signInAction(email, password);
       if (!signIn.success) {
         setAccountError(signIn.message ?? "Could not sign in after registration");
@@ -149,6 +155,11 @@ export default function OnboardingPage() {
       }
       setStep("business");
     });
+  };
+
+  const handleResend = () => {
+    setResending(true);
+    resendConfirmationAction(email).finally(() => setResending(false));
   };
 
   const handleBusinessSubmit = (e: React.FormEvent) => {
@@ -209,10 +220,11 @@ export default function OnboardingPage() {
         <div className="space-y-8">
           {(["account", "business", "done"] as Step[]).map((s, i) => {
             const steps = ["account", "business", "done"];
-            const currentIndex = steps.indexOf(step);
+            const effectiveStep = step === "verify" ? "account" : step;
+            const currentIndex = steps.indexOf(effectiveStep);
             const thisIndex = steps.indexOf(s);
             const done = thisIndex < currentIndex;
-            const active = s === step;
+            const active = s === effectiveStep;
             return (
               <div key={s} className="flex items-center gap-3">
                 <div
@@ -338,6 +350,44 @@ export default function OnboardingPage() {
                       Sign in
                     </Link>
                   </p>
+                </div>
+              </motion.div>
+            )}
+
+            {step === "verify" && (
+              <motion.div
+                key="verify"
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
+                  <div
+                    className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-6"
+                    style={{ backgroundColor: "#5fa8a0" }}
+                  >
+                    <Mail size={22} className="text-white" strokeWidth={2} />
+                  </div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2" style={{ fontFamily: "var(--font-canter)" }}>
+                    Check your email
+                  </h1>
+                  <p className="text-sm text-gray-500 mb-1 max-w-xs mx-auto">
+                    We've sent a confirmation link to
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 mb-6">{email}</p>
+                  <p className="text-xs text-gray-400 max-w-xs mx-auto mb-6">
+                    Click the link to continue setting up your workspace. It expires shortly, so come back here once you've confirmed.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resending}
+                    className="text-xs text-gray-500 underline underline-offset-4 hover:text-gray-900 disabled:opacity-50"
+                  >
+                    {resending ? "Resending..." : "Didn't get it? Resend email"}
+                  </button>
                 </div>
               </motion.div>
             )}

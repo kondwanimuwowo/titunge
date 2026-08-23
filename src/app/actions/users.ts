@@ -31,11 +31,21 @@ export async function createUserAction(data: {
     if (!authError.message.toLowerCase().includes("already been registered")) {
       return { success: false, message: authError.message };
     }
-    // User exists in auth — find them by email.
+    // User exists in auth — find them by email and set the password the admin
+    // just entered, since createUser() above never touched the existing account.
     const { data: list } = await admin.auth.admin.listUsers({ perPage: 1000 });
     const existing = list?.users.find((u) => u.email === data.email);
     if (!existing) return { success: false, message: "User already exists but could not be found." };
     userId = existing.id;
+
+    const { error: updateError } = await admin.auth.admin.updateUserById(userId, {
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { full_name: data.fullName },
+    });
+    if (updateError) {
+      return { success: false, message: updateError.message };
+    }
   } else {
     userId = authData.user.id;
   }
