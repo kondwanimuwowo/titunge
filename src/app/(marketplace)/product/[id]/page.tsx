@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
+import { getMarketplaceProductById, getMarketplaceSellerBySlug } from "@/lib/marketplace-db";
 import { ProductDetailClient } from "@/components/marketplace/ProductDetailClient";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = MARKETPLACE_PRODUCTS.find((p) => p.id === id);
+  const product = await getMarketplaceProductById(id);
 
   if (!product) {
     return (
@@ -24,5 +24,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     );
   }
 
-  return <ProductDetailClient product={product} />;
+  const shopResult = product.sellerSlug ? await getMarketplaceSellerBySlug(product.sellerSlug) : null;
+  const moreFromShop = (shopResult?.products ?? []).filter((p) => p.id !== product.id);
+
+  return <ProductDetailClient product={product} moreFromShop={moreFromShop} />;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
+import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import { DELIVERY_FEE_ZMW } from "@/data/marketplace-orders";
 
 export interface CartLine {
@@ -43,6 +43,7 @@ interface CartContextValue {
   delivery: number;
   total: number;
   hydrated: boolean;
+  products: MarketplaceProduct[];
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -50,6 +51,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CartState>({ items: [], shippingDetails: null });
   const [hydrated, setHydrated] = useState(false);
+  const [products, setProducts] = useState<MarketplaceProduct[]>([]);
 
   useEffect(() => {
     try {
@@ -59,6 +61,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // ignore malformed storage
     }
     setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/marketplace/products")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setProducts(Array.isArray(data) ? data : []))
+      .catch(() => setProducts([]));
   }, []);
 
   useEffect(() => {
@@ -104,7 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const subtotal = state.items.reduce((sum, line) => {
-    const product = MARKETPLACE_PRODUCTS.find((p) => p.id === line.productId);
+    const product = products.find((p) => p.id === line.productId);
     return sum + (product ? product.priceZmw * line.qty : 0);
   }, 0);
   const delivery = state.items.length > 0 ? DELIVERY_FEE_ZMW : 0;
@@ -125,6 +134,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         delivery,
         total,
         hydrated,
+        products,
       }}
     >
       {children}

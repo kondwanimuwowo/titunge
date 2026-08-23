@@ -4,8 +4,7 @@ import { useMemo, useState } from "react";
 import { ImagePlaceholder } from "./ImagePlaceholder";
 import { ProductCard } from "./ProductCard";
 import { ReviewsSection } from "./ReviewsSection";
-import type { MarketplaceSeller } from "@/data/marketplace-sellers";
-import type { MarketplaceProduct } from "@/data/marketplace-products";
+import type { MarketplaceSeller, MarketplaceProduct } from "@/lib/marketplace-db";
 import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
 
 interface ShopPageClientProps {
@@ -32,10 +31,14 @@ export function ShopPageClient({ seller, products }: ShopPageClientProps) {
             <ImagePlaceholder shape="circle" className="w-32 h-32 border-4 border-white" src={seller.avatar} alt={seller.name} />
             <h1 className="text-3xl font-extrabold tracking-tight">{seller.name}</h1>
             <p className="text-sm text-gray-500">
-              {seller.location} · Founded {seller.founded}
+              {seller.location}
+              {seller.founded ? ` · Founded ${seller.founded}` : ""}
             </p>
             <p className="text-sm text-gray-500">
-              {seller.rating.toFixed(1)} rating · {seller.salesCount} sales · {seller.itemCount} items
+              {seller.rating != null && seller.salesCount != null
+                ? `${seller.rating.toFixed(1)} rating · ${seller.salesCount} sales · `
+                : ""}
+              {seller.itemCount} items
             </p>
             <div className="flex items-center gap-3">
               <button

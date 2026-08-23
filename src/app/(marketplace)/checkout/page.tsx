@@ -5,13 +5,12 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/components/marketplace/CartProvider";
 import { CheckoutSteps } from "@/components/marketplace/CheckoutSteps";
 import { OrderSummaryPanel, type OrderSummaryItem } from "@/components/marketplace/OrderSummaryPanel";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
 
 const COUNTRIES = ["Zambia", "Ghana", "Nigeria", "Kenya", "Senegal", "South Africa"];
 
 export default function CheckoutShippingPage() {
   const router = useRouter();
-  const { items, subtotal, delivery, total, hydrated, shippingDetails, setShippingDetails } = useCart();
+  const { items, subtotal, delivery, total, hydrated, shippingDetails, setShippingDetails, products } = useCart();
 
   const [fullName, setFullName] = useState(shippingDetails?.fullName ?? "");
   const [phone, setPhone] = useState(shippingDetails?.phone ?? "");
@@ -27,7 +26,7 @@ export default function CheckoutShippingPage() {
   if (!hydrated || items.length === 0) return null;
 
   const summaryItems: OrderSummaryItem[] = items.map((line) => {
-    const product = MARKETPLACE_PRODUCTS.find((p) => p.id === line.productId);
+    const product = products.find((p) => p.id === line.productId);
     return {
       key: `${line.productId}::${line.size}`,
       name: product?.name ?? "Item",

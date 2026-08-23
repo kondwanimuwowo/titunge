@@ -119,6 +119,56 @@ export type Database = {
           },
         ]
       }
+      business_storefront: {
+        Row: {
+          banner_url: string | null
+          bio: string | null
+          business_id: string
+          created_at: string | null
+          custom_orders_policy: string | null
+          delivery_policy: string | null
+          founded_year: number | null
+          id: string
+          location: string | null
+          returns_policy: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          bio?: string | null
+          business_id: string
+          created_at?: string | null
+          custom_orders_policy?: string | null
+          delivery_policy?: string | null
+          founded_year?: number | null
+          id?: string
+          location?: string | null
+          returns_policy?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          bio?: string | null
+          business_id?: string
+          created_at?: string | null
+          custom_orders_policy?: string | null
+          delivery_policy?: string | null
+          founded_year?: number | null
+          id?: string
+          location?: string | null
+          returns_policy?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_storefront_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_users: {
         Row: {
           active: boolean | null
@@ -1166,6 +1216,47 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_storefront_extra: {
+        Row: {
+          care_instructions: string | null
+          category_slug: string | null
+          created_at: string | null
+          featured: boolean | null
+          id: string
+          product_id: string
+          shipping_lead_time: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          care_instructions?: string | null
+          category_slug?: string | null
+          created_at?: string | null
+          featured?: boolean | null
+          id?: string
+          product_id: string
+          shipping_lead_time?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          care_instructions?: string | null
+          category_slug?: string | null
+          created_at?: string | null
+          featured?: boolean | null
+          id?: string
+          product_id?: string
+          shipping_lead_time?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_storefront_extra_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

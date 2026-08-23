@@ -44,6 +44,7 @@ const PUBLIC_PREFIXES = [
   "/auth/confirm",
   "/catalog",
   "/api/catalog",
+  "/api/marketplace",
   "/business",
   "/browse",
   "/sell",

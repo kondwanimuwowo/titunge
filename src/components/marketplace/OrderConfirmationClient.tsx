@@ -5,14 +5,15 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { OrderSummaryPanel, type OrderSummaryItem } from "./OrderSummaryPanel";
+import { useCart } from "./CartProvider";
 import { getOrder } from "@/lib/marketplace-orders";
 import type { MarketplaceOrder } from "@/data/marketplace-orders";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
 
 export function OrderConfirmationClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order");
   const [order, setOrder] = useState<MarketplaceOrder | null | undefined>(undefined);
+  const { products } = useCart();
 
   useEffect(() => {
     setOrder(orderId ? (getOrder(orderId) ?? null) : null);
@@ -44,7 +45,7 @@ export function OrderConfirmationClient() {
     meta: `Qty ${item.qty}`,
     qty: item.qty,
     priceZmw: item.priceZmw,
-    image: MARKETPLACE_PRODUCTS.find((p) => p.id === item.productId)?.image,
+    image: products.find((p) => p.id === item.productId)?.image,
   }));
 
   return (

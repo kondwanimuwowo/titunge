@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { MARKETPLACE_SELLERS } from "@/data/marketplace-sellers";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
+import { getMarketplaceSellerBySlug } from "@/lib/marketplace-db";
 import { ShopPageClient } from "@/components/marketplace/ShopPageClient";
 
 export default async function ShopPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const seller = MARKETPLACE_SELLERS.find((s) => s.slug === slug);
+  const result = await getMarketplaceSellerBySlug(slug);
 
-  if (!seller) {
+  if (!result) {
     return (
       <section className="flex flex-col items-center justify-center text-center px-6 py-32">
         <h1 className="text-3xl font-bold text-[#0e1a18]" style={{ fontFamily: "var(--font-canter)" }}>
@@ -25,7 +24,5 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
     );
   }
 
-  const products = MARKETPLACE_PRODUCTS.filter((p) => p.sellerSlug === slug);
-
-  return <ShopPageClient seller={seller} products={products} />;
+  return <ShopPageClient seller={result.seller} products={result.products} />;
 }

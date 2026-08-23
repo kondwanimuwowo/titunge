@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { ImagePlaceholder } from "./ImagePlaceholder";
-import type { MarketplaceProduct } from "@/data/marketplace-products";
+import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import { formatZmw } from "@/lib/marketplace-currency";
 
 export function ProductCard({ product }: { product: MarketplaceProduct }) {

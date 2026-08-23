@@ -208,6 +208,36 @@ CREATE TABLE public.products (
   deleted_at       timestamptz
 );
 
+-- Marketplace-only display data — kept off the core products/businesses tables
+-- so plain ERP-only tenants never carry storefront-specific columns. The public
+-- marketplace read path bypasses RLS entirely via the service-role client
+-- (src/lib/marketplace-db.ts); the policies below are only for a future
+-- tenant-side editing UI.
+CREATE TABLE public.business_storefront (
+  id                   uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id          uuid NOT NULL UNIQUE REFERENCES public.businesses(id) ON DELETE CASCADE,
+  bio                  text,
+  banner_url           text,
+  location             text,
+  founded_year         integer,
+  delivery_policy      text,
+  returns_policy       text,
+  custom_orders_policy text,
+  created_at           timestamptz DEFAULT now(),
+  updated_at           timestamptz DEFAULT now()
+);
+
+CREATE TABLE public.product_storefront_extra (
+  id                 uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  product_id         uuid NOT NULL UNIQUE REFERENCES public.products(id) ON DELETE CASCADE,
+  category_slug      text,
+  care_instructions  text,
+  shipping_lead_time text,
+  featured           boolean DEFAULT false,
+  created_at         timestamptz DEFAULT now(),
+  updated_at         timestamptz DEFAULT now()
+);
+
 -- ============================================================
 -- INVENTORY (raw materials)
 -- ============================================================
@@ -402,6 +432,8 @@ ALTER TABLE public.materials             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inventory_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_materials       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_storefront      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_storefront_extra ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.production_batches    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.production_batch_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses              ENABLE ROW LEVEL SECURITY;
@@ -456,6 +488,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'customers','employees','attendance','garment_types','orders','products',
     'materials','inventory_transactions','order_materials','order_items',
+    'business_storefront',
     'production_batches','production_batch_orders',
     'expenses','payments','overhead_costs','financial_settings',
     'catalog_purchases','customer_inquiries','notifications'
@@ -469,6 +502,11 @@ BEGIN
   END LOOP;
 END;
 $$;
+
+-- product_storefront_extra has no business_id column of its own — scope
+-- tenant isolation through the product's business_id instead.
+CREATE POLICY tenant_isolation ON public.product_storefront_extra
+  USING (product_id IN (SELECT id FROM public.products WHERE business_id IN (SELECT public.my_business_ids())));
 
 -- ============================================================
 -- STORAGE: Public bucket for business assets (logos, etc.)

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Breadcrumb } from "./Breadcrumb";
 import { ProductCard } from "./ProductCard";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
+import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
 
 type SortOption = "newest" | "price-asc" | "price-desc";
@@ -17,7 +17,7 @@ const SORT_LABELS: Record<SortOption, string> = {
 
 const SHIPS_FROM = ["Zambia", "Ghana", "Nigeria", "Kenya", "Senegal"];
 
-export function BrowseClient() {
+export function BrowseClient({ products: allProducts }: { products: MarketplaceProduct[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get("category") ?? "";
@@ -27,13 +27,13 @@ export function BrowseClient() {
 
   const products = useMemo(() => {
     let list = activeCategory
-      ? MARKETPLACE_PRODUCTS.filter((p) => p.categorySlug === activeCategory)
-      : MARKETPLACE_PRODUCTS;
+      ? allProducts.filter((p) => p.categorySlug === activeCategory)
+      : allProducts;
     list = [...list];
     if (sort === "price-asc") list.sort((a, b) => a.priceZmw - b.priceZmw);
     else if (sort === "price-desc") list.sort((a, b) => b.priceZmw - a.priceZmw);
     return list;
-  }, [activeCategory, sort]);
+  }, [allProducts, activeCategory, sort]);
 
   const selectCategory = (slug: string) => {
     const params = new URLSearchParams(searchParams.toString());

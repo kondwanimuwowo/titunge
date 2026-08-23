@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/components/marketplace/CartProvider";
 import { CheckoutSteps } from "@/components/marketplace/CheckoutSteps";
 import { OrderSummaryPanel, type OrderSummaryItem } from "@/components/marketplace/OrderSummaryPanel";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
 import { formatZmw } from "@/lib/marketplace-currency";
 import { placeOrder } from "@/lib/marketplace-orders";
 
@@ -13,7 +12,7 @@ const MOMO_PROVIDERS = ["MTN Mobile Money", "Airtel Money", "M-Pesa", "Zamtel Kw
 
 export default function CheckoutPaymentPage() {
   const router = useRouter();
-  const { items, subtotal, delivery, total, hydrated, shippingDetails, clearCart } = useCart();
+  const { items, subtotal, delivery, total, hydrated, shippingDetails, clearCart, products } = useCart();
   const [method, setMethod] = useState<"momo" | "card">("momo");
   const [orderPlaced, setOrderPlaced] = useState(false);
 
@@ -26,7 +25,7 @@ export default function CheckoutPaymentPage() {
   if (!hydrated || (!orderPlaced && (items.length === 0 || !shippingDetails))) return null;
 
   const summaryItems: OrderSummaryItem[] = items.map((line) => {
-    const product = MARKETPLACE_PRODUCTS.find((p) => p.id === line.productId);
+    const product = products.find((p) => p.id === line.productId);
     return {
       key: `${line.productId}::${line.size}`,
       name: product?.name ?? "Item",
@@ -39,7 +38,7 @@ export default function CheckoutPaymentPage() {
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    const order = placeOrder(items);
+    const order = placeOrder(items, products);
     setOrderPlaced(true);
     clearCart();
     router.push(`/order-confirmation?order=${order.id}`);

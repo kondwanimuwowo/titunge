@@ -8,13 +8,12 @@ import { ImagePlaceholder } from "@/components/marketplace/ImagePlaceholder";
 import { StatusBadge } from "@/components/marketplace/StatusBadge";
 import { formatZmw } from "@/lib/marketplace-currency";
 import type { MarketplaceOrder } from "@/data/marketplace-orders";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
 
 const SIDEBAR_LINKS = ["Profile", "Orders", "Saved items", "Addresses", "Payment methods", "Sign out"];
 
 export default function OrderHistoryPage() {
   const router = useRouter();
-  const { addItem } = useCart();
+  const { addItem, products } = useCart();
   const [orders, setOrders] = useState<MarketplaceOrder[] | undefined>(undefined);
 
   useEffect(() => {
@@ -75,7 +74,7 @@ export default function OrderHistoryPage() {
                           key={`${item.productId}-${item.size}`}
                           shape="rect"
                           className="w-16 h-16 shrink-0"
-                          src={MARKETPLACE_PRODUCTS.find((p) => p.id === item.productId)?.image}
+                          src={products.find((p) => p.id === item.productId)?.image}
                           alt={item.name}
                         />
                       ))}

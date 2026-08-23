@@ -9,12 +9,16 @@ import { ProductCard } from "./ProductCard";
 import { ReviewsSection } from "./ReviewsSection";
 import { Breadcrumb } from "./Breadcrumb";
 import { useCart } from "./CartProvider";
-import type { MarketplaceProduct } from "@/data/marketplace-products";
+import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
 import { formatZmw } from "@/lib/marketplace-currency";
 
-export function ProductDetailClient({ product }: { product: MarketplaceProduct }) {
+interface ProductDetailClientProps {
+  product: MarketplaceProduct;
+  moreFromShop: MarketplaceProduct[];
+}
+
+export function ProductDetailClient({ product, moreFromShop }: ProductDetailClientProps) {
   const router = useRouter();
   const { addItem } = useCart();
   const [fav, setFav] = useState(false);
@@ -23,7 +27,6 @@ export function ProductDetailClient({ product }: { product: MarketplaceProduct }
   const [activeImage, setActiveImage] = useState(product.image);
 
   const category = MARKETPLACE_CATEGORIES.find((c) => c.slug === product.categorySlug);
-  const moreFromShop = MARKETPLACE_PRODUCTS.filter((p) => p.sellerSlug === product.sellerSlug && p.id !== product.id);
 
   const handleAddToBasket = () => {
     addItem(product.id, size);
@@ -75,9 +78,11 @@ export function ProductDetailClient({ product }: { product: MarketplaceProduct }
           </Link>
           <div className="flex items-center gap-3 mt-3">
             <span className="text-xl font-extrabold">{formatZmw(product.priceZmw)}</span>
-            <span className="text-sm text-gray-500">
-              {product.rating.toFixed(1)} ({product.reviewCount} reviews)
-            </span>
+            {product.rating != null && product.reviewCount != null && (
+              <span className="text-sm text-gray-500">
+                {product.rating.toFixed(1)} ({product.reviewCount} reviews)
+              </span>
+            )}
           </div>
           <p className="text-sm text-gray-600 leading-relaxed mt-4">{product.description}</p>
 

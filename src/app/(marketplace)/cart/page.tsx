@@ -5,15 +5,14 @@ import { Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/components/marketplace/CartProvider";
 import { ImagePlaceholder } from "@/components/marketplace/ImagePlaceholder";
 import { OrderSummaryPanel } from "@/components/marketplace/OrderSummaryPanel";
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
 import { formatZmw } from "@/lib/marketplace-currency";
 
 export default function CartPage() {
-  const { items, incQty, decQty, removeItem, subtotal, delivery, total } = useCart();
+  const { items, incQty, decQty, removeItem, subtotal, delivery, total, products } = useCart();
 
   const lines = items
     .map((line) => {
-      const product = MARKETPLACE_PRODUCTS.find((p) => p.id === line.productId);
+      const product = products.find((p) => p.id === line.productId);
       if (!product) return null;
       return { ...line, product };
     })

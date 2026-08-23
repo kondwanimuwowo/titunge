@@ -1,4 +1,4 @@
-import { MARKETPLACE_PRODUCTS } from "@/data/marketplace-products";
+import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import {
   DELIVERY_FEE_ZMW,
   SEED_MARKETPLACE_ORDERS,
@@ -31,9 +31,9 @@ export function getOrder(id: string): MarketplaceOrder | undefined {
   return getOrders().find((order) => order.id === id);
 }
 
-export function placeOrder(items: CartLine[]): MarketplaceOrder {
+export function placeOrder(items: CartLine[], products: MarketplaceProduct[]): MarketplaceOrder {
   const orderItems = items.map((line) => {
-    const product = MARKETPLACE_PRODUCTS.find((p) => p.id === line.productId);
+    const product = products.find((p) => p.id === line.productId);
     return {
       productId: line.productId,
       name: product?.name ?? "Item",
