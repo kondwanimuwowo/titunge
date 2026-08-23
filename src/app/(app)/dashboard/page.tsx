@@ -16,7 +16,7 @@ import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import type { OrderStatus } from "@/lib/types/database";
 
 export default async function DashboardPage() {
-  const { businessId, userId } = await getBusinessContext();
+  const { businessId, userId, business } = await getBusinessContext();
 
   const supabase = await createClient();
   const { data: profileData } = await supabase
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
       <DashboardRealtime />
       <PageHeader
         title={`Welcome back, ${firstName || 'Team'}!`}
-        description="Here's a snapshot of what's happening with Gloriaz Daughter ERP today."
+        description={`Here's a snapshot of what's happening with ${business.name} today.`}
       />
 
       {/* KPI Stats */}

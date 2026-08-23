@@ -4,9 +4,10 @@ import { Scissors } from "lucide-react";
 interface OrderReceiptProps {
   order: any;
   taxRate: number;
+  businessName: string;
 }
 
-export default function OrderReceipt({ order, taxRate }: OrderReceiptProps) {
+export default function OrderReceipt({ order, taxRate, businessName }: OrderReceiptProps) {
   const subtotal = parseFloat(order.total_cost || "0");
   const taxAmount = subtotal * (taxRate / 100);
   const grandTotal = subtotal + taxAmount;
@@ -22,7 +23,7 @@ export default function OrderReceipt({ order, taxRate }: OrderReceiptProps) {
             <Scissors className="text-primary" size={20} />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">GLORIAZ DAUGHTER</h1>
+            <h1 className="text-lg font-bold tracking-tight text-foreground uppercase">{businessName}</h1>
             <p className="text-xs text-muted-foreground uppercase tracking-widest">Tailoring &amp; Garments</p>
           </div>
         </div>

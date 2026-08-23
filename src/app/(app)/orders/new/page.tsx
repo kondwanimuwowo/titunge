@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import CreateOrderForm from "@/components/orders/CreateOrderForm";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 
-export const metadata = { title: "New Order — Gloriaz Daughter" };
+export const metadata = { title: "New Order — Titunge" };
 
 export default async function NewOrderPage({
   searchParams,

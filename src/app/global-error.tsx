@@ -22,7 +22,7 @@ export default function GlobalError({
           }}
         >
           <h1 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#1a1a1a" }}>
-            Gloriaz Daughter ERP is unavailable
+            Titunge ERP is unavailable
           </h1>
           <p style={{ fontSize: "0.875rem", color: "#666", marginTop: "0.375rem", maxWidth: 420 }}>
             Something went badly wrong loading the application. Please try again.

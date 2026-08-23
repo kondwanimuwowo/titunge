@@ -2,7 +2,7 @@
 
 Titunge (titunge.com) is a multi-tenant SaaS ERP platform for tailoring and garment businesses. Tagline: "Craft. Connect. Create."
 
-Each business (tenant) is isolated via Row-Level Security and a `business_id` column on every data table. Gloriaz Daughter is the first tenant and will be migrated from the standalone `gloriaz-daughter` repo once this platform is stable.
+Each business (tenant) is isolated via Row-Level Security and a `business_id` column on every data table. The first tenant was migrated in from a standalone single-tenant app via `scripts/migrate-gloriaz.ts`; that legacy app is now retired.
 
 ## Core Commands
 - `npm run dev`: Start ERP dev server (port 3000)

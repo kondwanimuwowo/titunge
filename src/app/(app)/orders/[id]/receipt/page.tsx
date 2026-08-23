@@ -10,7 +10,7 @@ import PrintReceiptButton from "@/components/orders/PrintReceiptButton";
 
 export default async function OrderReceiptPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { businessId } = await getBusinessContext();
+  const { businessId, business } = await getBusinessContext();
 
   let order;
   try {
@@ -44,7 +44,7 @@ export default async function OrderReceiptPage({ params }: { params: Promise<{ i
         <PrintReceiptButton />
       </div>
 
-      <OrderReceipt order={order} taxRate={taxRate} />
+      <OrderReceipt order={order} taxRate={taxRate} businessName={business.name} />
     </div>
   );
 }

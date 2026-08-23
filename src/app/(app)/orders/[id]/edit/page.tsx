@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import OrderEditForm from "@/components/orders/OrderEditForm";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 
-export const metadata = { title: "Edit Order — Gloriaz Daughter" };
+export const metadata = { title: "Edit Order — Titunge" };
 
 export default async function EditOrderPage({
   params,
