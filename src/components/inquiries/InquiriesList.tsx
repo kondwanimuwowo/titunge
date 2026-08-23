@@ -177,9 +177,9 @@ export default function InquiriesList({ initialInquiries }: InquiriesListProps) 
               >
                 {/* Product image or placeholder */}
                 <div className="flex-shrink-0">
-                  {inquiry.products?.image_url ? (
+                  {inquiry.products?.images?.[0] ? (
                     <img
-                      src={inquiry.products.image_url}
+                      src={inquiry.products.images[0]}
                       alt={inquiry.products.name || "Product"}
                       className="w-10 h-10 rounded-md object-cover border border-border"
                     />

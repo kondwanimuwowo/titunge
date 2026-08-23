@@ -107,9 +107,9 @@ export default function InventoryList({
         cell: ({ row }: any) => <span className="text-muted-foreground text-sm">{row.getValue("min_stock_level") || "0"}</span>,
       },
       {
-        accessorKey: "cost_per_unit",
+        accessorKey: "unit_cost",
         header: "Cost/Unit",
-        cell: ({ row }: any) => <span className="text-sm">K{parseFloat(String(row.getValue("cost_per_unit") || 0)).toFixed(2)}</span>,
+        cell: ({ row }: any) => <span className="text-sm">K{parseFloat(String(row.getValue("unit_cost") || 0)).toFixed(2)}</span>,
       },
       {
         accessorKey: "supplier",
@@ -195,9 +195,9 @@ export default function InventoryList({
         },
       },
       {
-        accessorKey: "cost_per_unit",
+        accessorKey: "unit_cost",
         header: "Cost/Unit",
-        cell: ({ row }: any) => <span className="text-sm">K{parseFloat(String(row.getValue("cost_per_unit") || 0)).toFixed(2)}</span>,
+        cell: ({ row }: any) => <span className="text-sm">K{parseFloat(String(row.getValue("unit_cost") || 0)).toFixed(2)}</span>,
       },
       {
         id: "actions",

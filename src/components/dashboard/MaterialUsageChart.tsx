@@ -15,7 +15,7 @@ interface MaterialNode {
   name: string;
   stock_quantity: number;
   min_stock_level: number;
-  cost_per_unit: number;
+  unit_cost: number;
 }
 
 interface MaterialUsageChartProps {
@@ -40,7 +40,7 @@ export default function MaterialUsageChart({ data }: MaterialUsageChartProps) {
     .map(m => ({
       name: m.name,
       quantity: m.stock_quantity,
-      cost: m.stock_quantity * m.cost_per_unit,
+      cost: m.stock_quantity * m.unit_cost,
     }))
     .sort((a,b) => b.cost - a.cost)
     .slice(0, 8); // Top 8 by value

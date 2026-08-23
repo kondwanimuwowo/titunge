@@ -42,7 +42,7 @@ export async function createBatchAction(
     // Deduct from inventory (parallel)
     const deductionPromises = materials.map(async (material) => {
       const { data: matData } = await (supabase.from("materials") as any)
-        .select("stock_quantity, cost_per_unit")
+        .select("stock_quantity, unit_cost")
         .eq("id", material.material_id)
         .eq("business_id", businessId)
         .single();

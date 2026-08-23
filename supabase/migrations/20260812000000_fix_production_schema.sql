@@ -7,18 +7,18 @@
 -- was failing with "column/relationship does not exist".
 
 ALTER TABLE public.production_batches
-  ADD COLUMN product_id    uuid REFERENCES public.products(id) ON DELETE SET NULL,
-  ADD COLUMN quantity      integer,
-  ADD COLUMN started_at    timestamptz,
-  ADD COLUMN completed_at  timestamptz,
-  ADD COLUMN deleted_at    timestamptz,
-  ADD COLUMN labor_cost    numeric DEFAULT 0,
-  ADD COLUMN material_cost numeric DEFAULT 0,
-  ADD COLUMN total_cost    numeric DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS product_id    uuid REFERENCES public.products(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS quantity      integer,
+  ADD COLUMN IF NOT EXISTS started_at    timestamptz,
+  ADD COLUMN IF NOT EXISTS completed_at  timestamptz,
+  ADD COLUMN IF NOT EXISTS deleted_at    timestamptz,
+  ADD COLUMN IF NOT EXISTS labor_cost    numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS material_cost numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_cost    numeric DEFAULT 0;
 
-CREATE INDEX idx_production_batches_product ON public.production_batches(product_id);
+CREATE INDEX IF NOT EXISTS idx_production_batches_product ON public.production_batches(product_id);
 
-CREATE TABLE public.production_stages (
+CREATE TABLE IF NOT EXISTS public.production_stages (
   id               uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   batch_id         uuid NOT NULL REFERENCES public.production_batches(id) ON DELETE CASCADE,
   stage_name       text NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE public.production_stages (
   updated_at       timestamptz DEFAULT now()
 );
 
-CREATE TABLE public.production_materials (
+CREATE TABLE IF NOT EXISTS public.production_materials (
   id               uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   batch_id         uuid NOT NULL REFERENCES public.production_batches(id) ON DELETE CASCADE,
   material_id      uuid REFERENCES public.materials(id) ON DELETE SET NULL,
@@ -44,7 +44,7 @@ CREATE TABLE public.production_materials (
 
 -- user_id points at user_profiles (not auth.users) so PostgREST can embed
 -- it directly in getBatchById's select, same reasoning as business_users.
-CREATE TABLE public.production_logs (
+CREATE TABLE IF NOT EXISTS public.production_logs (
   id               uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   batch_id         uuid NOT NULL REFERENCES public.production_batches(id) ON DELETE CASCADE,
   user_id          uuid REFERENCES public.user_profiles(id) ON DELETE SET NULL,
@@ -61,18 +61,21 @@ ALTER TABLE public.production_logs      ENABLE ROW LEVEL SECURITY;
 -- These child tables have no business_id column of their own (the app never
 -- sets one on insert), so tenant isolation is enforced via their batch's
 -- business_id instead of the usual direct-column policy.
+DROP POLICY IF EXISTS tenant_isolation ON public.production_stages;
 CREATE POLICY tenant_isolation ON public.production_stages
   USING (batch_id IN (SELECT id FROM public.production_batches WHERE business_id IN (SELECT public.my_business_ids())));
 
+DROP POLICY IF EXISTS tenant_isolation ON public.production_materials;
 CREATE POLICY tenant_isolation ON public.production_materials
   USING (batch_id IN (SELECT id FROM public.production_batches WHERE business_id IN (SELECT public.my_business_ids())));
 
+DROP POLICY IF EXISTS tenant_isolation ON public.production_logs;
 CREATE POLICY tenant_isolation ON public.production_logs
   USING (batch_id IN (SELECT id FROM public.production_batches WHERE business_id IN (SELECT public.my_business_ids())));
 
-CREATE INDEX idx_production_stages_batch ON public.production_stages(batch_id);
-CREATE INDEX idx_production_materials_batch ON public.production_materials(batch_id);
-CREATE INDEX idx_production_logs_batch ON public.production_logs(batch_id);
+CREATE INDEX IF NOT EXISTS idx_production_stages_batch ON public.production_stages(batch_id);
+CREATE INDEX IF NOT EXISTS idx_production_materials_batch ON public.production_materials(batch_id);
+CREATE INDEX IF NOT EXISTS idx_production_logs_batch ON public.production_logs(batch_id);
 
 -- Atomically increments finished-goods stock when a batch completes.
 -- SECURITY DEFINER so employees without direct product write access can

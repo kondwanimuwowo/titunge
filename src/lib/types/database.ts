@@ -65,6 +65,60 @@ export type Database = {
           },
         ]
       }
+      business_invites: {
+        Row: {
+          accepted_at: string | null
+          business_id: string
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          role: string
+          status: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          business_id: string
+          created_at?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: string
+          status?: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          business_id?: string
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: string
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_invites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_users: {
         Row: {
           active: boolean | null
@@ -605,6 +659,7 @@ export type Database = {
           business_id: string
           created_at: string | null
           id: string
+          last_restocked: string | null
           min_stock_level: number | null
           name: string
           notes: string | null
@@ -618,6 +673,7 @@ export type Database = {
           business_id: string
           created_at?: string | null
           id?: string
+          last_restocked?: string | null
           min_stock_level?: number | null
           name: string
           notes?: string | null
@@ -631,6 +687,7 @@ export type Database = {
           business_id?: string
           created_at?: string | null
           id?: string
+          last_restocked?: string | null
           min_stock_level?: number | null
           name?: string
           notes?: string | null
@@ -750,12 +807,15 @@ export type Database = {
         Row: {
           balance_due: number | null
           business_id: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
           created_at: string | null
           customer_id: string | null
           deleted_at: string | null
           deposit: number | null
+          description: string | null
           due_date: string | null
-          employee_id: string | null
+          assigned_tailor_id: string | null
           garment_type_id: string | null
           id: string
           labour_cost: number | null
@@ -766,6 +826,7 @@ export type Database = {
           order_number: string
           order_type: string | null
           overhead_cost: number | null
+          product_id: string | null
           status: string
           style_notes: string | null
           total_cost: number | null
@@ -774,12 +835,15 @@ export type Database = {
         Insert: {
           balance_due?: number | null
           business_id: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           created_at?: string | null
           customer_id?: string | null
           deleted_at?: string | null
           deposit?: number | null
+          description?: string | null
           due_date?: string | null
-          employee_id?: string | null
+          assigned_tailor_id?: string | null
           garment_type_id?: string | null
           id?: string
           labour_cost?: number | null
@@ -790,6 +854,7 @@ export type Database = {
           order_number: string
           order_type?: string | null
           overhead_cost?: number | null
+          product_id?: string | null
           status?: string
           style_notes?: string | null
           total_cost?: number | null
@@ -798,12 +863,15 @@ export type Database = {
         Update: {
           balance_due?: number | null
           business_id?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           created_at?: string | null
           customer_id?: string | null
           deleted_at?: string | null
           deposit?: number | null
+          description?: string | null
           due_date?: string | null
-          employee_id?: string | null
+          assigned_tailor_id?: string | null
           garment_type_id?: string | null
           id?: string
           labour_cost?: number | null
@@ -814,6 +882,7 @@ export type Database = {
           order_number?: string
           order_type?: string | null
           overhead_cost?: number | null
+          product_id?: string | null
           status?: string
           style_notes?: string | null
           total_cost?: number | null
@@ -835,8 +904,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "orders_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: "orders_assigned_tailor_id_fkey"
+            columns: ["assigned_tailor_id"]
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
@@ -846,6 +915,13 @@ export type Database = {
             columns: ["garment_type_id"]
             isOneToOne: false
             referencedRelation: "garment_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

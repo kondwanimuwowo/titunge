@@ -53,6 +53,23 @@ CREATE TABLE public.business_users (
   UNIQUE(business_id, user_id)
 );
 
+-- Pending invites: an admin invites an email + role; the invitee logs in or
+-- signs up (choosing their own password) via a token link to accept it.
+CREATE TABLE public.business_invites (
+  id           uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id  uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  email        text NOT NULL,
+  role         text NOT NULL DEFAULT 'employee' CHECK (role IN ('admin','manager','employee')),
+  token        uuid NOT NULL DEFAULT uuid_generate_v4(),
+  invited_by   uuid REFERENCES public.user_profiles(id) ON DELETE SET NULL,
+  status       text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','accepted','revoked')),
+  expires_at   timestamptz NOT NULL DEFAULT (now() + interval '14 days'),
+  created_at   timestamptz DEFAULT now(),
+  accepted_at  timestamptz,
+  UNIQUE(business_id, email)
+);
+CREATE UNIQUE INDEX idx_business_invites_token ON public.business_invites(token);
+
 -- ============================================================
 -- CUSTOMERS
 -- ============================================================
@@ -128,11 +145,15 @@ CREATE TABLE public.orders (
   business_id      uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
   order_number     text NOT NULL,
   customer_id      uuid REFERENCES public.customers(id),
-  employee_id      uuid REFERENCES public.employees(id),
+  assigned_tailor_id uuid REFERENCES public.employees(id),
   garment_type_id  uuid REFERENCES public.garment_types(id),
+  product_id       uuid REFERENCES public.products(id) ON DELETE SET NULL,
   order_type       text,
-  status           text NOT NULL DEFAULT 'pending'
-                     CHECK (status IN ('pending','in_progress','production','ready','completed','delivered','cancelled')),
+  status           text NOT NULL DEFAULT 'enquiry'
+                     CHECK (status IN (
+                       'pending','in_progress','production','ready','completed','delivered','cancelled',
+                       'enquiry','contacted','measurements','fitting'
+                     )),
   order_date       date DEFAULT CURRENT_DATE,
   due_date         date,
   total_cost       numeric DEFAULT 0,
@@ -141,13 +162,28 @@ CREATE TABLE public.orders (
   overhead_cost    numeric DEFAULT 0,
   deposit          numeric DEFAULT 0,
   balance_due      numeric DEFAULT 0,
+  description      text,
   notes            text,
   style_notes      text,
   measurements     jsonb DEFAULT '{}'::jsonb,
+  cancellation_reason text,
+  cancelled_at     timestamptz,
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now(),
   deleted_at       timestamptz,
   UNIQUE(business_id, order_number)
+);
+
+CREATE TABLE public.order_items (
+  id           uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id  uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  order_id     uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  item_type    text NOT NULL,
+  description  text,
+  quantity     integer DEFAULT 1,
+  price        numeric NOT NULL DEFAULT 0,
+  measurements jsonb DEFAULT '{}'::jsonb,
+  created_at   timestamptz DEFAULT now()
 );
 
 -- ============================================================
@@ -186,6 +222,7 @@ CREATE TABLE public.materials (
   unit_cost        numeric DEFAULT 0,
   supplier         text,
   notes            text,
+  last_restocked   timestamptz,
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()
 );
@@ -353,6 +390,7 @@ CREATE TABLE public.notifications (
 
 ALTER TABLE public.businesses            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.business_users        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_invites      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_profiles         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.employees             ENABLE ROW LEVEL SECURITY;
@@ -363,6 +401,7 @@ ALTER TABLE public.products              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.materials             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inventory_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_materials       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.production_batches    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.production_batch_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses              ENABLE ROW LEVEL SECURITY;
@@ -391,9 +430,22 @@ CREATE POLICY "members_read_own_business" ON public.businesses
 CREATE POLICY "members_read_business_users" ON public.business_users
   FOR SELECT USING (business_id IN (SELECT public.my_business_ids()));
 
+-- business_invites: members can see/manage invites for their own business.
+-- The invite-acceptance page looks a row up by token via the service-role
+-- client (the token itself is the auth), deliberately bypassing this policy.
+CREATE POLICY tenant_isolation ON public.business_invites
+  USING (business_id IN (SELECT public.my_business_ids()));
+
 -- user_profiles: users can read/update their own profile
 CREATE POLICY "own_profile" ON public.user_profiles
   FOR ALL USING (id = auth.uid());
+
+-- user_profiles: users can also read the profile of anyone in a business they belong to
+-- (needed so the Users list can show teammates' names, not just their own)
+CREATE POLICY "business_mates_read_profiles" ON public.user_profiles
+  FOR SELECT USING (
+    id IN (SELECT user_id FROM public.business_users WHERE business_id IN (SELECT public.my_business_ids()))
+  );
 
 -- Generic tenant isolation policy for all data tables
 -- (applied to every table that has business_id)
@@ -403,7 +455,7 @@ DECLARE
 BEGIN
   FOREACH t IN ARRAY ARRAY[
     'customers','employees','attendance','garment_types','orders','products',
-    'materials','inventory_transactions','order_materials',
+    'materials','inventory_transactions','order_materials','order_items',
     'production_batches','production_batch_orders',
     'expenses','payments','overhead_costs','financial_settings',
     'catalog_purchases','customer_inquiries','notifications'

@@ -255,9 +255,9 @@ export default function CustomerDetailsView({
                             <p className="text-xl font-bold text-foreground tracking-tight">
                                 K{parseFloat(order.total_cost || "0").toLocaleString()}
                             </p>
-                            {(order.balance || 0) > 0 && (
+                            {(order.balance_due || 0) > 0 && (
                                 <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-1 bg-red-50 dark:bg-red-500/10 inline-block px-2 py-0.5 rounded md:block md:bg-transparent md:px-0">
-                                    PENDING K{parseFloat(order.balance).toLocaleString()}
+                                    PENDING K{parseFloat(order.balance_due).toLocaleString()}
                                 </p>
                             )}
                         </div>

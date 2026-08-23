@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(PER_QUERY_LIMIT),
     (supabase.from("products") as any)
-      .select("id, name, category, base_price, created_at")
+      .select("id, name, category, price, created_at")
       .or(`name.ilike.%${safe}%,category.ilike.%${safe}%,description.ilike.%${safe}%`)
       .is("deleted_at", null)
       .limit(PER_QUERY_LIMIT),
@@ -146,7 +146,7 @@ export async function GET(req: NextRequest) {
     return {
       id: p.id,
       title: p.name,
-      subtitle: `${p.category || "Uncategorised"} · K${parseFloat(p.base_price || 0).toFixed(2)}`,
+      subtitle: `${p.category || "Uncategorised"} · K${parseFloat(p.price || 0).toFixed(2)}`,
       href: `/products/${p.id}`,
       score,
     };

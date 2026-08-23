@@ -37,7 +37,7 @@ interface SelectedMaterial {
   material_id: string;
   name: string;
   unit: string;
-  cost_per_unit: number;
+  unit_cost: number;
   quantity_used: number;
   cost: number;
   stock_quantity: number;
@@ -182,9 +182,9 @@ export default function CreateOrderForm({
         material_id: m.id,
         name: m.name,
         unit: m.unit,
-        cost_per_unit: parseFloat(m.cost_per_unit || "0"),
+        unit_cost: parseFloat(m.unit_cost || "0"),
         quantity_used: 1,
-        cost: parseFloat(m.cost_per_unit || "0"),
+        cost: parseFloat(m.unit_cost || "0"),
         stock_quantity: m.stock_quantity,
       },
     ]);
@@ -196,7 +196,7 @@ export default function CreateOrderForm({
     setSelectedMaterials((prev) =>
       prev.map((m) =>
         m.material_id === id
-          ? { ...m, quantity_used: qty, cost: parseFloat((m.cost_per_unit * qty).toFixed(2)) }
+          ? { ...m, quantity_used: qty, cost: parseFloat((m.unit_cost * qty).toFixed(2)) }
           : m
       )
     );
@@ -538,7 +538,7 @@ export default function CreateOrderForm({
                       <SelectContent>
                         {products.map((p: any) => (
                           <SelectItem key={p.id} value={p.id}>
-                            {p.name} — K{parseFloat(p.base_price || "0").toFixed(0)}
+                            {p.name} — K{parseFloat(p.price || "0").toFixed(0)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -686,7 +686,7 @@ export default function CreateOrderForm({
                     >
                       <span className="font-medium">{m.name}</span>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                        <span>K{parseFloat(m.cost_per_unit || "0").toFixed(2)}/{m.unit}</span>
+                        <span>K{parseFloat(m.unit_cost || "0").toFixed(2)}/{m.unit}</span>
                         <span className={cn(
                           "px-1.5 py-0.5 rounded-full font-medium",
                           m.stock_quantity > 5 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"

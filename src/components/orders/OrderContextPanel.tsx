@@ -282,7 +282,7 @@ export default function OrderContextPanel({ order }: OrderContextPanelProps) {
   const customer = order.customers;
   const measurements = customer?.measurements;
   const hasM = hasMeasurements(measurements);
-  const balance = parseFloat(String(order.balance || 0));
+  const balance = parseFloat(String(order.balance_due || 0));
   const showMeasurements = status === "measurements" || status === "fitting";
   const showMaterials = status === "production";
   const showPaymentPrompt = (status === "completed" || status === "delivered") && balance > 0;

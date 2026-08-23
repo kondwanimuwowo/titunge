@@ -79,7 +79,7 @@ function calculateOrderStats(orders: any[]) {
     const status = (order.status || "enquiry").toLowerCase();
     statusCounts[status] = (statusCounts[status] || 0) + 1;
     totalRevenue += parseFloat(order.total_cost || "0");
-    pendingBalance += parseFloat(order.balance || "0");
+    pendingBalance += parseFloat(order.balance_due || "0");
 
     if (order.created_at) {
       const orderDate = new Date(order.created_at);
@@ -120,7 +120,7 @@ function calculateInventoryStats(materials: any[]) {
   materials.forEach((material) => {
     const stockQty = parseFloat(material.stock_quantity || "0");
     const minStock = parseFloat(material.min_stock_level || "0");
-    const costPerUnit = parseFloat(material.cost_per_unit || "0");
+    const costPerUnit = parseFloat(material.unit_cost || "0");
 
     totalValue += stockQty * costPerUnit;
 

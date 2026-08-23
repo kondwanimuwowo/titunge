@@ -89,7 +89,7 @@ export default function CreateBatchModal({
         {
           material_id: materialId,
           quantity: 0,
-          cost: parseFloat(String(material.cost_per_unit || 0)),
+          cost: parseFloat(String(material.unit_cost || 0)),
         },
       ]);
       setAddingMaterial(false);
@@ -139,7 +139,7 @@ export default function CreateBatchModal({
               <option value="">-- Select Product --</option>
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} (K{parseFloat(String(p.base_price || 0)).toFixed(2)})
+                  {p.name} (K{parseFloat(String(p.price || 0)).toFixed(2)})
                 </option>
               ))}
             </select>
@@ -230,7 +230,7 @@ export default function CreateBatchModal({
                     .filter((m) => !selectedMaterials.some((sm) => sm.material_id === m.id))
                     .map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.name} (K{parseFloat(String(m.cost_per_unit || 0)).toFixed(2)})
+                        {m.name} (K{parseFloat(String(m.unit_cost || 0)).toFixed(2)})
                       </option>
                     ))}
                 </select>

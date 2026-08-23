@@ -278,7 +278,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
               id: m.id,
               name: m.name,
               unit: m.unit,
-              cost_per_unit: parseFloat(String(m.cost_per_unit || 0)),
+              unit_cost: parseFloat(String(m.unit_cost || 0)),
             }))}
           />
 
@@ -416,15 +416,15 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                   <span className="font-bold text-foreground">K{parseFloat(order.deposit || "0").toFixed(2)}</span>
                 </div>
                 <div className={`p-4 rounded-xl border flex items-center justify-between ${
-                  (order.balance || 0) > 0 ? "bg-red-500/5 border-red-500/20" : "bg-emerald-500/5 border-emerald-500/20"
+                  (order.balance_due || 0) > 0 ? "bg-red-500/5 border-red-500/20" : "bg-emerald-500/5 border-emerald-500/20"
                 }`}>
                   <span className={`text-sm font-bold ${
-                    (order.balance || 0) > 0 ? "text-red-700 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"
+                    (order.balance_due || 0) > 0 ? "text-red-700 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"
                   }`}>Balance Due</span>
                   <span className={`text-xl font-black tracking-tight ${
-                    (order.balance || 0) > 0 ? "text-red-600 dark:text-red-500" : "text-emerald-600 dark:text-emerald-500"
+                    (order.balance_due || 0) > 0 ? "text-red-600 dark:text-red-500" : "text-emerald-600 dark:text-emerald-500"
                   }`}>
-                    K{parseFloat(order.balance || "0").toFixed(2)}
+                    K{parseFloat(order.balance_due || "0").toFixed(2)}
                   </span>
                 </div>
               </div>

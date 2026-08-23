@@ -82,7 +82,7 @@ export default function CreateBatchForm({ products, materials }: CreateBatchForm
         {
           material_id: materialId,
           quantity: 0,
-          cost: parseFloat(String(material.cost_per_unit || 0)),
+          cost: parseFloat(String(material.unit_cost || 0)),
         },
       ]);
       setAddingMaterial(false);
@@ -206,7 +206,7 @@ export default function CreateBatchForm({ products, materials }: CreateBatchForm
                   .filter((m) => !selectedMaterials.some((sm) => sm.material_id === m.id))
                   .map((m) => (
                     <SelectItem key={m.id} value={m.id}>
-                      {m.name} ({m.unit}) — K{parseFloat(String(m.cost_per_unit || 0)).toFixed(2)}
+                      {m.name} ({m.unit}) — K{parseFloat(String(m.unit_cost || 0)).toFixed(2)}
                     </SelectItem>
                   ))}
               </SelectContent>

@@ -8,7 +8,7 @@ export async function getInquiries(
 
   let query = supabase
     .from("customer_inquiries")
-    .select("*, products(id, name)")
+    .select("*, products(id, name, images)")
     .eq("business_id", businessId)
     .order("created_at", { ascending: false });
 
@@ -31,7 +31,7 @@ export async function getInquiryById(businessId: string, id: string) {
 
   const { data, error } = await supabase
     .from("customer_inquiries")
-    .select("*, products(id, name)")
+    .select("*, products(id, name, images)")
     .eq("business_id", businessId)
     .eq("id", id)
     .single();

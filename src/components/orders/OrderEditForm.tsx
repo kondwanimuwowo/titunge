@@ -24,7 +24,7 @@ interface SelectedMaterial {
   material_id: string;
   name: string;
   unit: string;
-  cost_per_unit: number;
+  unit_cost: number;
   quantity_used: number;
   cost: number;
 }
@@ -89,7 +89,7 @@ export default function OrderEditForm({
       material_id: m.material_id ?? m.materials?.id,
       name: m.materials?.name ?? "Unknown",
       unit: m.materials?.unit ?? "",
-      cost_per_unit: parseFloat(m.materials?.cost_per_unit ?? m.cost_per_unit ?? "0"),
+      unit_cost: parseFloat(m.materials?.unit_cost ?? m.unit_cost ?? "0"),
       quantity_used: parseFloat(m.quantity_used ?? "0"),
       cost: parseFloat(m.cost ?? "0"),
     }))
@@ -129,9 +129,9 @@ export default function OrderEditForm({
         material_id: m.id,
         name: m.name,
         unit: m.unit,
-        cost_per_unit: parseFloat(m.cost_per_unit || "0"),
+        unit_cost: parseFloat(m.unit_cost || "0"),
         quantity_used: 1,
-        cost: parseFloat(m.cost_per_unit || "0"),
+        cost: parseFloat(m.unit_cost || "0"),
       },
     ]);
     setMaterialSearch("");
@@ -142,7 +142,7 @@ export default function OrderEditForm({
     setSelectedMaterials((prev) =>
       prev.map((m) =>
         m.material_id === id
-          ? { ...m, quantity_used: qty, cost: parseFloat((m.cost_per_unit * qty).toFixed(2)) }
+          ? { ...m, quantity_used: qty, cost: parseFloat((m.unit_cost * qty).toFixed(2)) }
           : m
       )
     );
@@ -365,7 +365,7 @@ export default function OrderEditForm({
                   className="w-full px-3 py-2 text-sm text-left hover:bg-muted/50 flex justify-between items-center"
                 >
                   <span>{m.name}</span>
-                  <span className="text-xs text-muted-foreground">K{parseFloat(m.cost_per_unit || "0").toFixed(2)}/{m.unit}</span>
+                  <span className="text-xs text-muted-foreground">K{parseFloat(m.unit_cost || "0").toFixed(2)}/{m.unit}</span>
                 </button>
               ))}
             </div>

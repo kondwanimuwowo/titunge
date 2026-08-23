@@ -14,7 +14,7 @@ export async function getOrders(businessId: string) {
         phone,
         email
       ),
-      employees:employee_id (
+      employees:assigned_tailor_id (
         id,
         name,
         role

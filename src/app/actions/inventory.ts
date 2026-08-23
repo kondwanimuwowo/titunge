@@ -125,7 +125,7 @@ export async function updateStockAction(
 
   // Get current material
   const { data: material, error: fetchError } = await (supabase.from("materials") as any)
-    .select("name, stock_quantity, cost_per_unit, min_stock_level")
+    .select("name, stock_quantity, unit_cost, min_stock_level")
     .eq("id", id)
     .eq("business_id", businessId)
     .single();
@@ -135,7 +135,7 @@ export async function updateStockAction(
   }
 
   const currentQuantity = parseFloat(String(material.stock_quantity || 0));
-  const currentCost = parseFloat(String(material.cost_per_unit || 0));
+  const currentCost = parseFloat(String(material.unit_cost || 0));
   const minStock = parseFloat(String(material.min_stock_level || 0));
 
   // Calculate new quantity
@@ -162,7 +162,7 @@ export async function updateStockAction(
   }
 
   if (newCostPerUnit !== currentCost) {
-    updateData.cost_per_unit = newCostPerUnit;
+    updateData.unit_cost = newCostPerUnit;
   }
 
   const { error: updateError } = await (supabase.from("materials") as any)

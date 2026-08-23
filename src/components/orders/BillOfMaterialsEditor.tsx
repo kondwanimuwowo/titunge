@@ -20,14 +20,14 @@ interface MaterialOption {
   id: string;
   name: string;
   unit: string;
-  cost_per_unit: number;
+  unit_cost: number;
 }
 
 interface Row {
   material_id: string;
   name: string;
   unit: string;
-  cost_per_unit: number;
+  unit_cost: number;
   quantity_used: number;
 }
 
@@ -43,7 +43,7 @@ function toRows(initialMaterials: any[]): Row[] {
     material_id: m.material_id,
     name: m.materials?.name || "Unknown material",
     unit: m.materials?.unit || "",
-    cost_per_unit: parseFloat(String(m.materials?.cost_per_unit || 0)),
+    unit_cost: parseFloat(String(m.materials?.unit_cost || 0)),
     quantity_used: parseFloat(String(m.quantity_used || 0)),
   }));
 }
@@ -69,7 +69,7 @@ export default function BillOfMaterialsEditor({
   const addOptions = availableMaterials.filter((m) => !usedIds.has(m.id));
 
   const total = useMemo(
-    () => rows.reduce((sum, r) => sum + r.quantity_used * r.cost_per_unit, 0),
+    () => rows.reduce((sum, r) => sum + r.quantity_used * r.unit_cost, 0),
     [rows]
   );
 
@@ -88,7 +88,7 @@ export default function BillOfMaterialsEditor({
     if (!mat) return;
     setRows((prev) => [
       ...prev,
-      { material_id: mat.id, name: mat.name, unit: mat.unit, cost_per_unit: mat.cost_per_unit, quantity_used: 1 },
+      { material_id: mat.id, name: mat.name, unit: mat.unit, unit_cost: mat.unit_cost, quantity_used: 1 },
     ]);
     setAddingId("");
     setDirty(true);
@@ -169,7 +169,7 @@ export default function BillOfMaterialsEditor({
               >
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground text-sm truncate">{row.name}</p>
-                  <p className="text-xs text-muted-foreground">K{row.cost_per_unit.toFixed(2)} / {row.unit}</p>
+                  <p className="text-xs text-muted-foreground">K{row.unit_cost.toFixed(2)} / {row.unit}</p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Input
@@ -184,7 +184,7 @@ export default function BillOfMaterialsEditor({
                   <span className="text-xs text-muted-foreground w-10">{row.unit}</span>
                 </div>
                 <p className="font-bold text-primary text-sm w-20 text-right shrink-0">
-                  K{(row.quantity_used * row.cost_per_unit).toFixed(2)}
+                  K{(row.quantity_used * row.unit_cost).toFixed(2)}
                 </p>
                 <Button
                   variant="ghost"
@@ -219,7 +219,7 @@ export default function BillOfMaterialsEditor({
                     {row.quantity_used.toFixed(2)} {row.unit}
                   </p>
                   <p className="font-bold text-primary text-sm">
-                    K{(row.quantity_used * row.cost_per_unit).toFixed(2)}
+                    K{(row.quantity_used * row.unit_cost).toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -236,7 +236,7 @@ export default function BillOfMaterialsEditor({
               <SelectContent>
                 {addOptions.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
-                    {m.name} (K{m.cost_per_unit.toFixed(2)}/{m.unit})
+                    {m.name} (K{m.unit_cost.toFixed(2)}/{m.unit})
                   </SelectItem>
                 ))}
               </SelectContent>
