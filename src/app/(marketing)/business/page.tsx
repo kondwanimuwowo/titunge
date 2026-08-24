@@ -149,10 +149,10 @@ export default function BusinessPage() {
             </Link>
           </FadeIn>
 
-          {/* Quantified stat — real, based on the product's actual scope, not a customer metric */}
+          {/* Quantified stat, real and based on the product's actual scope, not a customer metric */}
           <FadeIn delay={0.26} className="mt-14 flex flex-wrap gap-x-10 gap-y-4">
             {[
-              { value: "6", label: "connected modules — orders to finance" },
+              { value: "6", label: "connected modules, orders to finance" },
               { value: "27", label: "measurement fields, built for tailoring" },
               { value: "1", label: "dashboard for the whole workshop" },
             ].map((stat) => (
@@ -242,7 +242,7 @@ export default function BusinessPage() {
       </section>
 
       {/*
-        TODO(social-proof): placeholder testimonial — NOT a real customer quote.
+        TODO(social-proof): placeholder testimonial, NOT a real customer quote.
         Replace name/role/quote with a real one (e.g. from Gloria'z Daughter)
         before this page is shown to any prospect.
       */}
@@ -264,10 +264,10 @@ export default function BusinessPage() {
               </div>
               <div>
                 <p className="text-lg lg:text-xl text-gray-800 leading-relaxed" style={{ fontFamily: "var(--font-canter)" }}>
-                  &ldquo;Placeholder quote — replace before publishing. Something like: since moving onto Titunge
-                  we stopped losing track of orders in notebooks and can finally see our numbers at a glance.&rdquo;
+                  &ldquo;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+                  incididunt ut labore et dolore magna aliqua.&rdquo;
                 </p>
-                <p className="mt-4 text-sm font-semibold text-gray-900">Placeholder Name</p>
+                <p className="mt-4 text-sm font-semibold text-gray-900">John Doe</p>
                 <p className="text-sm text-gray-500">Placeholder Role, Placeholder Business</p>
               </div>
             </div>

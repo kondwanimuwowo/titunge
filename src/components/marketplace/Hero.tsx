@@ -12,13 +12,17 @@ export function Hero() {
         alt="Tailor's workshop"
       />
       <div
-        className="absolute inset-y-0 left-0 w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 py-12"
-        style={{ backgroundColor: "rgba(14,26,24,0.88)" }}
-      >
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(100deg, rgba(14,26,24,0.92) 0%, rgba(14,26,24,0.85) 55%, rgba(14,26,24,0.1) 95%)",
+        }}
+      />
+      <div className="absolute inset-y-0 left-0 w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 py-12">
         <FadeIn>
           <h1
             className="text-white text-4xl lg:text-[52px] font-bold leading-[1.1] tracking-tight max-w-xl"
-            style={{ fontFamily: "var(--font-canter)" }}
+            style={{ fontFamily: "var(--font-canter)", textShadow: "0 2px 16px rgba(0,0,0,0.45)" }}
           >
             Handmade and tailored, straight from the maker.
           </h1>

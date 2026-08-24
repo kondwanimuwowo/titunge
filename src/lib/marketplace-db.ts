@@ -199,6 +199,35 @@ export async function getMarketplaceSellers(): Promise<MarketplaceSeller[]> {
     .sort((a, b) => b.itemCount - a.itemCount);
 }
 
+export interface MarketplaceStats {
+  makerCount: number;
+  productCount: number;
+  orderCount: number;
+}
+
+export async function getMarketplaceStats(): Promise<MarketplaceStats> {
+  const admin = createAdminClient();
+
+  const [{ count: makerCount }, { count: productCount }, { count: orderCount }] = await Promise.all([
+    admin.from("businesses").select("id", { count: "exact", head: true }).eq("status", "active"),
+    (admin.from("products") as any)
+      .select("id", { count: "exact", head: true })
+      .eq("active", true)
+      .is("deleted_at", null)
+      .eq("product_type", "finished_good"),
+    (admin.from("orders") as any)
+      .select("id", { count: "exact", head: true })
+      .in("status", ["completed", "delivered"])
+      .is("deleted_at", null),
+  ]);
+
+  return {
+    makerCount: makerCount ?? 0,
+    productCount: productCount ?? 0,
+    orderCount: orderCount ?? 0,
+  };
+}
+
 export async function getMarketplaceSellerBySlug(
   slug: string
 ): Promise<{ seller: MarketplaceSeller; products: MarketplaceProduct[] } | null> {

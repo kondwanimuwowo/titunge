@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Percent, Ruler, Wallet } from "lucide-react";
 import { ImagePlaceholder } from "@/components/marketplace/ImagePlaceholder";
+import { getMarketplaceStats } from "@/lib/marketplace-db";
 
 const FEATURES = [
   {
@@ -20,22 +21,30 @@ const FEATURES = [
   },
 ];
 
-const STATS = [
-  { value: "2,400", label: "makers selling" },
-  { value: "34", label: "countries reached" },
-  { value: "120,000", label: "orders delivered" },
-];
+export default async function SellPage() {
+  const stats = await getMarketplaceStats();
+  const STATS = [
+    { value: stats.makerCount.toLocaleString(), label: "makers selling" },
+    { value: stats.productCount.toLocaleString(), label: "products listed" },
+    { value: stats.orderCount.toLocaleString(), label: "orders delivered" },
+  ];
 
-export default function SellPage() {
   return (
     <>
       <section className="relative h-[420px] overflow-hidden">
-        <ImagePlaceholder shape="rect" className="absolute inset-0 rounded-none" />
+        <ImagePlaceholder shape="rect" className="absolute inset-0 rounded-none" src="/images/2.png" alt="Maker at work" />
         <div
-          className="absolute inset-y-0 left-0 w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 py-12"
-          style={{ backgroundColor: "#0e1a18" }}
-        >
-          <h1 className="text-white text-4xl font-bold leading-[1.1] tracking-tight max-w-lg" style={{ fontFamily: "var(--font-canter)" }}>
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(100deg, rgba(14,26,24,0.92) 0%, rgba(14,26,24,0.85) 55%, rgba(14,26,24,0.1) 95%)",
+          }}
+        />
+        <div className="absolute inset-y-0 left-0 w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 py-12">
+          <h1
+            className="text-white text-4xl font-bold leading-[1.1] tracking-tight max-w-lg"
+            style={{ fontFamily: "var(--font-canter)", textShadow: "0 2px 16px rgba(0,0,0,0.45)" }}
+          >
             Sell your craft on Titunge
           </h1>
           <p className="mt-4 text-[#c9d4d2] text-base leading-relaxed max-w-md">
