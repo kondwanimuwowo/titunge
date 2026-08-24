@@ -196,9 +196,13 @@ export default function BusinessPage() {
           <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {FEATURES.map((feature, i) => (
               <FadeIn key={feature.title} delay={i * 0.06}>
-                <div className="p-6 rounded-xl shadow-sm bg-white" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-                  <feature.icon size={22} className="text-gray-700 mb-4" strokeWidth={1.5} />
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <div className="p-6 rounded-xl shadow-sm bg-white flex flex-col gap-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 shrink-0 rounded-full flex items-center justify-center bg-gray-100">
+                      <feature.icon size={20} className="text-gray-700" strokeWidth={1.75} />
+                    </div>
+                    <h3 className="text-base font-semibold text-gray-900">{feature.title}</h3>
+                  </div>
                   <p className="text-sm text-gray-500 leading-relaxed">{feature.description}</p>
                 </div>
               </FadeIn>

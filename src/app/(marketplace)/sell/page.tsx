@@ -61,11 +61,18 @@ export default async function SellPage() {
       </section>
 
       <section className="max-w-6xl mx-auto px-6 lg:px-12 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {FEATURES.map((feature) => (
-            <div key={feature.title}>
-              <feature.icon size={22} className="text-[#0e1a18] mb-4" strokeWidth={1.5} />
-              <h3 className="text-base font-bold mb-2">{feature.title}</h3>
+            <div
+              key={feature.title}
+              className="bg-white rounded-xl shadow-[0_2px_12px_rgba(14,26,24,0.08)] p-8 flex flex-col gap-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 shrink-0 rounded-full flex items-center justify-center bg-[#0e1a18]/10">
+                  <feature.icon size={20} className="text-[#0e1a18]" strokeWidth={1.75} />
+                </div>
+                <h3 className="text-base font-bold">{feature.title}</h3>
+              </div>
               <p className="text-sm text-gray-500 leading-relaxed">{feature.description}</p>
             </div>
           ))}
@@ -85,17 +92,24 @@ export default async function SellPage() {
         </div>
       </section>
 
-      <section className="py-20 text-center" style={{ backgroundColor: "#0e1a18" }}>
-        <h2 className="text-3xl font-bold text-white" style={{ fontFamily: "var(--font-canter)" }}>
-          Ready to open your shop?
-        </h2>
-        <p className="mt-4 text-[#c9d4d2] max-w-md mx-auto">It takes a few minutes to set up your first listing.</p>
-        <Link
-          href="/contact"
-          className="mt-8 inline-flex text-[#0e1a18] text-sm font-bold rounded-full px-8 py-3.5 bg-white transition-colors hover:bg-gray-100"
-        >
-          Start selling
-        </Link>
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-6 lg:px-12">
+          <div
+            className="rounded-xl shadow-[0_2px_12px_rgba(14,26,24,0.08)] py-16 px-8 text-center"
+            style={{ backgroundColor: "#0e1a18" }}
+          >
+            <h2 className="text-3xl font-bold text-white" style={{ fontFamily: "var(--font-canter)" }}>
+              Ready to open your shop?
+            </h2>
+            <p className="mt-4 text-[#c9d4d2] max-w-md mx-auto">It takes a few minutes to set up your first listing.</p>
+            <Link
+              href="/contact"
+              className="mt-8 inline-flex text-[#0e1a18] text-sm font-bold rounded-full px-8 py-3.5 bg-white transition-colors hover:bg-gray-100"
+            >
+              Start selling
+            </Link>
+          </div>
+        </div>
       </section>
     </>
   );
