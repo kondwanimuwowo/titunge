@@ -397,6 +397,49 @@ CREATE TABLE public.customer_inquiries (
 );
 
 -- ============================================================
+-- MARKETPLACE ORDERS (public, cross-tenant, buyer-owned)
+-- ============================================================
+-- Buyers are anonymous — no marketplace buyer-login system — so access is
+-- capability-based (knowing the order id/reference), not identity-based.
+-- All reads/writes go through the service-role client.
+
+CREATE TABLE public.marketplace_orders (
+  id                uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_number      text NOT NULL UNIQUE,
+  buyer_name        text NOT NULL,
+  buyer_email       text,
+  buyer_phone       text NOT NULL,
+  shipping_address  jsonb NOT NULL DEFAULT '{}'::jsonb,
+  subtotal          numeric NOT NULL,
+  delivery_fee      numeric NOT NULL DEFAULT 0,
+  total             numeric NOT NULL,
+  currency          text NOT NULL DEFAULT 'ZMW',
+  status            text NOT NULL DEFAULT 'awaiting_payment'
+                      CHECK (status IN ('awaiting_payment','being_sewn','shipped','delivered','cancelled')),
+  payment_status    text NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending','successful','failed')),
+  payment_method    text CHECK (payment_method IN ('mobile-money','card')),
+  payment_reference text NOT NULL UNIQUE,
+  lenco_reference   text,
+  paid_at           timestamptz,
+  created_at        timestamptz DEFAULT now(),
+  updated_at        timestamptz DEFAULT now()
+);
+
+CREATE TABLE public.marketplace_order_items (
+  id            uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id      uuid NOT NULL REFERENCES public.marketplace_orders(id) ON DELETE CASCADE,
+  product_id    uuid REFERENCES public.products(id) ON DELETE SET NULL,
+  business_id   uuid REFERENCES public.businesses(id) ON DELETE SET NULL,
+  product_name  text NOT NULL,
+  seller_name   text NOT NULL,
+  image_url     text,
+  size          text,
+  qty           integer NOT NULL DEFAULT 1,
+  unit_price    numeric NOT NULL,
+  created_at    timestamptz DEFAULT now()
+);
+
+-- ============================================================
 -- NOTIFICATIONS
 -- ============================================================
 
@@ -434,6 +477,8 @@ ALTER TABLE public.order_materials       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.business_storefront      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.product_storefront_extra ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketplace_orders       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marketplace_order_items  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.production_batches    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.production_batch_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses              ENABLE ROW LEVEL SECURITY;
@@ -507,6 +552,12 @@ $$;
 -- tenant isolation through the product's business_id instead.
 CREATE POLICY tenant_isolation ON public.product_storefront_extra
   USING (product_id IN (SELECT id FROM public.products WHERE business_id IN (SELECT public.my_business_ids())));
+
+-- marketplace_order_items: no public policy — the checkout/order-lookup path
+-- always goes through the service-role client. This exists only so a future
+-- seller-facing "orders containing my products" view can be built later.
+CREATE POLICY tenant_isolation ON public.marketplace_order_items
+  USING (business_id IN (SELECT public.my_business_ids()));
 
 -- ============================================================
 -- STORAGE: Public bucket for business assets (logos, etc.)

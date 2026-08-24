@@ -12,6 +12,7 @@ export interface CartLine {
 
 export interface ShippingDetails {
   fullName: string;
+  email: string;
   phone: string;
   country: string;
   city: string;

@@ -13,6 +13,7 @@ export default function CheckoutShippingPage() {
   const { items, subtotal, delivery, total, hydrated, shippingDetails, setShippingDetails, products } = useCart();
 
   const [fullName, setFullName] = useState(shippingDetails?.fullName ?? "");
+  const [email, setEmail] = useState(shippingDetails?.email ?? "");
   const [phone, setPhone] = useState(shippingDetails?.phone ?? "");
   const [country, setCountry] = useState(shippingDetails?.country ?? COUNTRIES[0]);
   const [city, setCity] = useState(shippingDetails?.city ?? "");
@@ -39,7 +40,7 @@ export default function CheckoutShippingPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setShippingDetails({ fullName, phone, country, city, street, notes });
+    setShippingDetails({ fullName, email, phone, country, city, street, notes });
     router.push("/checkout/payment");
   };
 
@@ -59,6 +60,18 @@ export default function CheckoutShippingPage() {
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              className="w-full text-sm border border-gray-200 rounded-md px-3 py-2.5"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-1.5" htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full text-sm border border-gray-200 rounded-md px-3 py-2.5"
             />
           </div>

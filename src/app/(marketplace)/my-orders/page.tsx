@@ -13,15 +13,17 @@ const SIDEBAR_LINKS = ["Profile", "Orders", "Saved items", "Addresses", "Payment
 
 export default function OrderHistoryPage() {
   const router = useRouter();
-  const { addItem, products } = useCart();
+  const { addItem } = useCart();
   const [orders, setOrders] = useState<MarketplaceOrder[] | undefined>(undefined);
 
   useEffect(() => {
-    setOrders(getOrders());
+    getOrders().then(setOrders);
   }, []);
 
   const buyAgain = (order: MarketplaceOrder) => {
-    order.items.forEach((item) => addItem(item.productId, item.size, item.qty));
+    order.items.forEach((item) => {
+      if (item.productId && item.size) addItem(item.productId, item.size, item.qty);
+    });
     router.push("/cart");
   };
 
@@ -74,7 +76,7 @@ export default function OrderHistoryPage() {
                           key={`${item.productId}-${item.size}`}
                           shape="rect"
                           className="w-16 h-16 shrink-0"
-                          src={products.find((p) => p.id === item.productId)?.image}
+                          src={item.image}
                           alt={item.name}
                         />
                       ))}

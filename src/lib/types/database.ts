@@ -757,6 +757,133 @@ export type Database = {
           },
         ]
       }
+      marketplace_orders: {
+        Row: {
+          buyer_email: string | null
+          buyer_name: string
+          buyer_phone: string
+          created_at: string | null
+          currency: string
+          delivery_fee: number
+          id: string
+          lenco_reference: string | null
+          order_number: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string
+          payment_status: string
+          shipping_address: Json
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string | null
+        }
+        Insert: {
+          buyer_email?: string | null
+          buyer_name: string
+          buyer_phone: string
+          created_at?: string | null
+          currency?: string
+          delivery_fee?: number
+          id?: string
+          lenco_reference?: string | null
+          order_number: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference: string
+          payment_status?: string
+          shipping_address?: Json
+          status?: string
+          subtotal: number
+          total: number
+          updated_at?: string | null
+        }
+        Update: {
+          buyer_email?: string | null
+          buyer_name?: string
+          buyer_phone?: string
+          created_at?: string | null
+          currency?: string
+          delivery_fee?: number
+          id?: string
+          lenco_reference?: string | null
+          order_number?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string
+          payment_status?: string
+          shipping_address?: Json
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      marketplace_order_items: {
+        Row: {
+          business_id: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          order_id: string
+          product_id: string | null
+          product_name: string
+          qty: number
+          seller_name: string
+          size: string | null
+          unit_price: number
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          order_id: string
+          product_id?: string | null
+          product_name: string
+          qty?: number
+          seller_name: string
+          size?: string | null
+          unit_price: number
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          order_id?: string
+          product_id?: string | null
+          product_name?: string
+          qty?: number
+          seller_name?: string
+          size?: string | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_order_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           business_id: string

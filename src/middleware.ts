@@ -45,6 +45,8 @@ const PUBLIC_PREFIXES = [
   "/catalog",
   "/api/catalog",
   "/api/marketplace",
+  "/api/webhooks",
+  "/api/cron",
   "/business",
   "/browse",
   "/sell",
