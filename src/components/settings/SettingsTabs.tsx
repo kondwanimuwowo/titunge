@@ -4,9 +4,11 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Palette, DollarSign, Scissors, Warehouse } from "lucide-react";
+import { Palette, DollarSign, Scissors, Warehouse, Store } from "lucide-react";
 import FinancialSettingsForm from "./FinancialSettingsForm";
 import BrandingTab from "./BrandingTab";
+import StorefrontProfileForm from "./StorefrontProfileForm";
+import StorefrontProductsList from "./StorefrontProductsList";
 import GarmentTypesManager from "@/components/finance/GarmentTypesManager";
 
 interface SettingsTabsProps {
@@ -23,14 +25,24 @@ interface SettingsTabsProps {
     theme_key: string;
     logo_url?: string | null;
   };
+  storefront: {
+    bio: string | null;
+    location: string | null;
+    founded_year: number | null;
+    delivery_policy: string | null;
+    returns_policy: string | null;
+    custom_orders_policy: string | null;
+    banner_url: string | null;
+  } | null;
+  storefrontProducts: any[];
 }
 
-export default function SettingsTabs({ financialSettings, garmentTypes, business }: SettingsTabsProps) {
+export default function SettingsTabs({ financialSettings, garmentTypes, business, storefront, storefrontProducts }: SettingsTabsProps) {
   const [activeTab, setActiveTab] = useState("general");
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid grid-cols-4 lg:w-[580px]">
+      <TabsList className="grid grid-cols-5 lg:w-[700px]">
         <TabsTrigger value="general" className="gap-2">
           <Warehouse size={16} />
           General
@@ -46,6 +58,10 @@ export default function SettingsTabs({ financialSettings, garmentTypes, business
         <TabsTrigger value="workshop" className="gap-2">
           <Scissors size={16} />
           Workshop
+        </TabsTrigger>
+        <TabsTrigger value="marketplace" className="gap-2">
+          <Store size={16} />
+          Marketplace
         </TabsTrigger>
       </TabsList>
 
@@ -104,6 +120,12 @@ export default function SettingsTabs({ financialSettings, garmentTypes, business
       {/* Workshop */}
       <TabsContent value="workshop" className="space-y-4">
         <GarmentTypesManager initialTypes={garmentTypes} />
+      </TabsContent>
+
+      {/* Marketplace */}
+      <TabsContent value="marketplace" className="space-y-4">
+        <StorefrontProfileForm storefront={storefront} businessName={business.name} businessSlug={business.slug} />
+        <StorefrontProductsList products={storefrontProducts} />
       </TabsContent>
     </Tabs>
   );

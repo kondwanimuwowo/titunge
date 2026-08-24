@@ -1,5 +1,6 @@
 import { getBusinessContext } from "@/lib/business-context";
 import { getGarmentTypes } from "@/lib/data/finance";
+import { getBusinessStorefront, getStorefrontProducts } from "@/lib/data/storefront";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/layout/PageHeader";
 import SettingsTabs from "@/components/settings/SettingsTabs";
@@ -8,9 +9,11 @@ export default async function SettingsPage() {
   const { businessId, business } = await getBusinessContext();
   const supabase = await createClient();
 
-  const [{ data: financialSettings }, garmentTypes] = await Promise.all([
+  const [{ data: financialSettings }, garmentTypes, storefront, storefrontProducts] = await Promise.all([
     (supabase.from("financial_settings") as any).select("*").eq("business_id", businessId).limit(1).single(),
     getGarmentTypes(businessId),
+    getBusinessStorefront(businessId),
+    getStorefrontProducts(businessId),
   ]);
 
   return (
@@ -28,6 +31,8 @@ export default async function SettingsPage() {
           theme_key: business.theme_key,
           logo_url: business.logo_url,
         }}
+        storefront={storefront}
+        storefrontProducts={storefrontProducts}
       />
     </div>
   );
