@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BarChart3, Box, Users, Scissors, Wallet, ClipboardList, ArrowRight, Check } from "lucide-react";
 import { FadeIn } from "@/components/marketing/FadeIn";
 
@@ -147,6 +148,25 @@ export default function BusinessPage() {
               See all features
             </Link>
           </FadeIn>
+
+          {/* Quantified stat — real, based on the product's actual scope, not a customer metric */}
+          <FadeIn delay={0.26} className="mt-14 flex flex-wrap gap-x-10 gap-y-4">
+            {[
+              { value: "6", label: "connected modules — orders to finance" },
+              { value: "27", label: "measurement fields, built for tailoring" },
+              { value: "1", label: "dashboard for the whole workshop" },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <p
+                  className="text-3xl font-bold leading-none"
+                  style={{ color: "#5fa8a0", fontFamily: "var(--font-canter)" }}
+                >
+                  {stat.value}
+                </p>
+                <p className="text-xs text-gray-400 mt-1.5 max-w-[140px] leading-snug">{stat.label}</p>
+              </div>
+            ))}
+          </FadeIn>
         </div>
 
         {/* Subtle grid decoration */}
@@ -218,6 +238,40 @@ export default function BusinessPage() {
               </FadeIn>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/*
+        TODO(social-proof): placeholder testimonial — NOT a real customer quote.
+        Replace name/role/quote with a real one (e.g. from Gloria'z Daughter)
+        before this page is shown to any prospect.
+      */}
+      <section className="py-24 lg:py-32 bg-white">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8">
+          <FadeIn>
+            <div
+              className="rounded-2xl p-10 lg:p-14 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 items-center"
+              style={{ backgroundColor: "#f5f1ee" }}
+            >
+              <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full overflow-hidden shrink-0 mx-auto lg:mx-0">
+                <Image
+                  src="/images/Satisfied client testimonial.jpg"
+                  alt="Placeholder client testimonial"
+                  width={96}
+                  height={96}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+              <div>
+                <p className="text-lg lg:text-xl text-gray-800 leading-relaxed" style={{ fontFamily: "var(--font-canter)" }}>
+                  &ldquo;Placeholder quote — replace before publishing. Something like: since moving onto Titunge
+                  we stopped losing track of orders in notebooks and can finally see our numbers at a glance.&rdquo;
+                </p>
+                <p className="mt-4 text-sm font-semibold text-gray-900">Placeholder Name</p>
+                <p className="text-sm text-gray-500">Placeholder Role, Placeholder Business</p>
+              </div>
+            </div>
+          </FadeIn>
         </div>
       </section>
 

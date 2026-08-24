@@ -24,6 +24,7 @@ import {
   Clock,
   Ruler,
   ExternalLink,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,7 +32,8 @@ import toast from "react-hot-toast";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import OrderContextPanel from "./OrderContextPanel";
+import { whatsappLink } from "@/lib/utils";
+import OrderContextPanel, { STATUS_LABELS } from "./OrderContextPanel";
 import BillOfMaterialsEditor from "./BillOfMaterialsEditor";
 import CancelOrderDialog from "./CancelOrderDialog";
 import {
@@ -45,14 +47,14 @@ import { StatusTimeline } from "./StatusTimeline";
 import { updateOrderStatus } from "@/app/actions/orders";
 import type { OrderStatus } from "@/lib/types/database";
 
-// Legacy GD statuses kept for data-migration compatibility
-type ExtendedOrderStatus = OrderStatus | "enquiry" | "contacted" | "measurements" | "fitting";
-
-const STATUS_FLOW: ExtendedOrderStatus[] = [
-  "pending",
-  "in_progress",
+// Matches what CreateOrderForm actually creates orders with (status: "enquiry")
+// and what StatusTimeline/OrderStatusBadge/OrderContextPanel are built around.
+const STATUS_FLOW: OrderStatus[] = [
+  "enquiry",
+  "contacted",
+  "measurements",
   "production",
-  "ready",
+  "fitting",
   "completed",
   "delivered",
 ];
@@ -68,9 +70,9 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
   const [statusNotes, setStatusNotes] = useState("");
 
   const getNextStatus = (): OrderStatus | null => {
-    const currentIndex = STATUS_FLOW.indexOf(order.status as ExtendedOrderStatus);
+    const currentIndex = STATUS_FLOW.indexOf(order.status as OrderStatus);
     return currentIndex >= 0 && currentIndex < STATUS_FLOW.length - 1
-      ? (STATUS_FLOW[currentIndex + 1] as OrderStatus)
+      ? STATUS_FLOW[currentIndex + 1]
       : null;
   };
 
@@ -197,11 +199,25 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                   </p>
                 </div>
                 {order.customers?.phone && (
-                  <div className="flex items-center gap-3">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <Phone size={14} className="text-primary" />
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 p-2 rounded-full">
+                        <Phone size={14} className="text-primary" />
+                      </div>
+                      <p className="text-foreground">{order.customers.phone}</p>
                     </div>
-                    <p className="text-foreground">{order.customers.phone}</p>
+                    <a
+                      href={whatsappLink(
+                        order.customers.phone,
+                        `Hi ${order.customers.name || ""}, an update on your order ${order.order_number}: it's now ${STATUS_LABELS[order.status] || order.status}.`
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full px-3 py-1.5 transition-colors shrink-0"
+                    >
+                      <MessageCircle size={13} />
+                      WhatsApp update
+                    </a>
                   </div>
                 )}
                 {order.customers?.email && (

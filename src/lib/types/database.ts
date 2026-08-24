@@ -1435,7 +1435,11 @@ export type OrderStatus =
   | "ready"
   | "completed"
   | "delivered"
-  | "cancelled";
+  | "cancelled"
+  | "enquiry"
+  | "contacted"
+  | "measurements"
+  | "fitting";
 
 export type UserRole = "admin" | "manager" | "employee";
 

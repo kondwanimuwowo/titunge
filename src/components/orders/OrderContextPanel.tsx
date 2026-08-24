@@ -223,7 +223,7 @@ function MeasurementsWidget({
 }
 
 // ─── Activity log ──────────────────────────────────────────────────────────
-const STATUS_LABELS: Record<string, string> = {
+export const STATUS_LABELS: Record<string, string> = {
   enquiry: "Enquiry",
   contacted: "Contacted",
   measurements: "Measurements",
