@@ -1,8 +1,9 @@
 import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import type { Database } from "@/lib/types/database";
+import { getSessionCookieDomain } from "@/lib/session-cookie-domain";
 
 /** Service-role client — server-side only, bypasses RLS. Never use in browser code. */
 export function createAdminClient() {
@@ -15,6 +16,8 @@ export function createAdminClient() {
 
 export const createClient = cache(async function createClient() {
   const cookieStore = await cookies();
+  const headersList = await headers();
+  const cookieDomain = getSessionCookieDomain(headersList.get("host") ?? "");
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,7 +30,10 @@ export const createClient = cache(async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, {
+                ...options,
+                ...(cookieDomain ? { domain: cookieDomain } : {}),
+              })
             );
           } catch {
             // Server Component — cookies can only be set from middleware or Route Handler

@@ -1,17 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSessionCookieDomain } from "@/lib/session-cookie-domain";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
-
-/** Returns `.titunge.com` when the request is on the production domain (or a subdomain),
- *  so Supabase session cookies are shared across all subdomains. Returns undefined on
- *  workers.dev or localhost so cookies stay scoped to the current host. */
-function getSessionCookieDomain(host: string): string | undefined {
-  if (host === APP_DOMAIN || host.endsWith(`.${APP_DOMAIN}`)) {
-    return `.${APP_DOMAIN}`;
-  }
-  return undefined;
-}
 
 function resolveBusinessSlug(request: NextRequest): string | null {
   const host = request.headers.get("host") ?? "";
