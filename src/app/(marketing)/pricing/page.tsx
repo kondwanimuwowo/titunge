@@ -4,82 +4,66 @@ import { FadeIn } from "@/components/marketing/FadeIn";
 
 const PLANS = [
   {
-    name: "Basic",
-    price: "K1,500",
+    name: "Free",
+    price: "K0",
     period: "/month",
-    description: "For the solo tailor or small workshop getting their operation off paper. Capture every order, track your clients, and keep your books in one place.",
+    description: "For individual tailors, designers, and small fashion businesses. Run your whole workshop online, from day one, at no cost.",
     features: [
-      "Up to 3 staff accounts",
-      "Up to 20 active clients",
-      "Orders and measurements management",
-      "Inventory tracking",
-      "Basic finance recording",
-      "Customer inquiry management",
-      "30-day free trial, no card required",
+      "1 user",
+      "Business dashboard, orders, and production management",
+      "Customer management and measurements",
+      "Inventory, finance, and analytics",
+      "Business profile and Titunge marketplace listing",
+      "Your own online storefront — receive orders online",
+      "No monthly subscription",
     ],
-    cta: "Start 30-day trial",
+    cta: "Start free",
     href: "/onboarding",
     featured: false,
   },
   {
-    name: "Pro",
-    price: "K3,000",
-    period: "/month",
-    description: "For a growing fashion house that needs the full picture — production schedules, team roles, and the numbers to make better decisions.",
+    name: "Team",
+    price: "K250",
+    period: "/additional user/month",
+    description: "For growing businesses with employees and teams. Your first user is always free — pay only as you add staff.",
     features: [
-      "Up to 10 staff accounts",
-      "Up to 50 active clients",
-      "Everything in Basic",
-      "Production tracking and scheduling",
-      "Advanced analytics and reports",
-      "Role-based access control",
-      "Public product catalog app",
-      "Priority support",
+      "Everything in Free",
+      "Additional staff accounts with role-based permissions",
+      "Team management, multiple staff working simultaneously",
+      "Advanced analytics and finance",
+      "Full inventory and production management",
+      "Sales, order, and business performance reporting",
     ],
-    cta: "Start 30-day trial",
+    cta: "Upgrade anytime in Settings",
     href: "/onboarding",
     featured: true,
-  },
-  {
-    name: "Enterprise",
-    price: "K8,000",
-    period: "/month",
-    description: "For manufacturers and exporters running at scale. Unlimited everything, custom branding, and a dedicated support line so nothing slows you down.",
-    features: [
-      "Unlimited staff accounts",
-      "Unlimited clients",
-      "Everything in Pro",
-      "Custom logo and brand colours",
-      "Custom subdomain (yourshop.titunge.com)",
-      "Multiple business locations",
-      "Dedicated account support",
-    ],
-    cta: "Contact us",
-    href: "/contact",
-    featured: false,
   },
 ];
 
 const FAQ = [
   {
-    q: "Is there a free trial?",
-    a: "Every plan starts with a 30-day trial, no credit card required. You get full access to all features on your chosen plan for the entire trial period.",
+    q: "Is the Free plan really free?",
+    a: "Yes — no monthly subscription, no trial period, no card required. It's the full ERP for a single user, indefinitely. You only pay once you add a second user, or when you sell through the marketplace.",
   },
   {
-    q: "Can I change plans later?",
-    a: "Yes. You can upgrade or downgrade at any time. Upgrades take effect immediately. Downgrades apply at the end of your billing period.",
+    q: "How does Team-plan billing work?",
+    a: "Your first user always stays free. Each additional staff account is K250/month, billed monthly based on how many active users your business has that month.",
+  },
+  {
+    q: "Can I upgrade or add staff later?",
+    a: "Yes — upgrade to Team anytime from Settings > Billing. There's no downgrade path needed since Free never expires; you simply add users as you grow.",
+  },
+  {
+    q: "What's the marketplace transaction fee?",
+    a: "Titunge takes a 10% fee on sales made through the marketplace, on both Free and Team plans. There are no separate listing fees — you only pay when an item actually sells.",
   },
   {
     q: "Are prices in Zambian Kwacha?",
-    a: "Yes. All plan prices are billed in ZMW. Your subscription renews monthly on the same date you signed up.",
-  },
-  {
-    q: "What happens when I hit my client or staff limit?",
-    a: "You can continue using the system for existing records but will be prompted to upgrade before adding new staff or client profiles. Nothing gets locked or deleted.",
+    a: "Yes. All plan and marketplace prices are in ZMW.",
   },
   {
     q: "Is my data secure?",
-    a: "Yes. Each business's data is fully isolated using row-level security. No other tenant can access your records, and you can export everything at any time.",
+    a: "Yes. Each business's data is fully isolated using row-level security. No other tenant can access your records.",
   },
 ];
 
@@ -97,7 +81,7 @@ export default function PricingPage() {
               Simple pricing
             </h1>
             <p className="mt-4 text-lg text-gray-500 max-w-lg">
-              Every plan includes a 30-day free trial. No card required to start.
+              Start free. Add your team as you grow, and only pay a transaction fee when you sell through the marketplace.
             </p>
           </FadeIn>
         </div>
@@ -106,7 +90,7 @@ export default function PricingPage() {
       {/* Plans */}
       <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start max-w-2xl mx-auto">
             {PLANS.map((plan, i) => (
               <FadeIn key={plan.name} delay={i * 0.08}>
                 <div

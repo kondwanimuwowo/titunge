@@ -185,6 +185,27 @@ async function lencoPost<T>(path: string, body: Record<string, unknown>): Promis
   return json.data;
 }
 
+export interface LencoBank {
+  id: string;
+  name: string;
+  country: string;
+}
+
+/** Fetched live rather than hardcoded — Lenco's bank list/codes are the
+ *  source of truth for the payout-profile bank dropdown. */
+export async function listBanks(country: "zm" = "zm"): Promise<LencoBank[]> {
+  const response = await fetch(`${getLencoBaseUrl()}/banks?country=${country}`, {
+    method: "GET",
+    headers: lencoHeaders(),
+  });
+
+  const json = (await response.json()) as LencoEnvelope<LencoBank[]>;
+  if (!response.ok || !json.status) {
+    throw new Error(json.message || "Failed to list banks");
+  }
+  return json.data;
+}
+
 export async function resolveBankAccount(accountNumber: string, bankId: string): Promise<LencoResolvedAccount> {
   return lencoPost<LencoResolvedAccount>("/resolve/bank-account", { accountNumber, bankId, country: "zm" });
 }

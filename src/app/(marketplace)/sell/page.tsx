@@ -51,7 +51,7 @@ export default async function SellPage() {
             Reach customers across the continent looking for handmade fashion and made-to-order tailoring.
           </p>
           <Link
-            href="/contact"
+            href="/onboarding"
             className="mt-8 inline-flex w-fit text-white text-base font-bold rounded-full px-8 py-3.5 transition-colors hover:bg-[#4f958d]"
             style={{ backgroundColor: "#5fa8a0" }}
           >
@@ -103,7 +103,7 @@ export default async function SellPage() {
             </h2>
             <p className="mt-4 text-[#c9d4d2] max-w-md mx-auto">It takes a few minutes to set up your first listing.</p>
             <Link
-              href="/contact"
+              href="/onboarding"
               className="mt-8 inline-flex text-[#0e1a18] text-sm font-bold rounded-full px-8 py-3.5 bg-white transition-colors hover:bg-gray-100"
             >
               Start selling

@@ -16,6 +16,7 @@ interface PayoutProfileFormProps {
     account_details: Record<string, unknown> | null;
     verified_at: string | null;
   } | null;
+  banks: { id: string; name: string; country: string }[];
 }
 
 const OPERATORS: { value: LencoOperator; label: string }[] = [
@@ -24,7 +25,7 @@ const OPERATORS: { value: LencoOperator; label: string }[] = [
   { value: "zamtel", label: "Zamtel Kwacha" },
 ];
 
-export default function PayoutProfileForm({ profile }: PayoutProfileFormProps) {
+export default function PayoutProfileForm({ profile, banks }: PayoutProfileFormProps) {
   const [method, setMethod] = useState<"bank-account" | "mobile-money">(
     (profile?.payout_method as "bank-account" | "mobile-money") ?? "mobile-money"
   );
@@ -122,8 +123,22 @@ export default function PayoutProfileForm({ profile }: PayoutProfileFormProps) {
         ) : (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="bankId">Bank code</Label>
-              <Input id="bankId" value={bankId} onChange={(e) => setBankId(e.target.value)} placeholder="e.g. 002" />
+              <Label htmlFor="bankId">Bank</Label>
+              {banks.length > 0 ? (
+                <select
+                  id="bankId"
+                  value={bankId}
+                  onChange={(e) => setBankId(e.target.value)}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Select a bank</option>
+                  {banks.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <Input id="bankId" value={bankId} onChange={(e) => setBankId(e.target.value)} placeholder="Bank code (e.g. 002)" />
+              )}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="accountNumber">Account number</Label>

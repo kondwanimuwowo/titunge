@@ -18,6 +18,7 @@ import {
   Settings,
   MessageSquare,
   Trash2,
+  Store,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/types/database";
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { path: "/inventory",  icon: Package,         label: "Inventory",  roles: ["admin", "manager"] },
   { path: "/products",   icon: Shirt,           label: "Products",   roles: ["admin", "manager"] },
   { path: "/orders",     icon: ShoppingCart,    label: "Orders",     roles: ["admin", "manager", "employee"] },
+  { path: "/marketplace-orders", icon: Store,   label: "Marketplace Orders", roles: ["admin", "manager"] },
   { path: "/inquiries",  icon: MessageSquare,   label: "Inquiries",  roles: ["admin", "manager"] },
   { path: "/production", icon: Scissors,        label: "Production", roles: ["admin", "manager", "employee"] },
   { path: "/employees",  icon: Users,           label: "Employees",  roles: ["admin", "manager"] },

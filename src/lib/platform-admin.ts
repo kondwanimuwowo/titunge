@@ -22,12 +22,13 @@ export const getPlatformAdminContext = cache(async function getPlatformAdminCont
   if (!user) redirect("/admin/login");
 
   const admin = createAdminClient();
-  const { data: membership } = await admin
+  const { data: membership, error } = await admin
     .from("platform_admins")
     .select("user_id")
     .eq("user_id", user.id)
     .maybeSingle();
 
+  if (error) console.error("platform_admins lookup failed:", error.message);
   if (!membership) redirect("/admin/login?error=not_admin");
 
   return { userId: user.id, email: user.email ?? null };
@@ -43,12 +44,13 @@ export async function requirePlatformAdminContext(): Promise<PlatformAdminContex
   if (!user) throw new Error("Unauthenticated");
 
   const admin = createAdminClient();
-  const { data: membership } = await admin
+  const { data: membership, error } = await admin
     .from("platform_admins")
     .select("user_id")
     .eq("user_id", user.id)
     .maybeSingle();
 
+  if (error) console.error("platform_admins lookup failed:", error.message);
   if (!membership) throw new Error("Not a platform admin");
 
   return { userId: user.id, email: user.email ?? null };

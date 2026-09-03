@@ -47,6 +47,7 @@ interface SettingsTabsProps {
   seatPriceKwacha: number;
   billingProfile: { payment_method: string | null; account_details: Record<string, unknown> | null } | null;
   billingCharges: { id: string; period: string; seat_count: number; amount: number; status: string }[];
+  banks: { id: string; name: string; country: string }[];
 }
 
 export default function SettingsTabs({
@@ -60,6 +61,7 @@ export default function SettingsTabs({
   seatPriceKwacha,
   billingProfile,
   billingCharges,
+  banks,
 }: SettingsTabsProps) {
   const [activeTab, setActiveTab] = useState("general");
 
@@ -152,7 +154,7 @@ export default function SettingsTabs({
       {/* Marketplace */}
       <TabsContent value="marketplace" className="space-y-4">
         <StorefrontProfileForm storefront={storefront} businessName={business.name} businessSlug={business.slug} />
-        <PayoutProfileForm profile={payoutProfile} />
+        <PayoutProfileForm profile={payoutProfile} banks={banks} />
         <StorefrontProductsList products={storefrontProducts} />
       </TabsContent>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getOrders } from "@/lib/marketplace-orders";
 import { useCart } from "@/components/marketplace/CartProvider";
 import { ImagePlaceholder } from "@/components/marketplace/ImagePlaceholder";
@@ -86,7 +87,7 @@ export default function OrderHistoryPage() {
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       <span className="text-base font-bold">{formatZmw(order.total)}</span>
                       <div className="flex gap-3">
-                        {order.status === "delivered" ? (
+                        {order.status === "delivered" && (
                           <button
                             type="button"
                             onClick={() => buyAgain(order)}
@@ -95,14 +96,13 @@ export default function OrderHistoryPage() {
                           >
                             Buy again
                           </button>
-                        ) : (
-                          <span className="text-sm font-semibold rounded-full px-5 py-2 bg-gray-100 text-[#0e1a18] cursor-default">
-                            Track order
-                          </span>
                         )}
-                        <span className="text-sm font-semibold rounded-full px-5 py-2 bg-gray-100 text-[#0e1a18] cursor-default">
+                        <Link
+                          href={`/my-orders/${order.id}`}
+                          className="text-sm font-semibold rounded-full px-5 py-2 bg-gray-100 text-[#0e1a18] hover:bg-gray-200 transition-colors"
+                        >
                           View details
-                        </span>
+                        </Link>
                       </div>
                     </div>
                   </div>

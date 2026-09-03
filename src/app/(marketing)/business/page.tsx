@@ -5,59 +5,38 @@ import { FadeIn } from "@/components/marketing/FadeIn";
 
 const PLANS = [
   {
-    name: "Basic",
-    price: "K1,500",
+    name: "Free",
+    price: "K0",
     period: "/month",
-    description: "For the solo tailor or small workshop getting their operation off paper. Capture every order, track your clients, and keep your books in one place.",
+    description: "For individual tailors, designers, and small fashion businesses. Run your whole workshop online, from day one, at no cost.",
     features: [
-      "Up to 3 staff accounts",
-      "Up to 20 active clients",
-      "Orders and measurements management",
-      "Inventory tracking",
-      "Basic finance recording",
-      "Customer inquiry management",
-      "30-day free trial, no card required",
+      "1 user",
+      "Orders, production, and customer measurements",
+      "Inventory, finance, and analytics",
+      "Business profile and Titunge marketplace listing",
+      "Your own online storefront — receive orders online",
+      "No monthly subscription",
     ],
-    cta: "Start 30-day trial",
+    cta: "Start free",
     href: "/onboarding",
     featured: false,
   },
   {
-    name: "Pro",
-    price: "K3,000",
-    period: "/month",
-    description: "For a growing fashion house that needs the full picture — production schedules, team roles, and the numbers to make better decisions.",
+    name: "Team",
+    price: "K250",
+    period: "/additional user/month",
+    description: "For growing businesses with employees and teams. Your first user is always free — pay only as you add staff.",
     features: [
-      "Up to 10 staff accounts",
-      "Up to 50 active clients",
-      "Everything in Basic",
-      "Production tracking and scheduling",
-      "Advanced analytics and reports",
-      "Role-based access control",
-      "Public product catalog app",
-      "Priority support",
+      "Everything in Free",
+      "Additional staff accounts with role-based permissions",
+      "Multiple staff working simultaneously",
+      "Advanced analytics and finance",
+      "Full inventory and production management",
+      "Sales, order, and business performance reporting",
     ],
-    cta: "Start 30-day trial",
+    cta: "Upgrade anytime in Settings",
     href: "/onboarding",
     featured: true,
-  },
-  {
-    name: "Enterprise",
-    price: "K8,000",
-    period: "/month",
-    description: "For manufacturers and exporters running at scale. Unlimited everything, custom branding, and a dedicated support line so nothing slows you down.",
-    features: [
-      "Unlimited staff accounts",
-      "Unlimited clients",
-      "Everything in Pro",
-      "Custom logo and brand colours",
-      "Custom subdomain (yourshop.titunge.com)",
-      "Multiple business locations",
-      "Dedicated account support",
-    ],
-    cta: "Contact us",
-    href: "/contact",
-    featured: false,
   },
 ];
 
@@ -138,7 +117,7 @@ export default function BusinessPage() {
               className="inline-flex items-center gap-2 text-sm font-semibold text-white rounded-full px-7 py-3.5 transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#5fa8a0" }}
             >
-              Start free trial
+              Start free
               <ArrowRight size={15} />
             </Link>
             <Link
@@ -290,11 +269,11 @@ export default function BusinessPage() {
               Straightforward pricing
             </h2>
             <p className="mt-4 text-gray-500 max-w-md">
-              Every plan includes a 30-day free trial. No card required to start.
+              Start free. Add your team as you grow — pay a transaction fee only when you sell through the marketplace.
             </p>
           </FadeIn>
 
-          <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-6 items-start max-w-2xl">
             {PLANS.map((plan, i) => (
               <FadeIn key={plan.name} delay={i * 0.08}>
                 <div
@@ -350,7 +329,10 @@ export default function BusinessPage() {
           </div>
 
           <FadeIn className="mt-8 text-center">
-            <Link href="/pricing" className="text-sm text-gray-400 hover:text-gray-700 transition-colors underline underline-offset-4">
+            <p className="text-sm text-gray-500">
+              Selling on the Titunge marketplace carries a 10% transaction fee on both plans — no listing fees, ever.
+            </p>
+            <Link href="/pricing" className="mt-2 inline-block text-sm text-gray-400 hover:text-gray-700 transition-colors underline underline-offset-4">
               See full pricing details
             </Link>
           </FadeIn>
@@ -368,7 +350,7 @@ export default function BusinessPage() {
               Start running a tighter workshop
             </h2>
             <p className="text-white/80 max-w-md mx-auto mb-10">
-              30-day free trial on every plan. No credit card required to start.
+              Free to start. No credit card required — add your team only when you're ready.
             </p>
             <Link
               href="/onboarding"

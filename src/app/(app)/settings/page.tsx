@@ -2,6 +2,7 @@ import { getBusinessContext } from "@/lib/business-context";
 import { getGarmentTypes } from "@/lib/data/finance";
 import { getBusinessStorefront, getStorefrontProducts, getBusinessPayoutProfile } from "@/lib/data/storefront";
 import { createClient } from "@/lib/supabase/server";
+import { listBanks } from "@/lib/lenco";
 import { PageHeader } from "@/components/layout/PageHeader";
 import SettingsTabs from "@/components/settings/SettingsTabs";
 
@@ -19,6 +20,7 @@ export default async function SettingsPage() {
     { data: platformSettings },
     { data: billingProfile },
     { data: billingCharges },
+    banks,
   ] = await Promise.all([
     (supabase.from("financial_settings") as any).select("*").eq("business_id", businessId).limit(1).single(),
     getGarmentTypes(businessId),
@@ -37,6 +39,7 @@ export default async function SettingsPage() {
       .eq("business_id", businessId)
       .order("period", { ascending: false })
       .limit(12),
+    listBanks().catch(() => []),
   ]);
 
   return (
@@ -62,6 +65,7 @@ export default async function SettingsPage() {
         seatPriceKwacha={platformSettings?.seat_price_kwacha ?? 250}
         billingProfile={billingProfile}
         billingCharges={billingCharges ?? []}
+        banks={banks}
       />
     </div>
   );

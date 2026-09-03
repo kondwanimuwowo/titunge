@@ -46,8 +46,6 @@ const PUBLIC_PREFIXES = [
   "/admin",
   "/invite",
   "/auth/confirm",
-  "/catalog",
-  "/api/catalog",
   "/api/marketplace",
   "/api/webhooks",
   "/api/cron",
