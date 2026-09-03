@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { requireBusinessContext } from "@/lib/business-context";
+import { requireBusinessContext, getSeatLimit } from "@/lib/business-context";
 import { sendEmail, inviteEmailHtml } from "@/lib/email";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
@@ -19,7 +19,7 @@ export async function inviteUserAction(data: {
   email: string;
   role: "admin" | "manager" | "employee";
 }): Promise<{ success: boolean; message?: string; token?: string; emailSent?: boolean }> {
-  const { businessId, role: callerRole } = await requireBusinessContext();
+  const { businessId, role: callerRole, plan } = await requireBusinessContext();
 
   if (callerRole !== "admin") {
     return { success: false, message: "Only admins can invite users." };
@@ -28,6 +28,22 @@ export async function inviteUserAction(data: {
   const email = data.email.trim().toLowerCase();
 
   const svc = admin();
+
+  const seatLimit = getSeatLimit(plan);
+  if (seatLimit !== null) {
+    const { count } = await svc
+      .from("business_users")
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", businessId)
+      .eq("active", true);
+
+    if ((count ?? 0) >= seatLimit) {
+      return {
+        success: false,
+        message: `The Free plan is limited to ${seatLimit} user. Upgrade to Team in Settings to add more.`,
+      };
+    }
+  }
 
   // Already an active member of this business?
   const { data: authUsers } = await svc.auth.admin.listUsers({ perPage: 1000 });

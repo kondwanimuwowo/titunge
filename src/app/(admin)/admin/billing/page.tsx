@@ -1,0 +1,91 @@
+import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
+import { getPlatformAdminContext } from "@/lib/platform-admin";
+import { createAdminClient } from "@/lib/supabase/server";
+import { formatZmw } from "@/lib/marketplace-currency";
+import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
+import AdminBillingRowActions from "@/components/admin/AdminBillingRowActions";
+
+const STATUS_STYLES: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-700",
+  successful: "bg-emerald-100 text-emerald-700",
+  failed: "bg-red-100 text-red-700",
+};
+
+export default async function AdminBillingPage() {
+  const { email } = await getPlatformAdminContext();
+  const supabase = createAdminClient();
+
+  const { data: charges } = await (supabase.from("business_billing_charges") as any)
+    .select("id, period, seat_count, amount, status, retry_count, businesses(name)")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-10">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <ShieldCheck className="text-primary" size={16} />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-foreground">Seat billing</h1>
+            <p className="text-xs text-muted-foreground">Signed in as {email}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/admin/payouts" className="text-xs text-muted-foreground hover:text-foreground">
+            Payouts
+          </Link>
+          <Link href="/admin/settings" className="text-xs text-muted-foreground hover:text-foreground">
+            Settings
+          </Link>
+          <AdminSignOutButton />
+        </div>
+      </div>
+
+      <div className="bg-card border rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 text-xs text-muted-foreground">
+            <tr>
+              <th className="text-left px-4 py-2.5">Business</th>
+              <th className="text-left px-4 py-2.5">Period</th>
+              <th className="text-right px-4 py-2.5">Seats</th>
+              <th className="text-right px-4 py-2.5">Amount</th>
+              <th className="text-left px-4 py-2.5">Status</th>
+              <th className="text-right px-4 py-2.5"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {(charges ?? []).map((c: any) => (
+              <tr key={c.id} className="border-t">
+                <td className="px-4 py-2.5">{c.businesses?.name ?? "-"}</td>
+                <td className="px-4 py-2.5">{c.period}</td>
+                <td className="px-4 py-2.5 text-right">{c.seat_count}</td>
+                <td className="px-4 py-2.5 text-right font-medium">{formatZmw(c.amount)}</td>
+                <td className="px-4 py-2.5">
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[c.status] ?? ""}`}>
+                    {c.status}
+                  </span>
+                  {c.retry_count > 0 && c.retry_count < 999 && (
+                    <span className="text-xs text-muted-foreground ml-1.5">({c.retry_count} retries)</span>
+                  )}
+                </td>
+                <td className="px-4 py-2.5 text-right">
+                  {c.status === "failed" && <AdminBillingRowActions chargeId={c.id} />}
+                </td>
+              </tr>
+            ))}
+            {(!charges || charges.length === 0) && (
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  No billing charges yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

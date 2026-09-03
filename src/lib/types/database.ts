@@ -119,6 +119,48 @@ export type Database = {
           },
         ]
       }
+      platform_admins: {
+        Row: {
+          user_id: string
+          created_at: string | null
+        }
+        Insert: {
+          user_id: string
+          created_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          id: boolean
+          commission_rate: number
+          payout_release_window_hours: number
+          max_payout_retries: number
+          seat_price_kwacha: number
+          updated_at: string | null
+        }
+        Insert: {
+          id?: boolean
+          commission_rate?: number
+          payout_release_window_hours?: number
+          max_payout_retries?: number
+          seat_price_kwacha?: number
+          updated_at?: string | null
+        }
+        Update: {
+          id?: boolean
+          commission_rate?: number
+          payout_release_window_hours?: number
+          max_payout_retries?: number
+          seat_price_kwacha?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       business_storefront: {
         Row: {
           banner_url: string | null
@@ -765,6 +807,7 @@ export type Database = {
           created_at: string | null
           currency: string
           delivery_fee: number
+          delivered_at: string | null
           id: string
           lenco_reference: string | null
           order_number: string
@@ -785,6 +828,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           delivery_fee?: number
+          delivered_at?: string | null
           id?: string
           lenco_reference?: string | null
           order_number: string
@@ -805,6 +849,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           delivery_fee?: number
+          delivered_at?: string | null
           id?: string
           lenco_reference?: string | null
           order_number?: string
@@ -816,6 +861,186 @@ export type Database = {
           status?: string
           subtotal?: number
           total?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      business_payout_profiles: {
+        Row: {
+          business_id: string
+          payout_method: string | null
+          account_details: Json
+          lenco_recipient_id: string | null
+          verified_at: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          payout_method?: string | null
+          account_details?: Json
+          lenco_recipient_id?: string | null
+          verified_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          payout_method?: string | null
+          account_details?: Json
+          lenco_recipient_id?: string | null
+          verified_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      marketplace_order_payouts: {
+        Row: {
+          id: string
+          order_id: string
+          business_id: string
+          subtotal: number
+          platform_fee: number | null
+          lenco_transfer_fee: number | null
+          payout_amount: number | null
+          payout_status: string
+          payout_reference: string | null
+          payout_lenco_id: string | null
+          payout_eligible_at: string | null
+          payout_retries: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          business_id: string
+          subtotal: number
+          platform_fee?: number | null
+          lenco_transfer_fee?: number | null
+          payout_amount?: number | null
+          payout_status?: string
+          payout_reference?: string | null
+          payout_lenco_id?: string | null
+          payout_eligible_at?: string | null
+          payout_retries?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          business_id?: string
+          subtotal?: number
+          platform_fee?: number | null
+          lenco_transfer_fee?: number | null
+          payout_amount?: number | null
+          payout_status?: string
+          payout_reference?: string | null
+          payout_lenco_id?: string | null
+          payout_eligible_at?: string | null
+          payout_retries?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payout_log: {
+        Row: {
+          id: string
+          order_payout_id: string
+          amount: number | null
+          platform_fee: number | null
+          lenco_transfer_fee: number | null
+          status: string
+          lenco_transfer_id: string | null
+          failure_reason: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          order_payout_id: string
+          amount?: number | null
+          platform_fee?: number | null
+          lenco_transfer_fee?: number | null
+          status: string
+          lenco_transfer_id?: string | null
+          failure_reason?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          order_payout_id?: string
+          amount?: number | null
+          platform_fee?: number | null
+          lenco_transfer_fee?: number | null
+          status?: string
+          lenco_transfer_id?: string | null
+          failure_reason?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      business_billing_profiles: {
+        Row: {
+          business_id: string
+          payment_method: string | null
+          account_details: Json
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          payment_method?: string | null
+          account_details?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          payment_method?: string | null
+          account_details?: Json
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      business_billing_charges: {
+        Row: {
+          id: string
+          business_id: string
+          period: string
+          seat_count: number
+          amount: number
+          status: string
+          retry_count: number
+          lenco_reference: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          business_id: string
+          period: string
+          seat_count: number
+          amount: number
+          status?: string
+          retry_count?: number
+          lenco_reference?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          business_id?: string
+          period?: string
+          seat_count?: number
+          amount?: number
+          status?: string
+          retry_count?: number
+          lenco_reference?: string | null
+          created_at?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -1,6 +1,6 @@
 import { getBusinessContext } from "@/lib/business-context";
 import { getGarmentTypes } from "@/lib/data/finance";
-import { getBusinessStorefront, getStorefrontProducts } from "@/lib/data/storefront";
+import { getBusinessStorefront, getStorefrontProducts, getBusinessPayoutProfile } from "@/lib/data/storefront";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/layout/PageHeader";
 import SettingsTabs from "@/components/settings/SettingsTabs";
@@ -9,11 +9,34 @@ export default async function SettingsPage() {
   const { businessId, business } = await getBusinessContext();
   const supabase = await createClient();
 
-  const [{ data: financialSettings }, garmentTypes, storefront, storefrontProducts] = await Promise.all([
+  const [
+    { data: financialSettings },
+    garmentTypes,
+    storefront,
+    storefrontProducts,
+    { count: seatCount },
+    payoutProfile,
+    { data: platformSettings },
+    { data: billingProfile },
+    { data: billingCharges },
+  ] = await Promise.all([
     (supabase.from("financial_settings") as any).select("*").eq("business_id", businessId).limit(1).single(),
     getGarmentTypes(businessId),
     getBusinessStorefront(businessId),
     getStorefrontProducts(businessId),
+    supabase
+      .from("business_users")
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", businessId)
+      .eq("active", true),
+    getBusinessPayoutProfile(businessId),
+    (supabase.from("platform_settings") as any).select("*").eq("id", true).single(),
+    (supabase.from("business_billing_profiles") as any).select("*").eq("business_id", businessId).maybeSingle(),
+    (supabase.from("business_billing_charges") as any)
+      .select("id, period, seat_count, amount, status")
+      .eq("business_id", businessId)
+      .order("period", { ascending: false })
+      .limit(12),
   ]);
 
   return (
@@ -30,9 +53,15 @@ export default async function SettingsPage() {
           slug: business.slug,
           theme_key: business.theme_key,
           logo_url: business.logo_url,
+          plan: business.plan as "free" | "team",
         }}
         storefront={storefront}
         storefrontProducts={storefrontProducts}
+        seatCount={seatCount ?? 0}
+        payoutProfile={payoutProfile}
+        seatPriceKwacha={platformSettings?.seat_price_kwacha ?? 250}
+        billingProfile={billingProfile}
+        billingCharges={billingCharges ?? []}
       />
     </div>
   );

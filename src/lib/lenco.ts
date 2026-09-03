@@ -121,6 +121,128 @@ export async function listCollections(): Promise<LencoCollection[]> {
   return json.data;
 }
 
+// ============================================================
+// Transfers (payouts) — moves money OUT of Titunge's Lenco account to a
+// seller's bank/mobile-money account. Requires LENCO_PAYOUT_ACCOUNT_ID (the
+// 36-char Lenco account uuid to debit) in addition to LENCO_API_SECRET_KEY.
+// Field names/shapes verified against LENCO-V2-DOCS/*transfer*.md and
+// *resolve*.md (fetched from Lenco's own reference docs).
+// ============================================================
+
+function getLencoPayoutAccountId(): string {
+  const accountId = process.env.LENCO_PAYOUT_ACCOUNT_ID;
+  if (!accountId) throw new Error("LENCO_PAYOUT_ACCOUNT_ID is not configured");
+  return accountId;
+}
+
+export interface LencoTransferRecipient {
+  id: string;
+  type: "bank-account" | "mobile-money";
+  currency: string;
+  country: string;
+  details: {
+    type: string;
+    accountName: string;
+    accountNumber?: string;
+    phone?: string;
+    operator?: LencoOperator;
+    bank?: { id: string; name: string; country: string };
+  };
+}
+
+export interface LencoTransfer {
+  id: string;
+  amount: string;
+  fee: string;
+  currency: string;
+  status: "pending" | "successful" | "failed";
+  lencoReference: string;
+  reference?: string | null;
+  reasonForFailure?: string | null;
+}
+
+export interface LencoResolvedAccount {
+  type: "bank-account" | "mobile-money";
+  accountName: string;
+  accountNumber?: string;
+  phone?: string;
+  operator?: LencoOperator;
+  bank?: { id: string; name: string; country: string };
+  country?: string;
+}
+
+async function lencoPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
+  const response = await fetch(`${getLencoBaseUrl()}${path}`, {
+    method: "POST",
+    headers: lencoHeaders(),
+    body: JSON.stringify(body),
+  });
+
+  const json = (await response.json()) as LencoEnvelope<T>;
+  if (!response.ok || !json.status) {
+    throw new Error(json.message || `Lenco request to ${path} failed`);
+  }
+  return json.data;
+}
+
+export async function resolveBankAccount(accountNumber: string, bankId: string): Promise<LencoResolvedAccount> {
+  return lencoPost<LencoResolvedAccount>("/resolve/bank-account", { accountNumber, bankId, country: "zm" });
+}
+
+export async function resolveMobileMoneyAccount(phone: string, operator: LencoOperator): Promise<LencoResolvedAccount> {
+  return lencoPost<LencoResolvedAccount>("/resolve/mobile-money", {
+    phone: normalizeZambianPhone(phone),
+    operator,
+    country: "zm",
+  });
+}
+
+export async function createBankTransferRecipient(accountNumber: string, bankId: string): Promise<LencoTransferRecipient> {
+  return lencoPost<LencoTransferRecipient>("/transfer-recipients/bank-account", {
+    accountNumber,
+    bankId,
+    country: "zm",
+  });
+}
+
+export async function createMobileMoneyTransferRecipient(phone: string, operator: LencoOperator): Promise<LencoTransferRecipient> {
+  return lencoPost<LencoTransferRecipient>("/transfer-recipients/mobile-money", {
+    phone: normalizeZambianPhone(phone),
+    operator,
+    country: "zm",
+  });
+}
+
+export async function initiateTransfer(params: {
+  method: "bank-account" | "mobile-money";
+  transferRecipientId: string;
+  amount: number;
+  reference: string;
+  narration?: string;
+}): Promise<LencoTransfer> {
+  const path = params.method === "bank-account" ? "/transfers/bank-account" : "/transfers/mobile-money";
+  return lencoPost<LencoTransfer>(path, {
+    accountId: getLencoPayoutAccountId(),
+    amount: params.amount,
+    reference: params.reference,
+    transferRecipientId: params.transferRecipientId,
+    narration: params.narration,
+  });
+}
+
+export async function getTransferStatus(reference: string): Promise<LencoTransfer> {
+  const response = await fetch(`${getLencoBaseUrl()}/transfers/status/${encodeURIComponent(reference)}`, {
+    method: "GET",
+    headers: lencoHeaders(),
+  });
+
+  const json = (await response.json()) as LencoEnvelope<LencoTransfer>;
+  if (!response.ok || !json.status) {
+    throw new Error(json.message || "Transfer status lookup failed");
+  }
+  return json.data;
+}
+
 /**
  * Best-effort webhook signature check (LENCO-V2-DOCS is missing the actual
  * webhook spec page, so this follows the rhema-comedy reference's scheme —

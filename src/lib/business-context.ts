@@ -5,6 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/types/database";
 
 export type BusinessRole = "admin" | "manager" | "employee";
+export type BusinessPlan = "free" | "team";
+
+/** Free plan is capped at 1 active user; Team plan has no seat cap (billed per seat). */
+export function getSeatLimit(plan: BusinessPlan): number | null {
+  return plan === "free" ? 1 : null;
+}
 
 export interface BusinessContext {
   business: Tables<"businesses">;
@@ -87,6 +93,7 @@ export async function requireBusinessContext(): Promise<{
   businessId: string;
   userId: string;
   role: BusinessRole;
+  plan: BusinessPlan;
 }> {
   const supabase = await createClient();
   const headersList = await headers();
@@ -101,7 +108,7 @@ export async function requireBusinessContext(): Promise<{
 
   const { data: business } = await supabase
     .from("businesses")
-    .select("id")
+    .select("id, plan")
     .eq("slug", slug)
     .single();
 
@@ -121,5 +128,6 @@ export async function requireBusinessContext(): Promise<{
     businessId: business.id,
     userId: user.id,
     role: membership.role as BusinessRole,
+    plan: business.plan as BusinessPlan,
   };
 }

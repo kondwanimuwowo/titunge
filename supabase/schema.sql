@@ -22,7 +22,7 @@ CREATE TABLE public.businesses (
   order_prefix     text NOT NULL DEFAULT 'ORD', -- e.g. "GD" → orders like GD-001
   currency         text NOT NULL DEFAULT 'ZMW',
   timezone         text NOT NULL DEFAULT 'Africa/Lusaka',
-  plan             text NOT NULL DEFAULT 'starter', -- starter | pro | enterprise
+  plan             text NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'team')), -- free = 1 seat, team = pay-per-additional-seat
   status           text NOT NULL DEFAULT 'active',  -- active | suspended | trial
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()
@@ -421,6 +421,7 @@ CREATE TABLE public.marketplace_orders (
   payment_reference text NOT NULL UNIQUE,
   lenco_reference   text,
   paid_at           timestamptz,
+  delivered_at      timestamptz,
   created_at        timestamptz DEFAULT now(),
   updated_at        timestamptz DEFAULT now()
 );
@@ -557,6 +558,193 @@ CREATE POLICY tenant_isolation ON public.product_storefront_extra
 -- always goes through the service-role client. This exists only so a future
 -- seller-facing "orders containing my products" view can be built later.
 CREATE POLICY tenant_isolation ON public.marketplace_order_items
+  USING (business_id IN (SELECT public.my_business_ids()));
+
+-- ============================================================
+-- PLATFORM ADMIN (Titunge staff, not a business role)
+-- ============================================================
+
+CREATE TABLE public.platform_admins (
+  user_id     uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at  timestamptz DEFAULT now()
+);
+
+-- No public RLS policy — checked only server-side via the service-role client.
+ALTER TABLE public.platform_admins ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE public.platform_settings (
+  id                           boolean PRIMARY KEY DEFAULT true CHECK (id),
+  commission_rate              numeric NOT NULL DEFAULT 0.10,
+  payout_release_window_hours  integer NOT NULL DEFAULT 24,
+  max_payout_retries           integer NOT NULL DEFAULT 3,
+  seat_price_kwacha            numeric NOT NULL DEFAULT 250,
+  updated_at                   timestamptz DEFAULT now()
+);
+
+INSERT INTO public.platform_settings (id) VALUES (true);
+
+ALTER TABLE public.platform_settings ENABLE ROW LEVEL SECURITY;
+
+-- Readable by any authenticated business context (so seller/business UI can
+-- show real fee/commission figures); writes always go through the
+-- service-role client after a requirePlatformAdminContext() check.
+CREATE POLICY "authenticated_read_platform_settings" ON public.platform_settings
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- ============================================================
+-- MARKETPLACE SELLER PAYOUTS
+-- ============================================================
+
+CREATE TABLE public.business_payout_profiles (
+  business_id       uuid PRIMARY KEY REFERENCES public.businesses(id) ON DELETE CASCADE,
+  payout_method     text CHECK (payout_method IN ('bank-account', 'mobile-money')),
+  account_details   jsonb NOT NULL DEFAULT '{}'::jsonb,
+  lenco_recipient_id text,
+  verified_at       timestamptz,
+  created_at        timestamptz DEFAULT now(),
+  updated_at        timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.business_payout_profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation ON public.business_payout_profiles
+  USING (business_id IN (SELECT public.my_business_ids()));
+
+-- Payouts are tracked per seller per order (an order can span multiple
+-- sellers — see marketplace_order_items.business_id), not per order.
+CREATE TABLE public.marketplace_order_payouts (
+  id                 uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id           uuid NOT NULL REFERENCES public.marketplace_orders(id) ON DELETE CASCADE,
+  business_id        uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  subtotal           numeric NOT NULL,
+  platform_fee       numeric,
+  lenco_transfer_fee numeric,
+  payout_amount      numeric,
+  payout_status      text NOT NULL DEFAULT 'not_eligible'
+                       CHECK (payout_status IN ('not_eligible', 'pending', 'processing', 'completed', 'failed')),
+  payout_reference   text,
+  payout_lenco_id    text,
+  payout_eligible_at timestamptz,
+  payout_retries     integer NOT NULL DEFAULT 0,
+  created_at         timestamptz DEFAULT now(),
+  updated_at         timestamptz DEFAULT now(),
+  UNIQUE (order_id, business_id)
+);
+
+CREATE UNIQUE INDEX idx_marketplace_order_payouts_reference
+  ON public.marketplace_order_payouts(payout_reference) WHERE payout_reference IS NOT NULL;
+CREATE INDEX idx_marketplace_order_payouts_status
+  ON public.marketplace_order_payouts(payout_status, payout_eligible_at);
+
+ALTER TABLE public.marketplace_order_payouts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation ON public.marketplace_order_payouts
+  USING (business_id IN (SELECT public.my_business_ids()));
+
+CREATE TABLE public.payout_log (
+  id               uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_payout_id  uuid NOT NULL REFERENCES public.marketplace_order_payouts(id) ON DELETE CASCADE,
+  amount           numeric,
+  platform_fee     numeric,
+  lenco_transfer_fee numeric,
+  status           text NOT NULL,
+  lenco_transfer_id text,
+  failure_reason   text,
+  created_at       timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.payout_log ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation ON public.payout_log
+  FOR SELECT USING (
+    order_payout_id IN (
+      SELECT id FROM public.marketplace_order_payouts
+      WHERE business_id IN (SELECT public.my_business_ids())
+    )
+  );
+
+-- When an order transitions to 'delivered', create/refresh one payout row
+-- per seller on that order, eligible payout_release_window_hours later.
+-- A trigger so no future "mark delivered" code path can skip this.
+CREATE OR REPLACE FUNCTION public.handle_marketplace_order_delivered()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  window_hours integer;
+BEGIN
+  IF NEW.status = 'delivered' AND (OLD.status IS DISTINCT FROM 'delivered') THEN
+    IF NEW.delivered_at IS NULL THEN
+      NEW.delivered_at := now();
+    END IF;
+
+    SELECT payout_release_window_hours INTO window_hours FROM public.platform_settings WHERE id = true;
+    window_hours := COALESCE(window_hours, 24);
+
+    INSERT INTO public.marketplace_order_payouts (order_id, business_id, subtotal, payout_status, payout_eligible_at)
+    SELECT
+      NEW.id,
+      items.business_id,
+      SUM(items.unit_price * items.qty),
+      'pending',
+      NEW.delivered_at + (window_hours || ' hours')::interval
+    FROM public.marketplace_order_items items
+    WHERE items.order_id = NEW.id AND items.business_id IS NOT NULL
+    GROUP BY items.business_id
+    ON CONFLICT (order_id, business_id) DO UPDATE
+      SET payout_eligible_at = EXCLUDED.payout_eligible_at,
+          payout_status = CASE WHEN public.marketplace_order_payouts.payout_status = 'not_eligible'
+                                THEN 'pending' ELSE public.marketplace_order_payouts.payout_status END,
+          updated_at = now();
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_marketplace_order_delivered
+  BEFORE UPDATE ON public.marketplace_orders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_marketplace_order_delivered();
+
+-- ============================================================
+-- RECURRING SEAT BILLING (Team plan, K per additional seat/month)
+-- ============================================================
+
+CREATE TABLE public.business_billing_profiles (
+  business_id     uuid PRIMARY KEY REFERENCES public.businesses(id) ON DELETE CASCADE,
+  payment_method  text CHECK (payment_method IN ('mobile-money', 'card')),
+  account_details jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at      timestamptz DEFAULT now(),
+  updated_at      timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.business_billing_profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation ON public.business_billing_profiles
+  USING (business_id IN (SELECT public.my_business_ids()));
+
+CREATE TABLE public.business_billing_charges (
+  id           uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id  uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  period       date NOT NULL,
+  seat_count   integer NOT NULL,
+  amount       numeric NOT NULL,
+  status       text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'successful', 'failed')),
+  retry_count  integer NOT NULL DEFAULT 0,
+  lenco_reference text UNIQUE,
+  created_at   timestamptz DEFAULT now(),
+  updated_at   timestamptz DEFAULT now(),
+  UNIQUE (business_id, period)
+);
+
+CREATE INDEX idx_business_billing_charges_status ON public.business_billing_charges(status);
+
+ALTER TABLE public.business_billing_charges ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation ON public.business_billing_charges
   USING (business_id IN (SELECT public.my_business_ids()));
 
 -- ============================================================

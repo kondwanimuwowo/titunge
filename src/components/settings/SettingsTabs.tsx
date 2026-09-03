@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Palette, DollarSign, Scissors, Warehouse, Store } from "lucide-react";
+import { Palette, DollarSign, Scissors, Warehouse, Store, CreditCard } from "lucide-react";
 import FinancialSettingsForm from "./FinancialSettingsForm";
 import BrandingTab from "./BrandingTab";
 import StorefrontProfileForm from "./StorefrontProfileForm";
 import StorefrontProductsList from "./StorefrontProductsList";
+import PayoutProfileForm from "./PayoutProfileForm";
+import BillingTab from "./BillingTab";
 import GarmentTypesManager from "@/components/finance/GarmentTypesManager";
 
 interface SettingsTabsProps {
@@ -24,6 +26,7 @@ interface SettingsTabsProps {
     slug: string;
     theme_key: string;
     logo_url?: string | null;
+    plan: "free" | "team";
   };
   storefront: {
     bio: string | null;
@@ -35,14 +38,34 @@ interface SettingsTabsProps {
     banner_url: string | null;
   } | null;
   storefrontProducts: any[];
+  seatCount: number;
+  payoutProfile: {
+    payout_method: string | null;
+    account_details: Record<string, unknown> | null;
+    verified_at: string | null;
+  } | null;
+  seatPriceKwacha: number;
+  billingProfile: { payment_method: string | null; account_details: Record<string, unknown> | null } | null;
+  billingCharges: { id: string; period: string; seat_count: number; amount: number; status: string }[];
 }
 
-export default function SettingsTabs({ financialSettings, garmentTypes, business, storefront, storefrontProducts }: SettingsTabsProps) {
+export default function SettingsTabs({
+  financialSettings,
+  garmentTypes,
+  business,
+  storefront,
+  storefrontProducts,
+  seatCount,
+  payoutProfile,
+  seatPriceKwacha,
+  billingProfile,
+  billingCharges,
+}: SettingsTabsProps) {
   const [activeTab, setActiveTab] = useState("general");
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid grid-cols-5 lg:w-[700px]">
+      <TabsList className="grid grid-cols-6 lg:w-[820px]">
         <TabsTrigger value="general" className="gap-2">
           <Warehouse size={16} />
           General
@@ -62,6 +85,10 @@ export default function SettingsTabs({ financialSettings, garmentTypes, business
         <TabsTrigger value="marketplace" className="gap-2">
           <Store size={16} />
           Marketplace
+        </TabsTrigger>
+        <TabsTrigger value="billing" className="gap-2">
+          <CreditCard size={16} />
+          Billing
         </TabsTrigger>
       </TabsList>
 
@@ -125,7 +152,19 @@ export default function SettingsTabs({ financialSettings, garmentTypes, business
       {/* Marketplace */}
       <TabsContent value="marketplace" className="space-y-4">
         <StorefrontProfileForm storefront={storefront} businessName={business.name} businessSlug={business.slug} />
+        <PayoutProfileForm profile={payoutProfile} />
         <StorefrontProductsList products={storefrontProducts} />
+      </TabsContent>
+
+      {/* Billing */}
+      <TabsContent value="billing" className="space-y-4">
+        <BillingTab
+          plan={business.plan}
+          seatCount={seatCount}
+          seatPriceKwacha={seatPriceKwacha}
+          billingProfile={billingProfile}
+          charges={billingCharges}
+        />
       </TabsContent>
     </Tabs>
   );

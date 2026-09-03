@@ -35,6 +35,35 @@ export async function POST(request: NextRequest) {
 
   try {
     const admin = createAdminClient();
+
+    // Seat-billing charges use a "seatbill-" reference prefix (see
+    // process-billing/route.ts) — settle those separately from marketplace
+    // order payments, but with the same re-verify-before-trusting rule.
+    if (reference.startsWith("seatbill-")) {
+      const { data: charge } = await (admin.from("business_billing_charges") as any)
+        .select("id, status")
+        .eq("lenco_reference", reference)
+        .maybeSingle();
+
+      if (!charge || charge.status !== "pending") {
+        return NextResponse.json({ received: true });
+      }
+
+      const collection = await getCollectionStatus(reference);
+
+      if (isSuccessStatus(collection.status)) {
+        await (admin.from("business_billing_charges") as any)
+          .update({ status: "successful", updated_at: new Date().toISOString() })
+          .eq("id", charge.id);
+      } else if (!isPendingStatus(collection.status)) {
+        await (admin.from("business_billing_charges") as any)
+          .update({ status: "failed", updated_at: new Date().toISOString() })
+          .eq("id", charge.id);
+      }
+
+      return NextResponse.json({ received: true });
+    }
+
     const { data: order } = await (admin.from("marketplace_orders") as any)
       .select("id, payment_status")
       .eq("payment_reference", reference)

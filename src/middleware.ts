@@ -39,7 +39,11 @@ const AUTH_ROUTES = [
 // see the "set new password" form rather than being redirected to /dashboard.
 const REDIRECT_AWAY_IF_AUTHENTICATED = ["/login", "/signup"];
 
+// Platform-admin routes handle their own auth (requirePlatformAdminContext/
+// getPlatformAdminContext) and must never be forced through the tenant
+// business-slug resolution below — a platform admin may own zero businesses.
 const PUBLIC_PREFIXES = [
+  "/admin",
   "/invite",
   "/auth/confirm",
   "/catalog",

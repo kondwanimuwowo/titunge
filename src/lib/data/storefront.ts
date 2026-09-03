@@ -1,5 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 
+export async function getBusinessPayoutProfile(businessId: string) {
+  const supabase = await createClient();
+  const { data } = await (supabase.from("business_payout_profiles") as any)
+    .select("*")
+    .eq("business_id", businessId)
+    .maybeSingle();
+
+  return data ?? null;
+}
+
 export async function getBusinessStorefront(businessId: string) {
   const supabase = await createClient();
   const { data } = await (supabase.from("business_storefront") as any)
