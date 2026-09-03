@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { isValidWebhookSignature, getCollectionStatus, isSuccessStatus, isPendingStatus } from "@/lib/lenco";
+import { createFulfillmentRowsForOrder } from "@/lib/marketplace-fulfillments";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", order.id);
+      await createFulfillmentRowsForOrder(admin, order.id);
     } else if (!isPendingStatus(collection.status)) {
       await (admin.from("marketplace_orders") as any)
         .update({ payment_status: "failed", lenco_reference: collection.lencoReference, updated_at: new Date().toISOString() })

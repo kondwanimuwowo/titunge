@@ -14,7 +14,6 @@ interface SignUpInput {
 interface CreateBusinessInput {
   name: string;
   slug: string;
-  currency: string;
   timezone: string;
   focus: "full_erp" | "marketplace_only";
 }
@@ -130,7 +129,10 @@ export async function createBusinessAction(input: CreateBusinessInput): Promise<
         name: input.name,
         slug: input.slug,
         order_prefix: orderPrefix,
-        currency: input.currency,
+        // ZMW only for now — the marketplace's payment provider (Lenco) only
+        // supports Zambia/Malawi, so a currency picker here would be a
+        // dropdown that silently does nothing beyond this row.
+        currency: "ZMW",
         timezone: input.timezone,
         theme_key: "titunge-teal",
         plan: "free",

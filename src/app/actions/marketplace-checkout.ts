@@ -10,6 +10,8 @@ import {
   type LencoOperator,
 } from "@/lib/lenco";
 import { DELIVERY_FEE_ZMW } from "@/data/marketplace-orders";
+import { createFulfillmentRowsForOrder } from "@/lib/marketplace-fulfillments";
+import { insertWithOrderNumberRetry } from "@/lib/marketplace-order-number";
 
 interface CartLineInput {
   productId: string;
@@ -24,10 +26,6 @@ interface ShippingDetailsInput {
   city: string;
   street: string;
   notes: string;
-}
-
-function generateOrderNumber(): string {
-  return `TG-${Math.floor(10000 + Math.random() * 90000)}`;
 }
 
 function generatePaymentReference(): string {
@@ -62,28 +60,32 @@ export async function createPendingOrderAction(params: {
 
   const admin = createAdminClient();
 
-  const orderNumber = generateOrderNumber();
   const reference = generatePaymentReference();
 
-  const { data: order, error: orderError } = await (admin.from("marketplace_orders") as any)
-    .insert({
-      order_number: orderNumber,
-      buyer_name: params.shippingDetails.fullName,
-      buyer_email: params.buyerEmail || null,
-      buyer_phone: params.shippingDetails.phone,
-      shipping_address: {
-        country: params.shippingDetails.country,
-        city: params.shippingDetails.city,
-        street: params.shippingDetails.street,
-        notes: params.shippingDetails.notes,
-      },
-      subtotal,
-      delivery_fee: deliveryFee,
-      total,
-      payment_reference: reference,
-    })
-    .select("id")
-    .single();
+  let orderNumber = "";
+  const { data: order, error: orderError } = await insertWithOrderNumberRetry<{ id: string }>(async (attemptNumber) => {
+    orderNumber = attemptNumber;
+    const result = await (admin.from("marketplace_orders") as any)
+      .insert({
+        order_number: attemptNumber,
+        buyer_name: params.shippingDetails.fullName,
+        buyer_email: params.buyerEmail || null,
+        buyer_phone: params.shippingDetails.phone,
+        shipping_address: {
+          country: params.shippingDetails.country,
+          city: params.shippingDetails.city,
+          street: params.shippingDetails.street,
+          notes: params.shippingDetails.notes,
+        },
+        subtotal,
+        delivery_fee: deliveryFee,
+        total,
+        payment_reference: reference,
+      })
+      .select("id")
+      .single();
+    return result;
+  });
 
   if (orderError || !order) {
     console.error("createPendingOrderAction error:", orderError);
@@ -175,6 +177,7 @@ export async function checkOrderPaymentStatusAction(
           updated_at: new Date().toISOString(),
         })
         .eq("id", orderId);
+      await createFulfillmentRowsForOrder(admin, orderId);
       return { success: true, paymentStatus: "successful", orderNumber: order.order_number };
     }
 

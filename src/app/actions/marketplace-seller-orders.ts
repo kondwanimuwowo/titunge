@@ -2,51 +2,49 @@
 
 import { revalidatePath } from "next/cache";
 import { requireBusinessContext } from "@/lib/business-context";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 
 const SELLER_ADVANCEABLE: Record<string, string> = {
   being_sewn: "shipped",
   shipped: "delivered",
 };
 
+/** Advances the caller's own fulfillment row for this order — never touches
+ *  marketplace_orders.status directly. An order can span multiple sellers
+ *  (marketplace_order_items.business_id), so this only ever affects the
+ *  caller's own shipping progress; the parent order's status is a derived
+ *  aggregate kept in sync by a DB trigger (see sync_marketplace_order_status). */
 export async function advanceMarketplaceOrderStatusAction(
   orderId: string
 ): Promise<{ success: boolean; message?: string }> {
   const { businessId } = await requireBusinessContext();
-  const supabase = await createClient();
 
-  // Confirm this business actually has a line item on the order before
-  // touching order-wide status — marketplace_orders has no business_id of
-  // its own to scope by (an order can span multiple sellers).
-  const { data: ownItem } = await (supabase.from("marketplace_order_items") as any)
-    .select("id")
+  // marketplace_order_fulfillments has a tenant RLS policy, but this still
+  // uses the admin client so the "no row" case below can distinguish
+  // "doesn't exist yet" from "not yours" with one query either way.
+  const admin = createAdminClient();
+
+  const { data: fulfillment } = await (admin.from("marketplace_order_fulfillments") as any)
+    .select("status")
     .eq("order_id", orderId)
     .eq("business_id", businessId)
-    .limit(1)
     .maybeSingle();
 
-  if (!ownItem) {
-    return { success: false, message: "This order doesn't contain any of your products." };
+  if (!fulfillment) {
+    return { success: false, message: "This order doesn't contain any of your products, or payment hasn't settled yet." };
   }
 
-  // marketplace_orders has no tenant RLS policy of its own (an order can
-  // span multiple sellers, so there's no single business_id to scope by) —
-  // the ownership check above is the real gate, this uses the admin client
-  // only after that check passes.
-  const admin = createAdminClient();
-  const { data: order } = await (admin.from("marketplace_orders") as any)
-    .select("status")
-    .eq("id", orderId)
-    .single();
-
-  const nextStatus = order ? SELLER_ADVANCEABLE[order.status] : undefined;
+  const nextStatus = SELLER_ADVANCEABLE[fulfillment.status];
   if (!nextStatus) {
     return { success: false, message: "This order can't be advanced from its current status." };
   }
 
-  const { error } = await (admin.from("marketplace_orders") as any)
-    .update({ status: nextStatus, updated_at: new Date().toISOString() })
-    .eq("id", orderId);
+  const timestampField = nextStatus === "shipped" ? "shipped_at" : "delivered_at";
+
+  const { error } = await (admin.from("marketplace_order_fulfillments") as any)
+    .update({ status: nextStatus, [timestampField]: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("order_id", orderId)
+    .eq("business_id", businessId);
 
   if (error) {
     console.error("Advance marketplace order status error:", error);

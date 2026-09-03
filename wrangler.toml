@@ -30,3 +30,14 @@ persist = true
 enabled = true
 head_sampling_rate = 1
 persist = true
+
+# Deploys to a separate Worker (titunge-staging.<subdomain>.workers.dev) so
+# cron/webhook/payment changes can be tested against a live-but-not-real
+# Supabase project before touching production. Needs setup before it's
+# usable: create a second Supabase project, run the same migrations against
+# it, and set this environment's own secrets with
+# `wrangler secret put <NAME> --env staging` (all the same names as
+# production — CRON_SECRET, LENCO_API_SECRET_KEY, etc. — pointed at
+# sandbox/staging values). LENCO_SANDBOX should stay "true" here always.
+[env.staging]
+name = "titunge-staging"

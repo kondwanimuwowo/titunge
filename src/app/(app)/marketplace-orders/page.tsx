@@ -31,7 +31,7 @@ export default async function MarketplaceOrdersPage() {
                     {order.buyerName} &middot; {new Date(order.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <StatusBadge status={order.status as MarketplaceOrderStatus} />
+                <StatusBadge status={order.fulfillmentStatus as MarketplaceOrderStatus} />
               </div>
 
               <div className="flex flex-wrap gap-3">
@@ -52,7 +52,7 @@ export default async function MarketplaceOrdersPage() {
                 <span className="text-xs text-muted-foreground">
                   Payment: <span className="font-medium text-foreground">{order.paymentStatus}</span>
                 </span>
-                <AdvanceOrderStatusButton orderId={order.id} status={order.status} />
+                <AdvanceOrderStatusButton orderId={order.id} status={order.fulfillmentStatus} />
               </div>
             </div>
           ))}

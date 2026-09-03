@@ -29,31 +29,38 @@ export async function getRevenueData(
   filters?: AnalyticsFilters
 ): Promise<{ month: string; revenue: number }[]> {
   const supabase = await createClient();
-  const results: { month: string; revenue: number }[] = [];
 
-  for (let i = 5; i >= 0; i--) {
-    const date = subMonths(new Date(), i);
-    const start = startOfMonth(date).toISOString();
-    const end = endOfMonth(date).toISOString();
-    const monthLabel = format(date, "MMM yyyy");
+  // Six independent per-month queries, fired in parallel rather than
+  // sequentially awaited — each month's filter combination differs enough
+  // (date range plus optional customer/employee/status/amount filters) that
+  // one grouped query isn't a clean substitute, but there's no reason to
+  // wait on them one at a time.
+  const months = Array.from({ length: 6 }, (_, idx) => subMonths(new Date(), 5 - idx));
 
-    let query = (supabase.from("orders") as any)
-      .select("total_cost")
-      .eq("business_id", businessId)
-      .gte("order_date", start)
-      .lte("order_date", end)
-      .is("deleted_at", null);
-    query = applyOrderFilters(query, { ...filters, startDate: undefined, endDate: undefined });
+  const results = await Promise.all(
+    months.map(async (date) => {
+      const start = startOfMonth(date).toISOString();
+      const end = endOfMonth(date).toISOString();
+      const monthLabel = format(date, "MMM yyyy");
 
-    const { data } = await query;
+      let query = (supabase.from("orders") as any)
+        .select("total_cost")
+        .eq("business_id", businessId)
+        .gte("order_date", start)
+        .lte("order_date", end)
+        .is("deleted_at", null);
+      query = applyOrderFilters(query, { ...filters, startDate: undefined, endDate: undefined });
 
-    const revenue = (data || []).reduce(
-      (sum: number, order: any) => sum + parseFloat(order.total_cost || "0"),
-      0
-    );
+      const { data } = await query;
 
-    results.push({ month: monthLabel, revenue: Math.round(revenue * 100) / 100 });
-  }
+      const revenue = (data || []).reduce(
+        (sum: number, order: any) => sum + parseFloat(order.total_cost || "0"),
+        0
+      );
+
+      return { month: monthLabel, revenue: Math.round(revenue * 100) / 100 };
+    })
+  );
 
   return results;
 }

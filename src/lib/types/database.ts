@@ -1048,6 +1048,39 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_order_fulfillments: {
+        Row: {
+          id: string
+          order_id: string
+          business_id: string
+          status: string
+          shipped_at: string | null
+          delivered_at: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          business_id: string
+          status?: string
+          shipped_at?: string | null
+          delivered_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          business_id?: string
+          status?: string
+          shipped_at?: string | null
+          delivered_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       marketplace_order_items: {
         Row: {
           business_id: string | null

@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { ImagePlaceholder } from "./ImagePlaceholder";
 import { ProductCard } from "./ProductCard";
-import { ReviewsSection } from "./ReviewsSection";
 import type { MarketplaceSeller, MarketplaceProduct } from "@/lib/marketplace-db";
 import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
 
@@ -88,7 +87,6 @@ export function ShopPageClient({ seller, products }: ShopPageClientProps) {
           ))}
         </div>
 
-        <ReviewsSection />
 
         <section className="py-12 border-t border-gray-100">
           <h2 className="text-xl font-bold mb-6">Shop policies</h2>

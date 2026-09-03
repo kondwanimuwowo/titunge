@@ -295,10 +295,12 @@ export async function updateOrderMaterialsAction(
       }
     }
 
-    await (supabase.from("order_materials") as any).delete().eq("order_id", orderId);
+    await (supabase.from("order_materials") as any).delete().eq("order_id", orderId).eq("business_id", businessId);
 
     if (rows.length > 0) {
-      const { error: insertError } = await (supabase.from("order_materials") as any).insert(rows);
+      const { error: insertError } = await (supabase.from("order_materials") as any).insert(
+        rows.map((r) => ({ ...r, business_id: businessId }))
+      );
       if (insertError) throw new Error(insertError.message);
     }
 
@@ -346,11 +348,12 @@ export async function updateOrderAction(orderId: string, orderData: any) {
 
     // Replace materials if provided
     if (Array.isArray(materialsData)) {
-      await (supabase.from("order_materials") as any).delete().eq("order_id", orderId);
+      await (supabase.from("order_materials") as any).delete().eq("order_id", orderId).eq("business_id", businessId);
 
       if (materialsData.length > 0) {
         const rows = materialsData.map((m: any) => ({
           order_id: orderId,
+          business_id: businessId,
           material_id: m.material_id,
           quantity_used: m.quantity_used,
           cost: m.cost,

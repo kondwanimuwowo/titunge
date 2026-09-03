@@ -254,6 +254,7 @@ CREATE TABLE public.materials (
   supplier         text,
   notes            text,
   last_restocked   timestamptz,
+  deleted_at       timestamptz,
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()
 );
@@ -290,6 +291,7 @@ CREATE TABLE public.production_batches (
   batch_number     text NOT NULL,
   status           text DEFAULT 'pending',
   notes            text,
+  deleted_at       timestamptz,
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now(),
   UNIQUE(business_id, batch_number)
@@ -664,9 +666,34 @@ CREATE POLICY tenant_isolation ON public.payout_log
     )
   );
 
--- When an order transitions to 'delivered', create/refresh one payout row
--- per seller on that order, eligible payout_release_window_hours later.
--- A trigger so no future "mark delivered" code path can skip this.
+-- Fulfillment is tracked per seller too (marketplace_orders.status alone
+-- can't distinguish sellers on a shared order) — sellers write to this
+-- table, never to marketplace_orders.status directly.
+CREATE TABLE public.marketplace_order_fulfillments (
+  id            uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id      uuid NOT NULL REFERENCES public.marketplace_orders(id) ON DELETE CASCADE,
+  business_id   uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  status        text NOT NULL DEFAULT 'being_sewn'
+                  CHECK (status IN ('being_sewn', 'shipped', 'delivered')),
+  shipped_at    timestamptz,
+  delivered_at  timestamptz,
+  created_at    timestamptz DEFAULT now(),
+  updated_at    timestamptz DEFAULT now(),
+  UNIQUE (order_id, business_id)
+);
+
+CREATE INDEX idx_marketplace_order_fulfillments_business_id
+  ON public.marketplace_order_fulfillments(business_id);
+
+ALTER TABLE public.marketplace_order_fulfillments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation ON public.marketplace_order_fulfillments
+  USING (business_id IN (SELECT public.my_business_ids()));
+
+-- When a seller's own fulfillment row transitions to 'delivered', create/
+-- refresh that seller's payout row, eligible payout_release_window_hours
+-- later. Driven by the per-seller row, so it can never fire for a seller
+-- who hasn't actually delivered anything.
 CREATE OR REPLACE FUNCTION public.handle_marketplace_order_delivered()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -675,6 +702,7 @@ SET search_path = public
 AS $$
 DECLARE
   window_hours integer;
+  order_subtotal numeric;
 BEGIN
   IF NEW.status = 'delivered' AND (OLD.status IS DISTINCT FROM 'delivered') THEN
     IF NEW.delivered_at IS NULL THEN
@@ -684,16 +712,12 @@ BEGIN
     SELECT payout_release_window_hours INTO window_hours FROM public.platform_settings WHERE id = true;
     window_hours := COALESCE(window_hours, 24);
 
+    SELECT COALESCE(SUM(unit_price * qty), 0) INTO order_subtotal
+    FROM public.marketplace_order_items
+    WHERE order_id = NEW.order_id AND business_id = NEW.business_id;
+
     INSERT INTO public.marketplace_order_payouts (order_id, business_id, subtotal, payout_status, payout_eligible_at)
-    SELECT
-      NEW.id,
-      items.business_id,
-      SUM(items.unit_price * items.qty),
-      'pending',
-      NEW.delivered_at + (window_hours || ' hours')::interval
-    FROM public.marketplace_order_items items
-    WHERE items.order_id = NEW.id AND items.business_id IS NOT NULL
-    GROUP BY items.business_id
+    VALUES (NEW.order_id, NEW.business_id, order_subtotal, 'pending', NEW.delivered_at + (window_hours || ' hours')::interval)
     ON CONFLICT (order_id, business_id) DO UPDATE
       SET payout_eligible_at = EXCLUDED.payout_eligible_at,
           payout_status = CASE WHEN public.marketplace_order_payouts.payout_status = 'not_eligible'
@@ -705,10 +729,57 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER trg_marketplace_order_delivered
-  BEFORE UPDATE ON public.marketplace_orders
+CREATE TRIGGER trg_marketplace_order_fulfillment_delivered
+  BEFORE UPDATE ON public.marketplace_order_fulfillments
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_marketplace_order_delivered();
+
+-- Keeps marketplace_orders.status as a derived aggregate of per-seller
+-- fulfillment, so buyer-facing screens (/my-orders, order confirmation)
+-- need no changes: delivered only once every seller has delivered, shipped
+-- once every seller has at least shipped, being_sewn otherwise.
+CREATE OR REPLACE FUNCTION public.sync_marketplace_order_status()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  total_sellers integer;
+  delivered_sellers integer;
+  shipped_or_further integer;
+  current_order_status text;
+BEGIN
+  SELECT status INTO current_order_status FROM public.marketplace_orders WHERE id = NEW.order_id;
+  IF current_order_status IS NULL OR current_order_status IN ('awaiting_payment', 'cancelled') THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT count(*),
+         count(*) FILTER (WHERE status = 'delivered'),
+         count(*) FILTER (WHERE status IN ('shipped', 'delivered'))
+  INTO total_sellers, delivered_sellers, shipped_or_further
+  FROM public.marketplace_order_fulfillments
+  WHERE order_id = NEW.order_id;
+
+  UPDATE public.marketplace_orders
+  SET status = CASE
+                  WHEN total_sellers > 0 AND delivered_sellers = total_sellers THEN 'delivered'
+                  WHEN total_sellers > 0 AND shipped_or_further = total_sellers THEN 'shipped'
+                  ELSE 'being_sewn'
+                END,
+      delivered_at = CASE WHEN total_sellers > 0 AND delivered_sellers = total_sellers THEN now() ELSE delivered_at END,
+      updated_at = now()
+  WHERE id = NEW.order_id;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_sync_marketplace_order_status
+  AFTER INSERT OR UPDATE ON public.marketplace_order_fulfillments
+  FOR EACH ROW
+  EXECUTE FUNCTION public.sync_marketplace_order_status();
 
 -- ============================================================
 -- RECURRING SEAT BILLING (Team plan, K per additional seat/month)
@@ -747,6 +818,34 @@ ALTER TABLE public.business_billing_charges ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tenant_isolation ON public.business_billing_charges
   USING (business_id IN (SELECT public.my_business_ids()));
+
+-- ============================================================
+-- PERFORMANCE INDEXES
+-- Every RLS policy and nearly every application query filters by
+-- business_id — skips tables where it's already the primary key or already
+-- leads a composite UNIQUE constraint.
+-- ============================================================
+
+CREATE INDEX idx_customers_business_id ON public.customers(business_id);
+CREATE INDEX idx_employees_business_id ON public.employees(business_id);
+CREATE INDEX idx_attendance_business_id ON public.attendance(business_id);
+CREATE INDEX idx_garment_types_business_id ON public.garment_types(business_id);
+CREATE INDEX idx_orders_business_id ON public.orders(business_id);
+CREATE INDEX idx_order_items_business_id ON public.order_items(business_id);
+CREATE INDEX idx_products_business_id ON public.products(business_id);
+CREATE INDEX idx_materials_business_id ON public.materials(business_id);
+CREATE INDEX idx_inventory_transactions_business_id ON public.inventory_transactions(business_id);
+CREATE INDEX idx_order_materials_business_id ON public.order_materials(business_id);
+CREATE INDEX idx_production_batch_orders_business_id ON public.production_batch_orders(business_id);
+CREATE INDEX idx_expenses_business_id ON public.expenses(business_id);
+CREATE INDEX idx_payments_business_id ON public.payments(business_id);
+CREATE INDEX idx_overhead_costs_business_id ON public.overhead_costs(business_id);
+CREATE INDEX idx_financial_settings_business_id ON public.financial_settings(business_id);
+CREATE INDEX idx_catalog_purchases_business_id ON public.catalog_purchases(business_id);
+CREATE INDEX idx_customer_inquiries_business_id ON public.customer_inquiries(business_id);
+CREATE INDEX idx_marketplace_order_items_business_id ON public.marketplace_order_items(business_id);
+CREATE INDEX idx_notifications_business_id ON public.notifications(business_id);
+CREATE INDEX idx_marketplace_order_payouts_business_id ON public.marketplace_order_payouts(business_id);
 
 -- ============================================================
 -- STORAGE: Public bucket for business assets (logos, etc.)

@@ -21,17 +21,6 @@ type Focus = "full_erp" | "marketplace_only";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
-const CURRENCIES = [
-  { code: "USD", label: "USD - US Dollar" },
-  { code: "ZMW", label: "ZMW - Zambian Kwacha" },
-  { code: "KES", label: "KES - Kenyan Shilling" },
-  { code: "GHS", label: "GHS - Ghanaian Cedi" },
-  { code: "NGN", label: "NGN - Nigerian Naira" },
-  { code: "ZAR", label: "ZAR - South African Rand" },
-  { code: "GBP", label: "GBP - British Pound" },
-  { code: "EUR", label: "EUR - Euro" },
-];
-
 const TIMEZONES = [
   { value: "Africa/Lusaka", label: "Africa/Lusaka (CAT)" },
   { value: "Africa/Nairobi", label: "Africa/Nairobi (EAT)" },
@@ -84,7 +73,6 @@ export default function OnboardingPage() {
   const [businessName, setBusinessName] = useState("");
   const [slug, setSlug] = useState("");
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "taken" | "available">("idle");
-  const [currency, setCurrency] = useState("ZMW");
   const [timezone, setTimezone] = useState("Africa/Lusaka");
   const [businessError, setBusinessError] = useState<string | null>(null);
   const [workspaceUrl, setWorkspaceUrl] = useState("");
@@ -179,7 +167,7 @@ export default function OnboardingPage() {
       return;
     }
     startTransition(async () => {
-      const result = await createBusinessAction({ name: businessName, slug, currency, timezone, focus: focus ?? "full_erp" });
+      const result = await createBusinessAction({ name: businessName, slug, timezone, focus: focus ?? "full_erp" });
       if (!result.success) {
         setBusinessError(result.message ?? "Failed to create workspace");
         return;
@@ -389,11 +377,11 @@ export default function OnboardingPage() {
                     Check your email
                   </h1>
                   <p className="text-sm text-gray-500 mb-1 max-w-xs mx-auto">
-                    We've sent a confirmation link to
+                    We&apos;ve sent a confirmation link to
                   </p>
                   <p className="text-sm font-semibold text-gray-900 mb-6">{email}</p>
                   <p className="text-xs text-gray-400 max-w-xs mx-auto mb-6">
-                    Click the link to continue setting up your workspace. It expires shortly, so come back here once you've confirmed.
+                    Click the link to continue setting up your workspace. It expires shortly, so come back here once you&apos;ve confirmed.
                   </p>
                   <button
                     type="button"
@@ -421,7 +409,7 @@ export default function OnboardingPage() {
                     What brings you to Titunge?
                   </h1>
                   <p className="text-sm text-gray-500 mb-6">
-                    This just shapes your dashboard's default menu — you can change it anytime in Settings.
+                    This just shapes your dashboard&apos;s default menu — you can change it anytime in Settings.
                   </p>
 
                   <div className="space-y-3">
@@ -491,7 +479,7 @@ export default function OnboardingPage() {
                     Set up your workspace
                   </h1>
                   <p className="text-sm text-gray-500 mb-6">
-                    This is your business's private ERP environment. You can invite team members later.
+                    This is your business&apos;s private ERP environment. You can invite team members later.
                   </p>
 
                   <form onSubmit={handleBusinessSubmit} className="space-y-5">
@@ -535,32 +523,17 @@ export default function OnboardingPage() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1.5">Currency</label>
-                        <select
-                          value={currency}
-                          onChange={(e) => setCurrency(e.target.value)}
-                          className="w-full px-3 py-2.5 text-sm rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5fa8a0]/30 focus:bg-white transition-all appearance-none"
-                        >
-                          {CURRENCIES.map((c) => (
-                            <option key={c.code} value={c.code}>{c.label}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1.5">Timezone</label>
-                        <select
-                          value={timezone}
-                          onChange={(e) => setTimezone(e.target.value)}
-                          className="w-full px-3 py-2.5 text-sm rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5fa8a0]/30 focus:bg-white transition-all appearance-none"
-                        >
-                          {TIMEZONES.map((t) => (
-                            <option key={t.value} value={t.value}>{t.label}</option>
-                          ))}
-                        </select>
-                      </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 block mb-1.5">Timezone</label>
+                      <select
+                        value={timezone}
+                        onChange={(e) => setTimezone(e.target.value)}
+                        className="w-full px-3 py-2.5 text-sm rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5fa8a0]/30 focus:bg-white transition-all appearance-none"
+                      >
+                        {TIMEZONES.map((t) => (
+                          <option key={t.value} value={t.value}>{t.label}</option>
+                        ))}
+                      </select>
                     </div>
 
                     {businessError && (

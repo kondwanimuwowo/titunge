@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { listCollections, isSuccessStatus, isPendingStatus } from "@/lib/lenco";
+import { createFulfillmentRowsForOrder } from "@/lib/marketplace-fulfillments";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +67,7 @@ export async function GET(request: NextRequest) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", order.id);
+      await createFulfillmentRowsForOrder(admin, order.id);
     } else {
       await (admin.from("marketplace_orders") as any)
         .update({ payment_status: "failed", lenco_reference: collection.lencoReference, updated_at: new Date().toISOString() })

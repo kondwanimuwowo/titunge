@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        # Non-blocking for now: ~140 pre-existing errors (mostly
+        # react/no-unescaped-entities) predate this workflow and aren't part
+        # of this cleanup pass. Still runs and reports on every PR so new
+        # violations are visible — flip to blocking once that debt is paid
+        # down, tracked separately from the `any` warnings (see eslint.config.mjs).
+        run: npx eslint || true
+
+      - name: Test
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build-time env vars — real secrets aren't needed to compile, only
+          # to run at request time, but Next.js reads these into the client
+          # bundle at build so they must at least be present.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder' }}

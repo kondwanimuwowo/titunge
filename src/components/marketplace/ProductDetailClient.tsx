@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 import { ImagePlaceholder } from "./ImagePlaceholder";
 import { ProductCard } from "./ProductCard";
-import { ReviewsSection } from "./ReviewsSection";
 import { Breadcrumb } from "./Breadcrumb";
 import { useCart } from "./CartProvider";
 import type { MarketplaceProduct } from "@/lib/marketplace-db";
@@ -149,7 +148,6 @@ export function ProductDetailClient({ product, moreFromShop }: ProductDetailClie
         </div>
       </div>
 
-      <ReviewsSection />
 
       {moreFromShop.length > 0 && (
         <section className="py-12 border-t border-gray-100">

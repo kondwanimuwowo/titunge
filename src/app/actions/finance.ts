@@ -254,7 +254,7 @@ export async function deleteGarmentType(
   const supabase = await createClient();
 
   const { error } = await (supabase.from("garment_types") as any)
-    .update({ active: false })
+    .update({ active: false, updated_at: new Date().toISOString() })
     .eq("id", id)
     .eq("business_id", businessId);
 
@@ -263,6 +263,51 @@ export async function deleteGarmentType(
   }
 
   revalidatePath("/settings");
+  return { success: true };
+}
+
+export async function restoreGarmentTypeAction(
+  id: string
+): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
+  const supabase = await createClient();
+
+  const { error } = await (supabase.from("garment_types") as any)
+    .update({ active: true })
+    .eq("id", id)
+    .eq("business_id", businessId);
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/recycle-bin");
+  return { success: true };
+}
+
+export async function hardDeleteGarmentTypeAction(
+  id: string
+): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
+  const supabase = await createClient();
+
+  const { data, error } = await (supabase.from("garment_types") as any)
+    .delete()
+    .eq("id", id)
+    .eq("business_id", businessId)
+    .select("id");
+
+  if (!error && (!data || data.length === 0)) {
+    return { success: false, message: "You don't have permission to permanently delete garment types." };
+  }
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/recycle-bin");
   return { success: true };
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { initiateTransfer } from "@/lib/lenco";
+import { computePayoutAmount } from "@/lib/marketplace-payout-math";
 
 export const dynamic = "force-dynamic";
 
@@ -45,19 +46,33 @@ export async function GET(request: NextRequest) {
   let initiated = 0;
 
   for (const payout of duePayouts) {
+    // Atomic claim before calling Lenco — if an overlapping cron run already
+    // claimed this row, the update affects 0 rows and we skip it, instead of
+    // both runs racing to fire the same transfer.
+    const { data: claimed } = await (admin.from("marketplace_order_payouts") as any)
+      .update({ payout_status: "processing", updated_at: new Date().toISOString() })
+      .eq("id", payout.id)
+      .eq("payout_status", "pending")
+      .select("id")
+      .maybeSingle();
+
+    if (!claimed) continue;
+
     const { data: profile } = await (admin.from("business_payout_profiles") as any)
       .select("payout_method, lenco_recipient_id")
       .eq("business_id", payout.business_id)
       .maybeSingle();
 
     if (!profile?.lenco_recipient_id || !profile.payout_method) {
-      // No payout account on file yet — leave pending for a future run
-      // once the seller sets one up; don't fail the whole batch.
+      // No payout account on file yet — release the claim and leave pending
+      // for a future run once the seller sets one up.
+      await (admin.from("marketplace_order_payouts") as any)
+        .update({ payout_status: "pending", updated_at: new Date().toISOString() })
+        .eq("id", payout.id);
       continue;
     }
 
-    const platformFee = Math.floor(payout.subtotal * commissionRate);
-    const amount = payout.subtotal - platformFee;
+    const { platformFee, amount } = computePayoutAmount(payout.subtotal, commissionRate);
     const reference = `payout-${payout.id}`;
 
     try {
@@ -93,6 +108,10 @@ export async function GET(request: NextRequest) {
       initiated++;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Transfer initiation failed";
+      console.error("Payout transfer failed:", message);
+      await (admin.from("marketplace_order_payouts") as any)
+        .update({ payout_status: "pending", updated_at: new Date().toISOString() })
+        .eq("id", payout.id);
       await (admin.from("payout_log") as any).insert({
         order_payout_id: payout.id,
         amount,

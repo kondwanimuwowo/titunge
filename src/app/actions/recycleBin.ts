@@ -8,6 +8,7 @@ import { restoreProductAction, hardDeleteProductAction } from "./products";
 import { restoreMaterialAction, hardDeleteMaterialAction } from "./inventory";
 import { restoreOrder, hardDeleteOrder } from "./orders";
 import { restoreBatchAction, hardDeleteBatchAction } from "./production";
+import { restoreGarmentTypeAction, hardDeleteGarmentTypeAction } from "./finance";
 
 export type RecycleBinType =
   | "employee"
@@ -15,7 +16,8 @@ export type RecycleBinType =
   | "product"
   | "material"
   | "order"
-  | "production_batch";
+  | "production_batch"
+  | "garment_type";
 
 export async function restoreRecycleBinItem(
   type: RecycleBinType,
@@ -43,6 +45,9 @@ export async function restoreRecycleBinItem(
       break;
     case "production_batch":
       result = await restoreBatchAction(id);
+      break;
+    case "garment_type":
+      result = await restoreGarmentTypeAction(id);
       break;
   }
 
@@ -76,6 +81,9 @@ export async function hardDeleteRecycleBinItem(
       break;
     case "production_batch":
       result = await hardDeleteBatchAction(id);
+      break;
+    case "garment_type":
+      result = await hardDeleteGarmentTypeAction(id);
       break;
   }
 

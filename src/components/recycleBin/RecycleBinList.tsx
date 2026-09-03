@@ -11,6 +11,7 @@ import {
   Boxes,
   ShoppingBag,
   Scissors,
+  Shirt,
   ArchiveRestore,
   Trash2,
   Inbox,
@@ -27,6 +28,7 @@ const TYPE_META: Record<RecycleBinType, { icon: typeof Briefcase; color: string;
   material: { icon: Boxes, color: "bg-amber-50 text-amber-600", label: "Materials" },
   order: { icon: ShoppingBag, color: "bg-blue-50 text-blue-600", label: "Orders" },
   production_batch: { icon: Scissors, color: "bg-orange-50 text-orange-600", label: "Production" },
+  garment_type: { icon: Shirt, color: "bg-teal-50 text-teal-600", label: "Garment Types" },
 };
 
 const FILTER_TABS: { value: RecycleBinType | "all"; label: string }[] = [
@@ -37,6 +39,7 @@ const FILTER_TABS: { value: RecycleBinType | "all"; label: string }[] = [
   { value: "material", label: "Materials" },
   { value: "order", label: "Orders" },
   { value: "production_batch", label: "Production" },
+  { value: "garment_type", label: "Garment Types" },
 ];
 
 interface RecycleBinListProps {

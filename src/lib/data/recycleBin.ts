@@ -4,6 +4,7 @@ import { getDeletedProducts } from "./products";
 import { getDeletedMaterials } from "./inventory";
 import { getDeletedOrders } from "./orders";
 import { getDeletedBatches } from "./production";
+import { getDeletedGarmentTypes } from "./finance";
 
 export type RecycleBinType =
   | "employee"
@@ -11,7 +12,8 @@ export type RecycleBinType =
   | "product"
   | "material"
   | "order"
-  | "production_batch";
+  | "production_batch"
+  | "garment_type";
 
 export interface RecycleBinItem {
   id: string;
@@ -22,13 +24,14 @@ export interface RecycleBinItem {
 }
 
 export async function getRecycleBinItems(businessId: string): Promise<RecycleBinItem[]> {
-  const [employees, customers, products, materials, orders, batches] = await Promise.all([
+  const [employees, customers, products, materials, orders, batches, garmentTypes] = await Promise.all([
     getDeletedEmployees(businessId),
     getDeletedCustomers(businessId),
     getDeletedProducts(businessId),
     getDeletedMaterials(businessId),
     getDeletedOrders(businessId),
     getDeletedBatches(businessId),
+    getDeletedGarmentTypes(businessId),
   ]);
 
   const items: RecycleBinItem[] = [
@@ -73,6 +76,13 @@ export async function getRecycleBinItems(businessId: string): Promise<RecycleBin
       title: b.batch_number,
       subtitle: `${b.products?.name || "Unknown product"} · ${b.status}`,
       deletedAt: b.deleted_at,
+    })),
+    ...garmentTypes.map((g: any) => ({
+      id: g.id,
+      type: "garment_type" as const,
+      title: g.name,
+      subtitle: `${g.complexity || "standard"} · K${parseFloat(String(g.base_labour_cost || 0)).toFixed(2)} labour`,
+      deletedAt: g.updated_at,
     })),
   ];
 

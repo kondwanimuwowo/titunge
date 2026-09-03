@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { initiateMobileMoneyCollection } from "@/lib/lenco";
+import { computeSeatBillingAmount } from "@/lib/marketplace-payout-math";
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
       .eq("business_id", business.id)
       .eq("active", true);
 
-    const billableSeats = Math.max((seatCount ?? 1) - 1, 0); // first seat is free
+    const { billableSeats, amount } = computeSeatBillingAmount(seatCount ?? 1, seatPrice);
     if (billableSeats === 0) continue;
 
     const { data: existing } = await (admin.from("business_billing_charges") as any)
@@ -74,7 +75,6 @@ export async function GET(request: NextRequest) {
       .eq("business_id", business.id)
       .maybeSingle();
 
-    const amount = billableSeats * seatPrice;
     const { data: charge } = await (admin.from("business_billing_charges") as any)
       .insert({ business_id: business.id, period, seat_count: billableSeats, amount, status: "pending" })
       .select("id")
@@ -102,7 +102,9 @@ export async function GET(request: NextRequest) {
         .update({ lenco_reference: reference, updated_at: new Date().toISOString() })
         .eq("id", charge.id);
       charged++;
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Collection initiation failed";
+      console.error("Seat billing charge failed:", message);
       // Left pending — verified/settled by the webhook or a later retry pass below.
     }
   }
@@ -119,14 +121,41 @@ export async function GET(request: NextRequest) {
     dueAt.setDate(dueAt.getDate() + dueOffset);
     if (dueAt > new Date()) continue;
 
+    // Atomic claim — if an overlapping run already claimed this charge, this
+    // affects 0 rows and we skip it instead of firing a duplicate collection.
+    const { data: claimed } = await (admin.from("business_billing_charges") as any)
+      .update({ status: "pending", updated_at: new Date().toISOString() })
+      .eq("id", charge.id)
+      .eq("status", "failed")
+      .select("id")
+      .maybeSingle();
+
+    if (!claimed) continue;
+
+    // Everything past this point already flipped the row to 'pending' via
+    // the claim above — any early exit must revert it to 'failed' or the
+    // charge gets silently stuck (picked up by neither the new-charge loop
+    // above, since a row for this period already exists, nor this retry
+    // loop, since it only selects status='failed').
+    const revertToFailed = () =>
+      (admin.from("business_billing_charges") as any)
+        .update({ status: "failed", updated_at: new Date().toISOString() })
+        .eq("id", charge.id);
+
     const { data: billingProfile } = await (admin.from("business_billing_profiles") as any)
       .select("payment_method, account_details")
       .eq("business_id", charge.business_id)
       .maybeSingle();
 
-    if (billingProfile?.payment_method !== "mobile-money") continue;
+    if (billingProfile?.payment_method !== "mobile-money") {
+      await revertToFailed();
+      continue;
+    }
     const details = billingProfile.account_details as { phone?: string; operator?: "airtel" | "mtn" | "zamtel" };
-    if (!details.phone) continue;
+    if (!details.phone) {
+      await revertToFailed();
+      continue;
+    }
 
     try {
       const reference = `seatbill-${charge.id}-retry${charge.retry_count + 1}`;
@@ -145,8 +174,12 @@ export async function GET(request: NextRequest) {
         })
         .eq("id", charge.id);
       retried++;
-    } catch {
-      // Stays failed; will be retried again at the next offset next run.
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Retry collection failed";
+      console.error("Seat billing retry failed:", message);
+      await (admin.from("business_billing_charges") as any)
+        .update({ status: "failed", retry_count: charge.retry_count + 1, updated_at: new Date().toISOString() })
+        .eq("id", charge.id);
     }
   }
 

@@ -211,6 +211,24 @@ export async function getGarmentTypes(businessId: string) {
   return data || [];
 }
 
+export async function getDeletedGarmentTypes(businessId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("garment_types")
+    .select("*")
+    .eq("business_id", businessId)
+    .eq("active", false)
+    .order("name");
+
+  if (error) {
+    console.error("Failed to fetch deleted garment types:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 export async function getGarmentTypeById(businessId: string, id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase

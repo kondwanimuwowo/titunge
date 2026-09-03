@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   Wallet,
   CreditCard,
+  ListOrdered,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/types/database";
@@ -45,6 +46,7 @@ const NAV_ITEMS = [
 
 const PLATFORM_ADMIN_ITEMS = [
   { path: "/admin/settings", icon: ShieldCheck, label: "Platform Settings" },
+  { path: "/admin/orders",   icon: ListOrdered,  label: "Orders" },
   { path: "/admin/payouts",  icon: Wallet,       label: "Payouts" },
   { path: "/admin/billing",  icon: CreditCard,   label: "Seat Billing" },
 ] as const;
