@@ -11,6 +11,7 @@ import StorefrontProfileForm from "./StorefrontProfileForm";
 import StorefrontProductsList from "./StorefrontProductsList";
 import PayoutProfileForm from "./PayoutProfileForm";
 import BillingTab from "./BillingTab";
+import WorkspaceFocusToggle from "./WorkspaceFocusToggle";
 import GarmentTypesManager from "@/components/finance/GarmentTypesManager";
 
 interface SettingsTabsProps {
@@ -27,6 +28,7 @@ interface SettingsTabsProps {
     theme_key: string;
     logo_url?: string | null;
     plan: "free" | "team";
+    focus: "full_erp" | "marketplace_only";
   };
   storefront: {
     bio: string | null;
@@ -114,6 +116,8 @@ export default function SettingsTabs({
             </div>
           </CardContent>
         </Card>
+
+        <WorkspaceFocusToggle focus={business.focus} />
 
         <Card>
           <CardHeader>

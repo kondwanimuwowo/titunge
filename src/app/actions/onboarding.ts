@@ -16,6 +16,7 @@ interface CreateBusinessInput {
   slug: string;
   currency: string;
   timezone: string;
+  focus: "full_erp" | "marketplace_only";
 }
 
 export async function signUpAction(
@@ -132,6 +133,8 @@ export async function createBusinessAction(input: CreateBusinessInput): Promise<
         currency: input.currency,
         timezone: input.timezone,
         theme_key: "titunge-teal",
+        plan: "free",
+        focus: input.focus,
       })
       .select("id, slug")
       .single();

@@ -255,6 +255,7 @@ export type Database = {
           name: string
           order_prefix: string
           plan: string
+          focus: string
           slug: string
           status: string
           theme_key: string
@@ -269,6 +270,7 @@ export type Database = {
           name: string
           order_prefix?: string
           plan?: string
+          focus?: string
           slug: string
           status?: string
           theme_key?: string
@@ -283,6 +285,7 @@ export type Database = {
           name?: string
           order_prefix?: string
           plan?: string
+          focus?: string
           slug?: string
           status?: string
           theme_key?: string

@@ -20,6 +20,8 @@ interface SidebarProps {
   logoUrl?: string | null;
   newInquiriesCount?: number;
   myBusinesses: SidebarBusiness[];
+  isPlatformAdmin?: boolean;
+  focus?: "full_erp" | "marketplace_only";
 }
 
 export default function Sidebar({
@@ -29,6 +31,8 @@ export default function Sidebar({
   logoUrl,
   newInquiriesCount = 0,
   myBusinesses,
+  isPlatformAdmin = false,
+  focus = "full_erp",
 }: SidebarProps) {
   return (
     <aside
@@ -59,7 +63,7 @@ export default function Sidebar({
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-2 px-2 sidebar-scrollbar">
-        <SidebarNav role={role} badges={{ "/inquiries": newInquiriesCount }} />
+        <SidebarNav role={role} badges={{ "/inquiries": newInquiriesCount }} isPlatformAdmin={isPlatformAdmin} focus={focus} />
       </nav>
 
       {/* Footer */}

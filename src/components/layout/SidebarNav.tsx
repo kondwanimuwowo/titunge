@@ -19,6 +19,9 @@ import {
   MessageSquare,
   Trash2,
   Store,
+  ShieldCheck,
+  Wallet,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/types/database";
@@ -40,12 +43,25 @@ const NAV_ITEMS = [
   { path: "/recycle-bin", icon: Trash2,         label: "Recycle Bin", roles: ["admin", "manager"] },
 ] as const;
 
+const PLATFORM_ADMIN_ITEMS = [
+  { path: "/admin/settings", icon: ShieldCheck, label: "Platform Settings" },
+  { path: "/admin/payouts",  icon: Wallet,       label: "Payouts" },
+  { path: "/admin/billing",  icon: CreditCard,   label: "Seat Billing" },
+] as const;
+
+// A business set up for "just sell on the marketplace" gets a decluttered
+// default menu — soft preference only, nothing is actually blocked if they
+// navigate to a full-ERP page directly, and it's editable in Settings.
+const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/marketplace-orders", "/settings"]);
+
 interface SidebarNavProps {
   role: UserRole;
   badges?: Record<string, number>;
+  isPlatformAdmin?: boolean;
+  focus?: "full_erp" | "marketplace_only";
 }
 
-export function SidebarNav({ role, badges = {} }: SidebarNavProps) {
+export function SidebarNav({ role, badges = {}, isPlatformAdmin = false, focus = "full_erp" }: SidebarNavProps) {
   const pathname = usePathname();
   const [newInquiriesCount, setNewInquiriesCount] = useState(badges["/inquiries"] ?? 0);
 
@@ -75,9 +91,11 @@ export function SidebarNav({ role, badges = {} }: SidebarNavProps) {
     };
   }, []);
 
-  const filteredItems = NAV_ITEMS.filter((item) =>
-    (item.roles as readonly string[]).includes(role)
-  );
+  const filteredItems = NAV_ITEMS.filter((item) => {
+    if (!(item.roles as readonly string[]).includes(role)) return false;
+    if (focus === "marketplace_only" && !MARKETPLACE_ONLY_PATHS.has(item.path)) return false;
+    return true;
+  });
 
   return (
     <ul className="space-y-0.5">
@@ -105,6 +123,31 @@ export function SidebarNav({ role, badges = {} }: SidebarNavProps) {
           </li>
         );
       })}
+
+      {isPlatformAdmin && (
+        <>
+          <li className="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+            Titunge Admin
+          </li>
+          {PLATFORM_ADMIN_ITEMS.map((item) => {
+            const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`);
+            return (
+              <li key={item.path}>
+                <Link
+                  href={item.path}
+                  className={cn(
+                    "sidebar-nav-link flex items-center gap-2.5 px-3 py-2 rounded-md transition-all duration-150 text-sm font-medium",
+                    isActive && "active"
+                  )}
+                >
+                  <item.icon size={15} className="sidebar-nav-icon transition-colors" />
+                  <span className="flex-1">{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </>
+      )}
     </ul>
   );
 }

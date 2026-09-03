@@ -1,9 +1,7 @@
-import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
 import { getPlatformAdminContext } from "@/lib/platform-admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { formatZmw } from "@/lib/marketplace-currency";
-import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
+import { PageHeader } from "@/components/layout/PageHeader";
 import AdminBillingRowActions from "@/components/admin/AdminBillingRowActions";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -13,7 +11,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default async function AdminBillingPage() {
-  const { email } = await getPlatformAdminContext();
+  await getPlatformAdminContext();
   const supabase = createAdminClient();
 
   const { data: charges } = await (supabase.from("business_billing_charges") as any)
@@ -22,27 +20,8 @@ export default async function AdminBillingPage() {
     .limit(100);
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <ShieldCheck className="text-primary" size={16} />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-foreground">Seat billing</h1>
-            <p className="text-xs text-muted-foreground">Signed in as {email}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/admin/payouts" className="text-xs text-muted-foreground hover:text-foreground">
-            Payouts
-          </Link>
-          <Link href="/admin/settings" className="text-xs text-muted-foreground hover:text-foreground">
-            Settings
-          </Link>
-          <AdminSignOutButton />
-        </div>
-      </div>
+    <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <PageHeader title="Seat billing" description="Team-plan monthly seat charges across all businesses" />
 
       <div className="bg-card border rounded-lg overflow-hidden">
         <table className="w-full text-sm">

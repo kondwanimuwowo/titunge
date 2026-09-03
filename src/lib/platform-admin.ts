@@ -7,29 +7,47 @@ export interface PlatformAdminContext {
   email: string | null;
 }
 
+async function lookupPlatformAdmin(userId: string): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("platform_admins")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) console.error("platform_admins lookup failed:", error.message);
+  return !!data;
+}
+
 /**
- * Resolves the current platform-admin session for a server component.
- * Platform-admin membership is a separate concept from business_users
- * roles (see platform_admins table) — Titunge staff, not tenant users.
- * Redirects to /admin/login if the visitor isn't signed in or isn't staff.
+ * Non-throwing check for conditional UI — e.g. whether to show the
+ * platform-admin sidebar links in the regular ERP dashboard. There's no
+ * separate admin login: platform admins sign in the same way as any
+ * business user and just see extra sections if they're staff.
  */
+export const isPlatformAdmin = cache(async function isPlatformAdmin(): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return false;
+  return lookupPlatformAdmin(user.id);
+});
+
+/** Resolves the current platform-admin session for a server component (an
+ *  admin page nested inside the regular (app) dashboard). Redirects to
+ *  /dashboard if the visitor isn't platform staff. */
 export const getPlatformAdminContext = cache(async function getPlatformAdminContext(): Promise<PlatformAdminContext> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/admin/login");
+  if (!user) redirect("/dashboard");
 
-  const admin = createAdminClient();
-  const { data: membership, error } = await admin
-    .from("platform_admins")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (error) console.error("platform_admins lookup failed:", error.message);
-  if (!membership) redirect("/admin/login?error=not_admin");
+  const ok = await lookupPlatformAdmin(user.id);
+  if (!ok) redirect("/dashboard");
 
   return { userId: user.id, email: user.email ?? null };
 });
@@ -43,15 +61,8 @@ export async function requirePlatformAdminContext(): Promise<PlatformAdminContex
 
   if (!user) throw new Error("Unauthenticated");
 
-  const admin = createAdminClient();
-  const { data: membership, error } = await admin
-    .from("platform_admins")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (error) console.error("platform_admins lookup failed:", error.message);
-  if (!membership) throw new Error("Not a platform admin");
+  const ok = await lookupPlatformAdmin(user.id);
+  if (!ok) throw new Error("Not a platform admin");
 
   return { userId: user.id, email: user.email ?? null };
 }

@@ -57,6 +57,7 @@ export default async function SettingsPage() {
           theme_key: business.theme_key,
           logo_url: business.logo_url,
           plan: business.plan as "free" | "team",
+          focus: business.focus as "full_erp" | "marketplace_only",
         }}
         storefront={storefront}
         storefrontProducts={storefrontProducts}

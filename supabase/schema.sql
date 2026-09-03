@@ -23,6 +23,7 @@ CREATE TABLE public.businesses (
   currency         text NOT NULL DEFAULT 'ZMW',
   timezone         text NOT NULL DEFAULT 'Africa/Lusaka',
   plan             text NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'team')), -- free = 1 seat, team = pay-per-additional-seat
+  focus            text NOT NULL DEFAULT 'full_erp' CHECK (focus IN ('full_erp', 'marketplace_only')), -- UI preference only, editable in Settings
   status           text NOT NULL DEFAULT 'active',  -- active | suspended | trial
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Loader2, Check, AlertCircle, Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
+import { Loader2, Check, AlertCircle, Eye, EyeOff, ArrowRight, Mail, Briefcase, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   signUpAction,
@@ -16,7 +16,8 @@ import {
   resendConfirmationAction,
 } from "@/app/actions/onboarding";
 
-type Step = "account" | "verify" | "business" | "done";
+type Step = "account" | "verify" | "intent" | "business" | "done";
+type Focus = "full_erp" | "marketplace_only";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
@@ -76,6 +77,9 @@ export default function OnboardingPage() {
   const [accountError, setAccountError] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
 
+  // Intent step
+  const [focus, setFocus] = useState<Focus | null>(null);
+
   // Business step
   const [businessName, setBusinessName] = useState("");
   const [slug, setSlug] = useState("");
@@ -94,7 +98,7 @@ export default function OnboardingPage() {
         redirectToDashboard(existingSlug);
       } else if (authenticated) {
         // Logged in but no workspace yet — skip account creation.
-        setStep("business");
+        setStep("intent");
         setChecking(false);
       } else {
         setChecking(false);
@@ -153,8 +157,13 @@ export default function OnboardingPage() {
         setAccountError(signIn.message ?? "Could not sign in after registration");
         return;
       }
-      setStep("business");
+      setStep("intent");
     });
+  };
+
+  const handleIntentContinue = () => {
+    if (!focus) return;
+    setStep("business");
   };
 
   const handleResend = () => {
@@ -170,7 +179,7 @@ export default function OnboardingPage() {
       return;
     }
     startTransition(async () => {
-      const result = await createBusinessAction({ name: businessName, slug, currency, timezone });
+      const result = await createBusinessAction({ name: businessName, slug, currency, timezone, focus: focus ?? "full_erp" });
       if (!result.success) {
         setBusinessError(result.message ?? "Failed to create workspace");
         return;
@@ -218,8 +227,8 @@ export default function OnboardingPage() {
         </Link>
 
         <div className="space-y-8">
-          {(["account", "business", "done"] as Step[]).map((s, i) => {
-            const steps = ["account", "business", "done"];
+          {(["account", "intent", "business", "done"] as Step[]).map((s, i) => {
+            const steps = ["account", "intent", "business", "done"];
             const effectiveStep = step === "verify" ? "account" : step;
             const currentIndex = steps.indexOf(effectiveStep);
             const thisIndex = steps.indexOf(s);
@@ -240,7 +249,13 @@ export default function OnboardingPage() {
                   className="text-sm"
                   style={{ color: active ? "white" : done ? "#5fa8a0" : "rgba(255,255,255,0.4)" }}
                 >
-                  {s === "account" ? "Create account" : s === "business" ? "Set up workspace" : "All done"}
+                  {s === "account"
+                    ? "Create account"
+                    : s === "intent"
+                    ? "Choose focus"
+                    : s === "business"
+                    ? "Set up workspace"
+                    : "All done"}
                 </span>
               </div>
             );
@@ -387,6 +402,76 @@ export default function OnboardingPage() {
                     className="text-xs text-gray-500 underline underline-offset-4 hover:text-gray-900 disabled:opacity-50"
                   >
                     {resending ? "Resending..." : "Didn't get it? Resend email"}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === "intent" && (
+              <motion.div
+                key="intent"
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <div className="bg-white rounded-2xl p-8" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: "var(--font-canter)" }}>
+                    What brings you to Titunge?
+                  </h1>
+                  <p className="text-sm text-gray-500 mb-6">
+                    This just shapes your dashboard's default menu — you can change it anytime in Settings.
+                  </p>
+
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => setFocus("full_erp")}
+                      className={cn(
+                        "w-full text-left rounded-xl border-2 p-4 flex items-start gap-3 transition-colors",
+                        focus === "full_erp" ? "border-[#5fa8a0] bg-[#5fa8a0]/5" : "border-gray-100 hover:border-gray-200"
+                      )}
+                    >
+                      <Briefcase size={20} className="text-[#5fa8a0] shrink-0 mt-0.5" strokeWidth={1.75} />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Run my business</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Orders, production, customers, inventory, and finance — the full workshop ERP.
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFocus("marketplace_only")}
+                      className={cn(
+                        "w-full text-left rounded-xl border-2 p-4 flex items-start gap-3 transition-colors",
+                        focus === "marketplace_only" ? "border-[#5fa8a0] bg-[#5fa8a0]/5" : "border-gray-100 hover:border-gray-200"
+                      )}
+                    >
+                      <Store size={20} className="text-[#5fa8a0] shrink-0 mt-0.5" strokeWidth={1.75} />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Just sell on the marketplace</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          List products and manage marketplace orders — a simpler dashboard, nothing else.
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleIntentContinue}
+                    disabled={!focus}
+                    className={cn(
+                      "w-full h-11 flex items-center justify-center gap-2 rounded-full text-sm font-semibold text-white transition-opacity mt-6",
+                      !focus ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
+                    )}
+                    style={{ backgroundColor: "#5fa8a0" }}
+                  >
+                    Continue
+                    <ArrowRight size={15} />
                   </button>
                 </div>
               </motion.div>

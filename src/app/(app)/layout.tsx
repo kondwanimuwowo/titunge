@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Bell } from "lucide-react";
 import { getBusinessContext, getMyBusinesses } from "@/lib/business-context";
+import { isPlatformAdmin } from "@/lib/platform-admin";
 import { buildThemeVars } from "@/lib/themes";
 import { getInquiryStats } from "@/lib/data/inquiries";
 import Sidebar from "@/components/layout/Sidebar";
@@ -24,11 +25,12 @@ export default async function AppLayout({
   const { business, businessId, role, userId } = await getBusinessContext();
 
   const supabase = await createClient();
-  const [{ data: { user } }, profileResult, inquiryStats, myBusinesses] = await Promise.all([
+  const [{ data: { user } }, profileResult, inquiryStats, myBusinesses, isAdmin] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from("user_profiles").select("*").eq("id", userId).maybeSingle(),
     getInquiryStats(businessId),
     getMyBusinesses(userId),
+    isPlatformAdmin(),
   ]);
 
   const themeVars = buildThemeVars(business.theme_key);
@@ -47,6 +49,8 @@ export default async function AppLayout({
             logoUrl={business.logo_url}
             newInquiriesCount={inquiryStats.newCount}
             myBusinesses={myBusinesses}
+            isPlatformAdmin={isAdmin}
+            focus={business.focus as "full_erp" | "marketplace_only"}
           />
         }
         notificationBell={

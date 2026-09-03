@@ -67,6 +67,24 @@ export async function updateTheme(themeKey: string): Promise<{ success: boolean;
   return { success: true };
 }
 
+export async function updateBusinessFocus(
+  focus: "full_erp" | "marketplace_only"
+): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("businesses")
+    .update({ focus, updated_at: new Date().toISOString() })
+    .eq("id", businessId);
+
+  if (error) return { success: false, message: error.message };
+
+  revalidatePath("/settings");
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
 export async function uploadLogo(formData: FormData): Promise<{ success: boolean; url?: string; message?: string }> {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
