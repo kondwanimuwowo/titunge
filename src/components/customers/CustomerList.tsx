@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { deleteCustomerAction } from "@/app/actions/customers";
+import { CustomerBulkActions } from "./CustomerBulkActions";
 
 interface CustomerListProps {
   initialCustomers: any[];
@@ -148,6 +149,16 @@ export default function CustomerList({ initialCustomers }: CustomerListProps) {
         filterColumn="name"
         searchPlaceholder="Find customer by name..."
         onRowClick={handleViewCustomer}
+        enableRowSelection
+        renderBulkActions={(selected, clear) => <CustomerBulkActions selected={selected} clearSelection={clear} />}
+        getExportRow={(customer: any) => ({
+          Name: customer.name || "Walk-in",
+          Phone: customer.phone || "",
+          Email: customer.email || "",
+          "Has Measurements": customer.measurements ? "Yes" : "No",
+          Joined: customer.created_at || "",
+        })}
+        exportFilename="customers.csv"
       />
     </div>
   );

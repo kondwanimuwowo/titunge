@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart } from "lucide-react";
 import { ImagePlaceholder } from "./ImagePlaceholder";
 import { ProductCard } from "./ProductCard";
 import { Breadcrumb } from "./Breadcrumb";
+import { WishlistToggleButton } from "./WishlistToggleButton";
 import { useCart } from "./CartProvider";
 import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
@@ -15,12 +15,12 @@ import { formatZmw } from "@/lib/marketplace-currency";
 interface ProductDetailClientProps {
   product: MarketplaceProduct;
   moreFromShop: MarketplaceProduct[];
+  initialWishlisted?: boolean;
 }
 
-export function ProductDetailClient({ product, moreFromShop }: ProductDetailClientProps) {
+export function ProductDetailClient({ product, moreFromShop, initialWishlisted = false }: ProductDetailClientProps) {
   const router = useRouter();
   const { addItem } = useCart();
-  const [fav, setFav] = useState(false);
   const [size, setSize] = useState(product.sizes[0]);
   const images = [product.image, ...product.gallery];
   const [activeImage, setActiveImage] = useState(product.image);
@@ -46,14 +46,9 @@ export function ProductDetailClient({ product, moreFromShop }: ProductDetailClie
         <div>
           <div className="relative aspect-square">
             <ImagePlaceholder shape="rect" className="absolute inset-0 rounded-xl" src={activeImage} alt={product.name} />
-            <button
-              type="button"
-              aria-label={fav ? "Remove from saved" : "Save"}
-              onClick={() => setFav((v) => !v)}
-              className="absolute top-4 right-4 p-1"
-            >
-              <Heart size={24} fill={fav ? "#5fa8a0" : "#ffffff"} stroke={fav ? "#5fa8a0" : "#0e1a18"} strokeWidth={1.5} />
-            </button>
+            <div className="absolute top-4 right-4">
+              <WishlistToggleButton productId={product.id} initialWishlisted={initialWishlisted} />
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-3 mt-3">
             {images.map((src) => (

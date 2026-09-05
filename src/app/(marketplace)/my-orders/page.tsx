@@ -8,17 +8,20 @@ import { useCart } from "@/components/marketplace/CartProvider";
 import { ImagePlaceholder } from "@/components/marketplace/ImagePlaceholder";
 import { StatusBadge } from "@/components/marketplace/StatusBadge";
 import { formatZmw } from "@/lib/marketplace-currency";
+import { createClient } from "@/lib/supabase/client";
 import type { MarketplaceOrder } from "@/data/marketplace-orders";
-
-const SIDEBAR_LINKS = ["Profile", "Orders", "Saved items", "Addresses", "Payment methods", "Sign out"];
 
 export default function OrderHistoryPage() {
   const router = useRouter();
   const { addItem } = useCart();
   const [orders, setOrders] = useState<MarketplaceOrder[] | undefined>(undefined);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     getOrders().then(setOrders);
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => setSignedIn(!!data.user));
   }, []);
 
   const buyAgain = (order: MarketplaceOrder) => {
@@ -35,19 +38,34 @@ export default function OrderHistoryPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-10">
         <aside className="flex flex-col gap-1">
           <p className="text-sm font-bold mb-2">Your account</p>
-          {SIDEBAR_LINKS.map((label) => (
-            <span
-              key={label}
-              className="text-sm rounded-md px-3 py-2"
-              style={label === "Orders" ? { backgroundColor: "#f5f5f5", color: "#0e1a18", fontWeight: 600 } : { color: "#6b7573" }}
-            >
-              {label}
-            </span>
-          ))}
+          <span
+            className="text-sm rounded-md px-3 py-2"
+            style={{ backgroundColor: "#f5f5f5", color: "#0e1a18", fontWeight: 600 }}
+          >
+            Orders (this device)
+          </span>
+          <Link href="/account" className="text-sm rounded-md px-3 py-2 text-[#6b7573] hover:text-[#0e1a18] transition-colors">
+            {signedIn ? "Account overview" : "Sign in for full account"}
+          </Link>
         </aside>
 
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight mb-8">Your orders</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight mb-2">Your orders</h1>
+
+          {signedIn === false && (
+            <div className="mb-6 flex items-center justify-between bg-gray-50 rounded-xl px-5 py-3.5">
+              <p className="text-sm text-gray-600">
+                This list only shows orders placed on this device. Sign in to see orders from anywhere.
+              </p>
+              <Link
+                href="/account/login"
+                className="text-sm font-semibold text-white rounded-full px-5 py-2 whitespace-nowrap ml-4 transition-colors hover:bg-[#4f958d]"
+                style={{ backgroundColor: "#5fa8a0" }}
+              >
+                Sign in
+              </Link>
+            </div>
+          )}
 
           {orders.length === 0 ? (
             <p className="text-sm text-gray-500 py-16 text-center">You haven&apos;t placed any orders yet.</p>

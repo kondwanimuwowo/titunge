@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { deleteOrder } from "@/app/actions/orders";
+import { OrderBulkActions } from "./OrderBulkActions";
 import type { OrderStatus } from "@/lib/types/database";
 
 interface OrderListProps {
@@ -150,6 +151,16 @@ export default function OrderList({ initialOrders }: OrderListProps) {
         filterColumn="order_number"
         searchPlaceholder="Find by order number..."
         onRowClick={handleViewOrder}
+        enableRowSelection
+        renderBulkActions={(selected, clear) => <OrderBulkActions selected={selected} clearSelection={clear} />}
+        getExportRow={(order: any) => ({
+          "Order #": order.order_number,
+          Customer: order.customers?.name || "Walk-in",
+          Status: order.status,
+          Amount: parseFloat(order.total_cost || "0"),
+          "Due Date": order.due_date || "",
+        })}
+        exportFilename="orders.csv"
       />
     </div>
   );

@@ -3,12 +3,18 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
-const CONFIRM_REDIRECT = `https://${APP_DOMAIN}/auth/confirm?next=/onboarding`;
+
+function confirmRedirect(next: string = "/onboarding"): string {
+  return `https://${APP_DOMAIN}/auth/confirm?next=${next}`;
+}
 
 interface SignUpInput {
   fullName: string;
   email: string;
   password: string;
+  /** Where the confirmation link lands post-verification — "/onboarding"
+   *  for a new business, "/account" for a marketplace buyer. */
+  next?: string;
 }
 
 interface CreateBusinessInput {
@@ -28,7 +34,7 @@ export async function signUpAction(
     password: input.password,
     options: {
       data: { full_name: input.fullName },
-      emailRedirectTo: CONFIRM_REDIRECT,
+      emailRedirectTo: confirmRedirect(input.next),
     },
   });
 
@@ -40,13 +46,16 @@ export async function signUpAction(
   return { success: true, needsConfirmation: !data.session };
 }
 
-export async function resendConfirmationAction(email: string): Promise<{ success: boolean; message?: string }> {
+export async function resendConfirmationAction(
+  email: string,
+  next?: string
+): Promise<{ success: boolean; message?: string }> {
   const supabase = await createClient();
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
     options: {
-      emailRedirectTo: CONFIRM_REDIRECT,
+      emailRedirectTo: confirmRedirect(next),
     },
   });
   if (error) return { success: false, message: error.message };

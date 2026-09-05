@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Search } from "lucide-react";
 import { Breadcrumb } from "./Breadcrumb";
 import { ProductCard } from "./ProductCard";
 import type { MarketplaceProduct } from "@/lib/marketplace-db";
@@ -21,7 +22,9 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get("category") ?? "";
+  const initialQuery = searchParams.get("q") ?? "";
   const [sort, setSort] = useState<SortOption>("newest");
+  const [query, setQuery] = useState(initialQuery);
 
   const category = MARKETPLACE_CATEGORIES.find((c) => c.slug === activeCategory);
 
@@ -29,16 +32,33 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
     let list = activeCategory
       ? allProducts.filter((p) => p.categorySlug === activeCategory)
       : allProducts;
+    const q = initialQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.description ?? "").toLowerCase().includes(q) ||
+          p.seller.toLowerCase().includes(q)
+      );
+    }
     list = [...list];
     if (sort === "price-asc") list.sort((a, b) => a.priceZmw - b.priceZmw);
     else if (sort === "price-desc") list.sort((a, b) => b.priceZmw - a.priceZmw);
     return list;
-  }, [allProducts, activeCategory, sort]);
+  }, [allProducts, activeCategory, initialQuery, sort]);
 
   const selectCategory = (slug: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (slug) params.set("category", slug);
     else params.delete("category");
+    router.push(`/browse${params.toString() ? `?${params.toString()}` : ""}`);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams(searchParams.toString());
+    if (query.trim()) params.set("q", query.trim());
+    else params.delete("q");
     router.push(`/browse${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
@@ -117,8 +137,31 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
         </aside>
 
         <div>
+          <form onSubmit={handleSearchSubmit} className="mb-6">
+            <div className="flex items-center w-full max-w-md bg-gray-100 rounded-full pl-5 pr-1.5 py-1.5 gap-3">
+              <input
+                key={initialQuery}
+                type="text"
+                defaultValue={initialQuery}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search fabric, garments, and makers"
+                className="flex-1 bg-transparent border-none outline-none text-sm text-[#0e1a18] placeholder:text-gray-500 py-1.5"
+              />
+              <button
+                type="submit"
+                aria-label="Search"
+                className="flex items-center justify-center shrink-0 w-9 h-9 rounded-full text-white transition-colors"
+                style={{ backgroundColor: "#5fa8a0" }}
+              >
+                <Search size={15} />
+              </button>
+            </div>
+          </form>
+
           <div className="flex items-center justify-between mb-6">
-            <span className="text-sm text-gray-500">{products.length} results</span>
+            <span className="text-sm text-gray-500">
+              {products.length} results{initialQuery ? ` for "${initialQuery}"` : ""}
+            </span>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortOption)}

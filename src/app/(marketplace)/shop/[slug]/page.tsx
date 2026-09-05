@@ -1,6 +1,23 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getMarketplaceSellerBySlug } from "@/lib/marketplace-db";
 import { ShopPageClient } from "@/components/marketplace/ShopPageClient";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await getMarketplaceSellerBySlug(slug);
+  if (!result) return { title: "Shop not found — Titunge" };
+
+  const { seller } = result;
+  const title = `${seller.name} — Titunge Marketplace`;
+  const description = seller.bio || `Shop handmade fashion and made-to-order tailoring from ${seller.name} on Titunge.`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: seller.banner ? [seller.banner] : undefined },
+  };
+}
 
 export default async function ShopPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

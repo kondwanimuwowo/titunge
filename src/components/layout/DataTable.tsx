@@ -13,7 +13,7 @@ import {
   ColumnFiltersState,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { ChevronDown, ArrowUpDown, ArrowUp, ArrowDown, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -70,6 +70,30 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string;
   onRowClick?: (row: TData) => void;
   loading?: boolean;
+  /** Adds a checkbox column and enables the bulk-action toolbar below. */
+  enableRowSelection?: boolean;
+  /** Rendered in place of the toolbar's default content once rows are selected. */
+  renderBulkActions?: (selected: TData[], clearSelection: () => void) => React.ReactNode;
+  /** Enables the "Export CSV" button — maps a row to a flat object of column-name -> value. */
+  getExportRow?: (row: TData) => Record<string, string | number | null | undefined>;
+  exportFilename?: string;
+}
+
+function downloadCsv(filename: string, rows: Record<string, string | number | null | undefined>[]) {
+  if (rows.length === 0) return;
+  const headers = Object.keys(rows[0]);
+  const escape = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const lines = [
+    headers.map(escape).join(","),
+    ...rows.map((row) => headers.map((h) => escape(row[h])).join(",")),
+  ];
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export function DataTable<TData, TValue>({
@@ -79,15 +103,52 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Filter...",
   onRowClick,
   loading = false,
+  enableRowSelection = false,
+  renderBulkActions,
+  getExportRow,
+  exportFilename = "export.csv",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
+  const tableColumns = React.useMemo(() => {
+    if (!enableRowSelection) return columns;
+    const selectColumn: ColumnDef<TData, TValue> = {
+      id: "__select",
+      header: ({ table }) => (
+        <input
+          type="checkbox"
+          checked={table.getIsAllPageRowsSelected()}
+          ref={(el) => {
+            if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
+          }}
+          onChange={(e) => table.toggleAllPageRowsSelected(e.target.checked)}
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Select all rows on this page"
+          className="accent-primary h-3.5 w-3.5"
+        />
+      ),
+      cell: ({ row }) => (
+        <input
+          type="checkbox"
+          checked={row.getIsSelected()}
+          onChange={(e) => row.toggleSelected(e.target.checked)}
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Select row"
+          className="accent-primary h-3.5 w-3.5"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    };
+    return [selectColumn, ...columns];
+  }, [columns, enableRowSelection]);
+
   const table = useReactTable({
     data,
-    columns,
+    columns: tableColumns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -103,6 +164,8 @@ export function DataTable<TData, TValue>({
       rowSelection,
     },
   });
+
+  const selectedRows = table.getFilteredSelectedRowModel().rows.map((r) => r.original);
 
   if (loading) {
     return <TableSkeleton />;
@@ -123,9 +186,19 @@ export function DataTable<TData, TValue>({
             aria-label={searchPlaceholder}
           />
         </div>
+        {getExportRow && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto bg-background gap-1.5"
+            onClick={() => downloadCsv(exportFilename, table.getFilteredRowModel().rows.map((r) => getExportRow(r.original)))}
+          >
+            <Download className="h-3.5 w-3.5" /> Export CSV
+          </Button>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="ml-auto bg-background" aria-label="Toggle column visibility">
+            <Button variant="outline" size="sm" className={getExportRow ? "bg-background" : "ml-auto bg-background"} aria-label="Toggle column visibility">
               View Columns <ChevronDown className="ml-2 h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
@@ -150,6 +223,12 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {enableRowSelection && selectedRows.length > 0 && renderBulkActions && (
+        <div className="flex items-center gap-3 px-5 py-2.5 border-b border-border/60 bg-primary/5">
+          <span className="text-sm font-medium text-primary">{selectedRows.length} selected</span>
+          {renderBulkActions(selectedRows, () => setRowSelection({}))}
+        </div>
+      )}
       <div className="bg-card">
         <Table>
           <TableHeader>

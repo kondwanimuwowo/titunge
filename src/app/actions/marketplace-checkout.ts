@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { getMarketplaceProductById } from "@/lib/marketplace-db";
 import {
   initiateMobileMoneyCollection,
@@ -60,6 +60,14 @@ export async function createPendingOrderAction(params: {
 
   const admin = createAdminClient();
 
+  // If the buyer is signed in, associate the order with their account so it
+  // shows up on /account without relying on the localStorage pointer list.
+  // Guest checkout (no session) is unaffected — buyer_user_id stays null.
+  const supabase = await createClient();
+  const {
+    data: { user: buyerUser },
+  } = await supabase.auth.getUser();
+
   const reference = generatePaymentReference();
 
   let orderNumber = "";
@@ -68,6 +76,7 @@ export async function createPendingOrderAction(params: {
     const result = await (admin.from("marketplace_orders") as any)
       .insert({
         order_number: attemptNumber,
+        buyer_user_id: buyerUser?.id ?? null,
         buyer_name: params.shippingDetails.fullName,
         buyer_email: params.buyerEmail || null,
         buyer_phone: params.shippingDetails.phone,

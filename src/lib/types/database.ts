@@ -804,6 +804,7 @@ export type Database = {
       }
       marketplace_orders: {
         Row: {
+          buyer_user_id: string | null
           buyer_email: string | null
           buyer_name: string
           buyer_phone: string
@@ -825,6 +826,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          buyer_user_id?: string | null
           buyer_email?: string | null
           buyer_name: string
           buyer_phone: string
@@ -846,6 +848,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          buyer_user_id?: string | null
           buyer_email?: string | null
           buyer_name?: string
           buyer_phone?: string
@@ -1045,6 +1048,27 @@ export type Database = {
           lenco_reference?: string | null
           created_at?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      marketplace_wishlists: {
+        Row: {
+          id: string
+          user_id: string
+          product_id: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          product_id: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          product_id?: string
+          created_at?: string | null
         }
         Relationships: []
       }

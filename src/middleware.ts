@@ -43,6 +43,7 @@ const PUBLIC_PREFIXES = [
   "/checkout",
   "/order-confirmation",
   "/my-orders",
+  "/account",
   "/shop",
   "/product",
   "/privacy",

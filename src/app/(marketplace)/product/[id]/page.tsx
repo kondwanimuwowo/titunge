@@ -1,6 +1,24 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getMarketplaceProductById, getMarketplaceSellerBySlug } from "@/lib/marketplace-db";
+import { getWishlistedProductIds } from "@/app/actions/marketplace-wishlist";
 import { ProductDetailClient } from "@/components/marketplace/ProductDetailClient";
+import { formatZmw } from "@/lib/marketplace-currency";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getMarketplaceProductById(id);
+  if (!product) return { title: "Product not found — Titunge" };
+
+  const title = `${product.name} — ${product.seller} | Titunge Marketplace`;
+  const description = `${product.description.slice(0, 155)} ${formatZmw(product.priceZmw)}, by ${product.seller} on Titunge.`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: [product.image] },
+  };
+}
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -26,6 +44,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   const shopResult = product.sellerSlug ? await getMarketplaceSellerBySlug(product.sellerSlug) : null;
   const moreFromShop = (shopResult?.products ?? []).filter((p) => p.id !== product.id);
+  const wishlistedIds = await getWishlistedProductIds();
 
-  return <ProductDetailClient product={product} moreFromShop={moreFromShop} />;
+  return (
+    <ProductDetailClient
+      product={product}
+      moreFromShop={moreFromShop}
+      initialWishlisted={wishlistedIds.includes(product.id)}
+    />
+  );
 }
