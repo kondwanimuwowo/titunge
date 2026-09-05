@@ -151,24 +151,34 @@ export async function getMarketplaceProductById(id: string): Promise<Marketplace
 export async function getFeaturedProducts(limit = 8): Promise<MarketplaceProduct[]> {
   const admin = createAdminClient();
 
+  // Pull a larger candidate pool than `limit` so that prioritizing products
+  // with a real photo (below) has something to actually pick from, instead
+  // of just re-sorting whatever the first `limit` rows happened to be.
+  const candidatePoolSize = Math.max(limit * 3, 24);
+
   const { data: featuredRows } = await (activeProductsQuery(admin) as any)
     .eq("product_storefront_extra.featured", true)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(candidatePoolSize);
 
   const featured = (featuredRows ?? []).map(toMarketplaceProduct);
-  if (featured.length >= limit) return featured;
 
   const { data: newestRows } = await (activeProductsQuery(admin) as any)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(candidatePoolSize);
 
   const seen = new Set(featured.map((p: MarketplaceProduct) => p.id));
   const filler = (newestRows ?? [])
     .map(toMarketplaceProduct)
     .filter((p: MarketplaceProduct) => !seen.has(p.id));
 
-  return [...featured, ...filler].slice(0, limit);
+  // Stable sort: products with a real photo first, but otherwise keeping
+  // the existing order (featured-before-filler, newest-first within each).
+  const combined = [...featured, ...filler].sort(
+    (a, b) => Number(Boolean(b.image)) - Number(Boolean(a.image))
+  );
+
+  return combined.slice(0, limit);
 }
 
 export async function getMarketplaceSellers(): Promise<MarketplaceSeller[]> {
