@@ -8,9 +8,9 @@ import { formatZmw } from "@/lib/marketplace-currency";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const product = await getMarketplaceProductById(id);
-  if (!product) return { title: "Product not found — Titunge" };
+  if (!product) return { title: "Product not found | Titunge" };
 
-  const title = `${product.name} — ${product.seller} | Titunge Marketplace`;
+  const title = `${product.name} by ${product.seller} | Titunge Marketplace`;
   const description = `${product.description.slice(0, 155)} ${formatZmw(product.priceZmw)}, by ${product.seller} on Titunge.`;
 
   return {

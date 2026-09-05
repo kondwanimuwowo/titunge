@@ -129,11 +129,11 @@ export default function CheckoutPaymentPage() {
         setError("Payment was not successful. You can try again.");
         return;
       }
-      // still pending — keep polling
+      // still pending, keep polling
     }
     setPhase("failed");
     setError(
-      "We couldn't confirm the payment in time. If you approved it on your phone, your order is still recorded — check My Orders shortly, or try again."
+      "We couldn't confirm the payment in time. If you approved it on your phone, your order is still recorded. Check My Orders shortly, or try again."
     );
   };
 
@@ -164,12 +164,12 @@ export default function CheckoutPaymentPage() {
 
     if (!LENCO_PUBLIC_KEY) {
       setPhase("failed");
-      setError("Card payment isn't configured yet — use mobile money instead.");
+      setError("Card payment isn't configured yet. Use mobile money instead.");
       return;
     }
     if (!window.LencoPay) {
       setPhase("failed");
-      setError("Payment widget is still loading — try again in a moment.");
+      setError("Payment widget is still loading. Try again in a moment.");
       return;
     }
 
@@ -284,7 +284,7 @@ export default function CheckoutPaymentPage() {
           ) : (
             <div className="flex flex-col gap-5">
               <p className="text-sm text-gray-600">
-                You'll be taken to a secure Lenco checkout to enter your card details.
+                You&apos;ll be taken to a secure Lenco checkout to enter your card details.
               </p>
 
               {error && (

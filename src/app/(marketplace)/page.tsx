@@ -7,7 +7,7 @@ import { DualCta } from "@/components/marketplace/DualCta";
 import { getFeaturedProducts, getMarketplaceSellers } from "@/lib/marketplace-db";
 
 export const metadata: Metadata = {
-  title: "Titunge — Handmade fashion and tailoring, made in Africa",
+  title: "Titunge: handmade fashion and tailoring, made in Africa",
   description: "Fabric, garments, and custom pieces from independent makers across Africa.",
 };
 
