@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Minus, Plus, X } from "lucide-react";
+import { ChevronLeft, Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/components/marketplace/CartProvider";
 import { ImagePlaceholder } from "@/components/marketplace/ImagePlaceholder";
 import { OrderSummaryPanel } from "@/components/marketplace/OrderSummaryPanel";
@@ -20,6 +20,10 @@ export default function CartPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 lg:px-12 py-10">
+      <Link href="/browse" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-[#0e1a18] mb-4 transition-colors">
+        <ChevronLeft size={16} />
+        Continue shopping
+      </Link>
       <h1 className="text-3xl font-extrabold tracking-tight mb-8">Your basket</h1>
 
       {lines.length === 0 ? (

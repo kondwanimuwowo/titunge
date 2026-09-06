@@ -4,15 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Search } from "lucide-react";
+import { Search, ShoppingBag } from "lucide-react";
 import { getMyBusinessSlug } from "@/app/actions/onboarding";
+import { useCart } from "./CartProvider";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
 export function MarketplaceNav() {
   const router = useRouter();
+  const { items, hydrated } = useCart();
   const [businessUrl, setBusinessUrl] = useState("/business");
   const [query, setQuery] = useState("");
+  const cartCount = items.reduce((sum, line) => sum + line.qty, 0);
 
   useEffect(() => {
     getMyBusinessSlug().then(({ slug }) => {
@@ -59,6 +62,17 @@ export function MarketplaceNav() {
         </div>
 
         <div className="flex items-center gap-6 shrink-0 ml-auto md:ml-0">
+          <Link href="/cart" aria-label="Your basket" className="relative flex items-center text-[#0e1a18] hover:text-[#5fa8a0] transition-colors">
+            <ShoppingBag size={20} />
+            {hydrated && cartCount > 0 && (
+              <span
+                className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white"
+                style={{ backgroundColor: "#5fa8a0" }}
+              >
+                {cartCount > 9 ? "9+" : cartCount}
+              </span>
+            )}
+          </Link>
           <Link href="/account" className="hidden sm:inline text-sm font-semibold text-[#0e1a18] hover:text-[#5fa8a0] transition-colors whitespace-nowrap">
             Account
           </Link>
