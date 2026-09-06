@@ -416,6 +416,8 @@ CREATE TABLE public.marketplace_orders (
   shipping_address  jsonb NOT NULL DEFAULT '{}'::jsonb,
   subtotal          numeric NOT NULL,
   delivery_fee      numeric NOT NULL DEFAULT 0,
+  promo_code        text,
+  discount_amount   numeric NOT NULL DEFAULT 0,
   total             numeric NOT NULL,
   currency          text NOT NULL DEFAULT 'ZMW',
   status            text NOT NULL DEFAULT 'awaiting_payment'
@@ -617,6 +619,25 @@ ALTER TABLE public.platform_settings ENABLE ROW LEVEL SECURITY;
 -- service-role client after a requirePlatformAdminContext() check.
 CREATE POLICY "authenticated_read_platform_settings" ON public.platform_settings
   FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Marketplace-wide promo codes (not per-seller). Redeemed and recomputed
+-- entirely server-side in createPendingOrderAction, same "never trust
+-- client-submitted totals" rule already enforced there.
+CREATE TABLE public.promo_codes (
+  id             uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code           text NOT NULL UNIQUE,
+  discount_type  text NOT NULL CHECK (discount_type IN ('percent', 'fixed')),
+  discount_value numeric NOT NULL,
+  max_uses       integer,
+  use_count      integer NOT NULL DEFAULT 0,
+  expires_at     timestamptz,
+  active         boolean NOT NULL DEFAULT true,
+  created_at     timestamptz DEFAULT now(),
+  updated_at     timestamptz DEFAULT now()
+);
+
+-- No public RLS policy — service-role only, same treatment as platform_settings writes.
+ALTER TABLE public.promo_codes ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================
 -- MARKETPLACE SELLER PAYOUTS

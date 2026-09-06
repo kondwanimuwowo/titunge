@@ -23,6 +23,7 @@ import {
   Wallet,
   CreditCard,
   ListOrdered,
+  LineChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/types/database";
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { path: "/products",   icon: Shirt,           label: "Products",   roles: ["admin", "manager"] },
   { path: "/orders",     icon: ShoppingCart,    label: "Orders",     roles: ["admin", "manager", "employee"] },
   { path: "/marketplace-orders", icon: Store,   label: "Marketplace Orders", roles: ["admin", "manager"] },
+  { path: "/marketplace-analytics", icon: LineChart, label: "Marketplace Sales", roles: ["admin", "manager"] },
   { path: "/inquiries",  icon: MessageSquare,   label: "Inquiries",  roles: ["admin", "manager"] },
   { path: "/production", icon: Scissors,        label: "Production", roles: ["admin", "manager", "employee"] },
   { path: "/employees",  icon: Users,           label: "Employees",  roles: ["admin", "manager"] },
@@ -54,7 +56,7 @@ const PLATFORM_ADMIN_ITEMS = [
 // A business set up for "just sell on the marketplace" gets a decluttered
 // default menu — soft preference only, nothing is actually blocked if they
 // navigate to a full-ERP page directly, and it's editable in Settings.
-const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/marketplace-orders", "/settings"]);
+const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/marketplace-orders", "/marketplace-analytics", "/settings"]);
 
 interface SidebarNavProps {
   role: UserRole;

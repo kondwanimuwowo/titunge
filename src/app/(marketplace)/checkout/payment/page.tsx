@@ -12,6 +12,7 @@ import {
   createPendingOrderAction,
   initiateMobileMoneyPaymentAction,
   checkOrderPaymentStatusAction,
+  previewPromoCodeAction,
 } from "@/app/actions/marketplace-checkout";
 
 const OPERATORS: { value: "airtel" | "mtn" | "zamtel"; label: string }[] = [
@@ -57,6 +58,10 @@ export default function CheckoutPaymentPage() {
   const [phase, setPhase] = useState<PaymentPhase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
   const orderRef = useRef<{ orderId: string; orderNumber: string; reference: string } | null>(null);
   const pollCancelled = useRef(false);
@@ -87,6 +92,23 @@ export default function CheckoutPaymentPage() {
     };
   });
 
+  const displayTotal = Math.max(0, total - (appliedPromo?.discount ?? 0));
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setPromoError(null);
+    setIsApplyingPromo(true);
+    const result = await previewPromoCodeAction(promoInput, subtotal);
+    setIsApplyingPromo(false);
+
+    if (!result.success || result.discountAmount == null) {
+      setPromoError(result.message || "That promo code isn't valid.");
+      setAppliedPromo(null);
+      return;
+    }
+    setAppliedPromo({ code: promoInput.trim().toUpperCase(), discount: result.discountAmount });
+  };
+
   /** Creates the real pending order once, reusing it across retries/method switches. */
   const ensureOrder = async () => {
     if (orderRef.current) return orderRef.current;
@@ -96,6 +118,7 @@ export default function CheckoutPaymentPage() {
       items: items.map((i) => ({ productId: i.productId, size: i.size, qty: i.qty })),
       shippingDetails,
       buyerEmail: shippingDetails.email,
+      promoCode: appliedPromo?.code,
     });
 
     if (!result.success || !result.orderId || !result.orderNumber || !result.reference) {
@@ -181,7 +204,7 @@ export default function CheckoutPaymentPage() {
         key: LENCO_PUBLIC_KEY,
         reference: order.reference,
         email: shippingDetails?.email ?? "",
-        amount: total,
+        amount: displayTotal,
         currency: "ZMW",
         channels: ["card"],
         customer: { firstName, lastName: rest.join(" "), phone: shippingDetails?.phone },
@@ -260,11 +283,11 @@ export default function CheckoutPaymentPage() {
               {phase === "awaiting-approval" || phase === "polling" ? (
                 <div className="bg-primary/5 border border-primary/20 rounded-md p-4 text-sm text-gray-700 flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-primary animate-pulse shrink-0" />
-                  Check your phone to approve the payment of {formatZmw(total)}...
+                  Check your phone to approve the payment of {formatZmw(displayTotal)}...
                 </div>
               ) : (
                 <div className="bg-gray-50 rounded-md p-4 text-sm text-gray-600">
-                  You will get a prompt on your phone to approve the payment of {formatZmw(total)}.
+                  You will get a prompt on your phone to approve the payment of {formatZmw(displayTotal)}.
                 </div>
               )}
 
@@ -278,7 +301,7 @@ export default function CheckoutPaymentPage() {
                 className="w-fit text-white text-sm font-bold rounded-full px-8 py-3.5 transition-colors hover:bg-[#4f958d] disabled:opacity-60"
                 style={{ backgroundColor: "#5fa8a0" }}
               >
-                {busy ? "Waiting for approval..." : `Pay ${formatZmw(total)}`}
+                {busy ? "Waiting for approval..." : `Pay ${formatZmw(displayTotal)}`}
               </button>
             </form>
           ) : (
@@ -298,13 +321,58 @@ export default function CheckoutPaymentPage() {
                 className="w-fit text-white text-sm font-bold rounded-full px-8 py-3.5 transition-colors hover:bg-[#4f958d] disabled:opacity-60"
                 style={{ backgroundColor: "#5fa8a0" }}
               >
-                {busy ? "Waiting for payment..." : `Pay ${formatZmw(total)} with card`}
+                {busy ? "Waiting for payment..." : `Pay ${formatZmw(displayTotal)} with card`}
               </button>
             </div>
           )}
         </div>
 
-        <OrderSummaryPanel items={summaryItems} subtotal={subtotal} delivery={delivery} total={total} />
+        <OrderSummaryPanel
+          items={summaryItems}
+          subtotal={subtotal}
+          delivery={delivery}
+          total={displayTotal}
+          discount={appliedPromo?.discount ?? 0}
+          discountLabel={appliedPromo ? `Promo (${appliedPromo.code})` : undefined}
+          promoSlot={
+            appliedPromo ? (
+              <div className="flex items-center justify-between bg-[#5fa8a0]/10 border border-[#5fa8a0]/30 rounded-md px-3 py-2 text-sm">
+                <span className="font-semibold text-[#0e1a18]">{appliedPromo.code} applied</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAppliedPromo(null);
+                    setPromoInput("");
+                  }}
+                  className="text-xs font-semibold text-gray-500 hover:text-gray-700"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                <div className="flex gap-2">
+                  <input
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value)}
+                    placeholder="Promo code"
+                    disabled={isApplyingPromo || busy}
+                    className="flex-1 text-sm border border-gray-200 rounded-md px-3 py-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    disabled={isApplyingPromo || busy || !promoInput.trim()}
+                    className="text-sm font-semibold rounded-md px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    {isApplyingPromo ? "Checking..." : "Apply"}
+                  </button>
+                </div>
+                {promoError && <p className="text-xs text-red-600">{promoError}</p>}
+              </div>
+            )
+          }
+        />
       </div>
     </div>
   );

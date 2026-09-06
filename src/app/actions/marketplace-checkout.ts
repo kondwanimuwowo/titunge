@@ -12,6 +12,7 @@ import {
 import { DELIVERY_FEE_ZMW } from "@/data/marketplace-orders";
 import { createFulfillmentRowsForOrder } from "@/lib/marketplace-fulfillments";
 import { insertWithOrderNumberRetry } from "@/lib/marketplace-order-number";
+import { computeDiscount, isPromoCodeValid } from "@/lib/marketplace-promo";
 
 interface CartLineInput {
   productId: string;
@@ -32,10 +33,32 @@ function generatePaymentReference(): string {
   return `TG-PAY-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
+/** Checks a promo code and returns the discount it would grant, without
+ *  claiming the redemption — lets checkout show a live total before the
+ *  buyer actually pays. The real claim happens in createPendingOrderAction,
+ *  right when the order is created. */
+export async function previewPromoCodeAction(
+  code: string,
+  subtotal: number
+): Promise<{ success: boolean; message?: string; discountAmount?: number }> {
+  const normalizedCode = code.trim().toUpperCase();
+  if (!normalizedCode) return { success: false, message: "Enter a promo code." };
+
+  const admin = createAdminClient();
+  const { data: promo } = await (admin.from("promo_codes") as any).select("*").eq("code", normalizedCode).maybeSingle();
+
+  if (!promo || !isPromoCodeValid(promo)) {
+    return { success: false, message: "That promo code isn't valid or has expired." };
+  }
+
+  return { success: true, discountAmount: computeDiscount(subtotal, promo) };
+}
+
 export async function createPendingOrderAction(params: {
   items: CartLineInput[];
   shippingDetails: ShippingDetailsInput;
   buyerEmail?: string;
+  promoCode?: string;
 }): Promise<{ success: boolean; message?: string; orderId?: string; orderNumber?: string; reference?: string; total?: number }> {
   if (params.items.length === 0) {
     return { success: false, message: "Your basket is empty." };
@@ -56,9 +79,39 @@ export async function createPendingOrderAction(params: {
 
   const subtotal = validItems.reduce((sum, { line, product }) => sum + product.priceZmw * line.qty, 0);
   const deliveryFee = DELIVERY_FEE_ZMW;
-  const total = subtotal + deliveryFee;
 
   const admin = createAdminClient();
+
+  // The code itself comes from the client, but the discount it grants never
+  // does — recomputed here and the redemption claimed atomically, same
+  // "never trust the client" rule already enforced on subtotal/total above.
+  let appliedPromoCode: string | null = null;
+  let discountAmount = 0;
+
+  if (params.promoCode?.trim()) {
+    const normalizedCode = params.promoCode.trim().toUpperCase();
+    const { data: promo } = await (admin.from("promo_codes") as any).select("*").eq("code", normalizedCode).maybeSingle();
+
+    if (!promo || !isPromoCodeValid(promo)) {
+      return { success: false, message: "That promo code isn't valid or has expired." };
+    }
+
+    const { data: claimed } = await (admin.from("promo_codes") as any)
+      .update({ use_count: promo.use_count + 1, updated_at: new Date().toISOString() })
+      .eq("id", promo.id)
+      .eq("use_count", promo.use_count)
+      .select("id")
+      .maybeSingle();
+
+    if (!claimed) {
+      return { success: false, message: "That promo code just ran out. Try checking out without it." };
+    }
+
+    appliedPromoCode = normalizedCode;
+    discountAmount = computeDiscount(subtotal, promo);
+  }
+
+  const total = subtotal - discountAmount + deliveryFee;
 
   // If the buyer is signed in, associate the order with their account so it
   // shows up on /account without relying on the localStorage pointer list.
@@ -88,6 +141,8 @@ export async function createPendingOrderAction(params: {
         },
         subtotal,
         delivery_fee: deliveryFee,
+        promo_code: appliedPromoCode,
+        discount_amount: discountAmount,
         total,
         payment_reference: reference,
       })
@@ -98,6 +153,20 @@ export async function createPendingOrderAction(params: {
 
   if (orderError || !order) {
     console.error("createPendingOrderAction error:", orderError);
+    if (appliedPromoCode) {
+      // Release the redemption claimed above — no order was actually created.
+      // A rare failure path, so a fetch-then-decrement is fine here even
+      // though the redemption claim itself uses a stricter compare-and-swap.
+      const { data: current } = await (admin.from("promo_codes") as any)
+        .select("id, use_count")
+        .eq("code", appliedPromoCode)
+        .maybeSingle();
+      if (current) {
+        await (admin.from("promo_codes") as any)
+          .update({ use_count: Math.max(0, current.use_count - 1) })
+          .eq("id", current.id);
+      }
+    }
     return { success: false, message: orderError?.message || "Failed to create order." };
   }
 

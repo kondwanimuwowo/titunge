@@ -15,12 +15,17 @@ interface OrderSummaryPanelProps {
   items?: OrderSummaryItem[];
   subtotal: number;
   delivery: number;
+  /** Positive amount taken off the total by a promo code, if any. */
+  discount?: number;
+  discountLabel?: string;
   total: number;
   cta?: ReactNode;
   footnote?: string;
+  /** Slot for a promo code input, rendered above the totals. */
+  promoSlot?: ReactNode;
 }
 
-export function OrderSummaryPanel({ items, subtotal, delivery, total, cta, footnote }: OrderSummaryPanelProps) {
+export function OrderSummaryPanel({ items, subtotal, delivery, discount = 0, discountLabel, total, cta, footnote, promoSlot }: OrderSummaryPanelProps) {
   return (
     <div className="sticky top-[104px] bg-white rounded-xl shadow-[0_2px_12px_rgba(14,26,24,0.10)] p-6 flex flex-col gap-4 self-start">
       <h2 className="text-lg font-bold">Order summary</h2>
@@ -40,6 +45,8 @@ export function OrderSummaryPanel({ items, subtotal, delivery, total, cta, footn
         </div>
       )}
 
+      {promoSlot}
+
       <div className="flex flex-col gap-2 text-sm">
         <div className="flex justify-between text-gray-600">
           <span>Subtotal</span>
@@ -49,6 +56,12 @@ export function OrderSummaryPanel({ items, subtotal, delivery, total, cta, footn
           <span>Delivery</span>
           <span>{formatZmw(delivery)}</span>
         </div>
+        {discount > 0 && (
+          <div className="flex justify-between text-[#5fa8a0] font-medium">
+            <span>{discountLabel ?? "Promo"}</span>
+            <span>-{formatZmw(discount)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-100">
           <span>Total</span>
           <span>{formatZmw(total)}</span>

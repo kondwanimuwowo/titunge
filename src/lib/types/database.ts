@@ -811,6 +811,8 @@ export type Database = {
           created_at: string | null
           currency: string
           delivery_fee: number
+          promo_code: string | null
+          discount_amount: number
           delivered_at: string | null
           id: string
           lenco_reference: string | null
@@ -833,6 +835,8 @@ export type Database = {
           created_at?: string | null
           currency?: string
           delivery_fee?: number
+          promo_code?: string | null
+          discount_amount?: number
           delivered_at?: string | null
           id?: string
           lenco_reference?: string | null
@@ -855,6 +859,8 @@ export type Database = {
           created_at?: string | null
           currency?: string
           delivery_fee?: number
+          promo_code?: string | null
+          discount_amount?: number
           delivered_at?: string | null
           id?: string
           lenco_reference?: string | null
@@ -1069,6 +1075,45 @@ export type Database = {
           user_id?: string
           product_id?: string
           created_at?: string | null
+        }
+        Relationships: []
+      }
+      promo_codes: {
+        Row: {
+          id: string
+          code: string
+          discount_type: string
+          discount_value: number
+          max_uses: number | null
+          use_count: number
+          expires_at: string | null
+          active: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          code: string
+          discount_type: string
+          discount_value: number
+          max_uses?: number | null
+          use_count?: number
+          expires_at?: string | null
+          active?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          code?: string
+          discount_type?: string
+          discount_value?: number
+          max_uses?: number | null
+          use_count?: number
+          expires_at?: string | null
+          active?: boolean
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
