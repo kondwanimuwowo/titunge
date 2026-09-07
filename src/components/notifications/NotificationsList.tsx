@@ -145,7 +145,7 @@ export default function NotificationsList({ initialNotifications }: Notification
       </div>
 
       {/* Notifications card */}
-      <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-lg border border-border shadow-md overflow-hidden">
         {filtered.length === 0 ? (
           <div className="py-14 text-center">
             <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
@@ -169,7 +169,7 @@ export default function NotificationsList({ initialNotifications }: Notification
                 {/* Icon circle */}
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    !notification.read ? "bg-white shadow-sm border border-border/60" : "bg-muted"
+                    !notification.read ? "bg-card shadow-md border border-border/60" : "bg-muted"
                   }`}
                 >
                   {getIcon(notification.type)}

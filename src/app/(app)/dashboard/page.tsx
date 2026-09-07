@@ -89,7 +89,7 @@ export default async function DashboardPage() {
       {/* Bottom Lists */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Recent Orders */}
-        <div className="xl:col-span-2 bg-card border border-border rounded-xl p-6 shadow-sm">
+        <div className="xl:col-span-2 bg-card border border-border rounded-xl p-6 shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground">Recent Orders</h3>
             <Link href="/orders" className="text-sm text-primary hover:underline">
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
 
         <div className="space-y-6">
           {/* Low Stock Alerts */}
-          <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+          <div className="bg-card border border-border rounded-xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 {data.inventory.lowStockCount > 0 && <AlertCircle className="text-red-500 h-4 w-4" />}
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Today's Attendance Summarized */}
-          <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+          <div className="bg-card border border-border rounded-xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
                <h3 className="font-semibold text-foreground">Today's Attendance</h3>
                <span className="text-xs font-medium px-2.5 py-1 bg-muted rounded-full">

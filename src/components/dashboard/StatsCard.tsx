@@ -4,17 +4,19 @@ import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Every stat icon shares the brand teal so the row reads as one set — red is
+// the sole exception, reserved for warning states like low stock.
 const iconColorClasses = {
-  blue: "bg-blue-50 text-blue-500",
-  green: "bg-emerald-50 text-emerald-500",
+  blue: "bg-primary/10 text-primary",
+  green: "bg-primary/10 text-primary",
   red: "bg-red-50 text-red-500",
-  yellow: "bg-amber-50 text-amber-600",
-  purple: "bg-purple-50 text-purple-500",
-  orange: "bg-orange-50 text-orange-500",
-  pink: "bg-pink-50 text-pink-500",
-  indigo: "bg-indigo-50 text-indigo-500",
-  cyan: "bg-cyan-50 text-cyan-500",
-  default: "bg-muted/30 text-muted-foreground/60",
+  yellow: "bg-primary/10 text-primary",
+  purple: "bg-primary/10 text-primary",
+  orange: "bg-primary/10 text-primary",
+  pink: "bg-primary/10 text-primary",
+  indigo: "bg-primary/10 text-primary",
+  cyan: "bg-primary/10 text-primary",
+  default: "bg-primary/10 text-primary",
 } as const;
 
 type ColorKey = keyof typeof iconColorClasses;
@@ -47,7 +49,7 @@ export default function StatsCard({
       transition={{ delay, duration: 0.2 }}
       className="h-full w-full"
     >
-      <div className="bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 h-full relative overflow-hidden p-4">
+      <div className="bg-card border border-border rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 h-full relative overflow-hidden p-4">
         <div className="flex flex-col h-full">
           <p className="text-xs text-muted-foreground mb-0.5 font-medium">
             {title}

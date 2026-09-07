@@ -262,7 +262,7 @@ export default function FinanceTabs({
       )}
     >
       {/* Period Selector Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-card border border-border rounded-xl shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-card border border-border rounded-xl shadow-md">
         {/* Period type toggle */}
         <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
           {(["monthly", "quarterly", "annual"] as PeriodType[]).map((t) => (
@@ -412,7 +412,7 @@ export default function FinanceTabs({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Financial Breakdown table */}
-            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-card border border-border rounded-xl shadow-md overflow-hidden">
               <div className="px-5 py-4 border-b border-border">
                 <p className="font-semibold text-foreground text-sm">Financial Breakdown</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{periodLabel}</p>
@@ -479,7 +479,7 @@ export default function FinanceTabs({
             </div>
 
             {/* Order Status */}
-            <div className="bg-card border border-border rounded-xl shadow-sm">
+            <div className="bg-card border border-border rounded-xl shadow-md">
               <div className="px-5 py-4 border-b border-border">
                 <p className="font-semibold text-foreground text-sm">Order Status</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{periodLabel}</p>

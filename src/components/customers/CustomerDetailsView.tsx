@@ -97,7 +97,7 @@ export default function CustomerDetailsView({
         {/* Left Column - Details */}
         <div className="lg:col-span-2 space-y-6">
           {/* Contact Information */}
-          <Card className="rounded-xl border-border/60 shadow-sm overflow-hidden">
+          <Card className="rounded-xl border-border/60 shadow-md overflow-hidden">
             <CardHeader className="bg-muted/30 border-b border-border/40 py-4">
                 <CardTitle className="flex items-center gap-2 text-base font-bold">
                     <User size={18} className="text-primary" />
@@ -156,7 +156,7 @@ export default function CustomerDetailsView({
           </Card>
 
           {/* Measurements */}
-          <Card className="rounded-xl border-border/60 shadow-sm overflow-hidden">
+          <Card className="rounded-xl border-border/60 shadow-md overflow-hidden">
             <CardHeader className="bg-muted/30 border-b border-border/40 py-4 flex flex-row items-center justify-between space-y-0">
                  <CardTitle className="flex items-center gap-2 text-base font-bold">
                     <Ruler size={18} className="text-primary" />
@@ -179,7 +179,7 @@ export default function CustomerDetailsView({
                     {Object.entries(customer.measurements)
                     .filter(([key]) => key !== "notes")
                     .map(([key, value]) => (
-                        <div key={key} className="p-3 rounded-xl border border-border/40 bg-card hover:bg-muted/20 transition-colors shadow-sm">
+                        <div key={key} className="p-3 rounded-xl border border-border/40 bg-card hover:bg-muted/20 transition-colors shadow-md">
                             <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1.5 truncate" title={key.replace(/_/g, " ")}>
                                 {key.replace(/_/g, " ")}
                             </p>
@@ -210,7 +210,7 @@ export default function CustomerDetailsView({
           </Card>
 
           {/* Order History */}
-          <Card className="rounded-xl border-border/60 shadow-sm overflow-hidden">
+          <Card className="rounded-xl border-border/60 shadow-md overflow-hidden">
             <CardHeader className="bg-muted/30 border-b border-border/40 py-4">
                 <CardTitle className="flex items-center gap-2 text-base font-bold">
                     <ShoppingCart size={18} className="text-primary" />
@@ -227,7 +227,7 @@ export default function CustomerDetailsView({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => handleOrderClick(order.id)}
-                        className="group flex flex-col md:flex-row md:items-center justify-between p-5 bg-card rounded-xl border border-border/60 hover:border-primary/40 hover:shadow-md transition-all duration-300 cursor-pointer"
+                        className="group flex flex-col md:flex-row md:items-center justify-between p-5 bg-card rounded-xl border border-border/60 shadow-md hover:border-primary/40 hover:shadow-lg transition-all duration-300 cursor-pointer"
                     >
                         <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -283,7 +283,7 @@ export default function CustomerDetailsView({
           {stats && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                <Card className="rounded-xl border-l-4 border-l-primary border-border/60 shadow-sm bg-card hover:shadow-md transition-shadow cursor-default overflow-hidden">
+                <Card className="rounded-xl border-l-4 border-l-primary border-border/60 shadow-md bg-card hover:shadow-lg transition-shadow cursor-default overflow-hidden">
                     <CardContent className="p-5">
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Revenue Generated</p>
                         <div className="flex items-baseline gap-1">
@@ -299,7 +299,7 @@ export default function CustomerDetailsView({
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-xl border-l-4 border-l-blue-500 border-border/60 shadow-sm bg-card hover:shadow-md transition-shadow cursor-default overflow-hidden">
+                <Card className="rounded-xl border-l-4 border-l-blue-500 border-border/60 shadow-md bg-card hover:shadow-lg transition-shadow cursor-default overflow-hidden">
                     <CardContent className="p-5">
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Order Frequency</p>
                         <div className="flex items-baseline gap-1">
@@ -316,7 +316,7 @@ export default function CustomerDetailsView({
                 </Card>
               </div>
 
-              <Card className="rounded-xl border-border/60 shadow-sm overflow-hidden">
+              <Card className="rounded-xl border-border/60 shadow-md overflow-hidden">
                 <CardHeader className="bg-muted/30 border-b border-border/40 py-4">
                     <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest">LOYALTY STATS</CardTitle>
                 </CardHeader>

@@ -152,7 +152,7 @@ export default function InquiriesList({ initialInquiries }: InquiriesListProps) 
       </div>
 
       {/* List card */}
-      <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-lg border border-border shadow-md overflow-hidden">
         {filtered.length === 0 ? (
           <div className="py-14 text-center">
             <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">

@@ -209,7 +209,7 @@ export default function BillOfMaterialsEditor({
             {rows.map((row) => (
               <div
                 key={row.material_id}
-                className="p-3 bg-card border border-border/60 rounded-xl shadow-sm hover:border-primary/50 transition-colors"
+                className="p-3 bg-card border border-border/60 rounded-xl shadow-md hover:border-primary/50 transition-colors"
               >
                 <p className="font-semibold text-foreground text-sm truncate" title={row.name}>
                   {row.name}

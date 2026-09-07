@@ -387,7 +387,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                     const isLowMarkup = !isLoss && markup < 20;
 
                     return (
-                      <div className="p-4 bg-card rounded-xl border border-border/60 shadow-sm">
+                      <div className="p-4 bg-card rounded-xl border border-border/60 shadow-md">
                         <div className="flex justify-between text-sm mb-2">
                           <span className="text-muted-foreground font-medium">Net Profit</span>
                           <span className={`font-bold ${isLoss ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'}`}>

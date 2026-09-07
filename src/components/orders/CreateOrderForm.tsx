@@ -357,7 +357,7 @@ export default function CreateOrderForm({
       </div>
 
       {/* Step panels */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+      <div className="bg-card border border-border rounded-xl p-6 shadow-md">
 
         {/* STEP 1: Customer */}
         {step === 1 && (

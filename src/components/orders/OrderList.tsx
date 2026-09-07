@@ -144,7 +144,7 @@ export default function OrderList({ initialOrders }: OrderListProps) {
   );
 
   return (
-    <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden animate-in fade-in duration-700 delay-150 fill-mode-backwards">
+    <div className="bg-card border border-border rounded-xl shadow-md overflow-hidden animate-in fade-in duration-700 delay-150 fill-mode-backwards">
       <DataTable
         columns={columns}
         data={orders}

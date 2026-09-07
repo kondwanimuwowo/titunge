@@ -81,7 +81,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow bg-white group cursor-pointer"
+              className="border border-border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-card group cursor-pointer"
               onClick={() => router.push(`/products/${product.id}`)}
             >
               {/* Image */}

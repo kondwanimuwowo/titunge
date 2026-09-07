@@ -98,7 +98,7 @@ export function StatusTimeline({ currentStatus, className = "" }: StatusTimeline
               "w-[calc(100%-4rem)] md:w-[calc(50%-2rem)] p-4 rounded-xl border transition-all duration-300 relative",
               isActive 
                 ? "border-primary/50 bg-primary/5 shadow-md ring-1 ring-primary/20" 
-                : "border-border bg-card shadow-sm hover:shadow-md"
+                : "border-border bg-card shadow-md hover:shadow-lg"
             )}>
               {/* Connector Arrow (Desktop Only) */}
               <div className={cn(

@@ -68,13 +68,10 @@ export default function Navbar({ user, profile, role, notificationBell, onMenuCl
       {/* Right */}
       <div className="flex items-center gap-2.5 shrink-0">
         {/* Realtime status */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[11px] font-bold uppercase tracking-wider ring-1 ring-emerald-200/60">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          </span>
-          <span>Live</span>
-        </div>
+        <span className="hidden sm:flex relative h-2 w-2" title="Live">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+        </span>
 
         <div className="hidden sm:block w-px h-6 bg-border/70" />
 

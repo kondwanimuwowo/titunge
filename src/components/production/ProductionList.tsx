@@ -157,7 +157,7 @@ export default function ProductionList({
             return (
               <div
                 key={batch.id}
-                className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+                className="border border-border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow bg-card"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2 mb-3">

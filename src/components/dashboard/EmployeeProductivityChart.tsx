@@ -23,7 +23,7 @@ interface EmployeeProductivityChartProps {
 export default function EmployeeProductivityChart({ data }: EmployeeProductivityChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-sm">
+      <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-md">
         <h3 className="font-semibold text-foreground mb-1">Employee Productivity</h3>
         <p className="text-sm text-muted-foreground mb-6">Today's active hours</p>
         <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground text-sm">
@@ -46,7 +46,7 @@ export default function EmployeeProductivityChart({ data }: EmployeeProductivity
     .slice(0, 8); // top 8
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-sm">
+    <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-md">
       <div className="mb-6">
         <h3 className="font-semibold text-foreground">Employee Productivity</h3>
         <p className="text-sm text-muted-foreground mt-0.5">Hours worked by top employees today</p>

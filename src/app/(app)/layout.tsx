@@ -38,7 +38,7 @@ export default async function AppLayout({
   return (
     <>
       {/* Inject per-tenant theme vars — overrides globals.css defaults */}
-      <style>{`:root { ${themeVars} }`}</style>
+      <style>{themeVars}</style>
 
       <AppShell
         sidebar={

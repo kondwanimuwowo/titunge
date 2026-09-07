@@ -36,26 +36,26 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
 
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-md p-4">
           <p className="text-xs text-muted-foreground">Email</p>
           <p className="text-sm font-semibold">{employee.email || "—"}</p>
         </div>
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-md p-4">
           <p className="text-xs text-muted-foreground">Phone</p>
           <p className="text-sm font-semibold">{employee.phone}</p>
         </div>
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-md p-4">
           <p className="text-xs text-muted-foreground">Hourly Rate</p>
           <p className="text-sm font-semibold">K{(parseFloat(String(employee.hourly_rate || 0))).toFixed(2)}</p>
         </div>
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-md p-4">
           <p className="text-xs text-muted-foreground">Status</p>
           <p className="text-sm font-semibold">{employee.active ? "Active" : "Inactive"}</p>
         </div>
       </div>
 
       {/* Attendance Summary */}
-      <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+      <div className="rounded-lg border bg-card text-card-foreground shadow-md p-6">
         <h3 className="font-semibold mb-4">Last 30 Days (Attendance)</h3>
         <div className="grid grid-cols-3 gap-4">
           <div>
@@ -76,7 +76,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
       </div>
 
       {/* Recent Attendance */}
-      <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+      <div className="rounded-lg border bg-card text-card-foreground shadow-md p-6">
         <h3 className="font-semibold mb-4">Recent Attendance</h3>
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {attendance.length === 0 ? (

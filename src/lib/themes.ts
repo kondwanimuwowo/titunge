@@ -108,15 +108,21 @@ export function getTheme(key: string): ThemePalette {
   return THEMES[key as ThemeKey] ?? THEMES["titunge-teal"];
 }
 
-/** Builds the inline <style> block injected into the tenant layout */
+/** Builds the inline <style> block injected into the tenant layout.
+ *  Brand color applies in both themes; background vars are scoped to light
+ *  mode only so `.dark` in globals.css stays in control when dark mode is on. */
 export function buildThemeVars(key: string): string {
   const t = getTheme(key);
   return `
-    --primary: ${t.primary};
-    --primary-foreground: ${t.primaryFg};
-    --background: ${t.background};
-    --foreground: ${t.foreground};
-    --ring: ${t.ring};
-    --main-area-tint: ${t.mainAreaTint};
+    :root {
+      --primary: ${t.primary};
+      --primary-foreground: ${t.primaryFg};
+      --ring: ${t.ring};
+    }
+    :root:not(.dark) {
+      --background: ${t.background};
+      --foreground: ${t.foreground};
+      --main-area-tint: ${t.mainAreaTint};
+    }
   `.trim();
 }

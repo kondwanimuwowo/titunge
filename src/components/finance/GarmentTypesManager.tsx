@@ -69,7 +69,7 @@ export default function GarmentTypesManager({ initialTypes }: GarmentTypesManage
             return (
               <div
                 key={type.id}
-                className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow duration-200"
+                className="bg-card border border-border rounded-xl p-4 shadow-md hover:shadow-lg transition-shadow duration-200"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">

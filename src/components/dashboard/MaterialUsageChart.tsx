@@ -25,7 +25,7 @@ interface MaterialUsageChartProps {
 export default function MaterialUsageChart({ data }: MaterialUsageChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-sm">
+      <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-md">
         <h3 className="font-semibold text-foreground mb-1">Top Materials Used</h3>
         <p className="text-sm text-muted-foreground mb-6">Inventory Value distribution</p>
         <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground text-sm">
@@ -46,7 +46,7 @@ export default function MaterialUsageChart({ data }: MaterialUsageChartProps) {
     .slice(0, 8); // Top 8 by value
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-sm">
+    <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-md">
       <div className="mb-6">
         <h3 className="font-semibold text-foreground">Top Materials Inventory</h3>
         <p className="text-sm text-muted-foreground mt-0.5">Highest value stock components</p>

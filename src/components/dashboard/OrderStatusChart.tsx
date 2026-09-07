@@ -51,7 +51,7 @@ export default function OrderStatusChart({ data }: OrderStatusChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-sm">
+      <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-md">
         <h3 className="font-semibold text-foreground mb-1">Orders by Status</h3>
         <p className="text-sm text-muted-foreground mb-6">Current distributions</p>
         <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground text-sm">
@@ -62,7 +62,7 @@ export default function OrderStatusChart({ data }: OrderStatusChartProps) {
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-sm">
+    <div className="bg-card border border-border rounded-xl p-6 h-[400px] flex flex-col shadow-md">
       <div className="mb-2">
         <h3 className="font-semibold text-foreground">
           Orders by Status

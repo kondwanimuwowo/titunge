@@ -185,7 +185,7 @@ export default function OrderEditForm({
   return (
     <div className="space-y-6">
       {/* Customer */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-4">
+      <div className="bg-card border border-border rounded-xl p-6 shadow-md space-y-4">
         <h2 className="text-sm font-semibold flex items-center gap-2">
           <Users size={15} className="text-primary" /> Customer
         </h2>
@@ -213,7 +213,7 @@ export default function OrderEditForm({
       </div>
 
       {/* Garment */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-4">
+      <div className="bg-card border border-border rounded-xl p-6 shadow-md space-y-4">
         <h2 className="text-sm font-semibold flex items-center gap-2">
           <Scissors size={15} className="text-primary" /> Garment Details
         </h2>
@@ -333,7 +333,7 @@ export default function OrderEditForm({
       </div>
 
       {/* Materials */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-4">
+      <div className="bg-card border border-border rounded-xl p-6 shadow-md space-y-4">
         <h2 className="text-sm font-semibold flex items-center gap-2">
           <Package size={15} className="text-primary" /> Materials
         </h2>
@@ -406,7 +406,7 @@ export default function OrderEditForm({
       </div>
 
       {/* Pricing */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-4">
+      <div className="bg-card border border-border rounded-xl p-6 shadow-md space-y-4">
         <h2 className="text-sm font-semibold flex items-center gap-2">
           <DollarSign size={15} className="text-primary" /> Pricing
         </h2>
