@@ -3,13 +3,14 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { formatZmw } from "@/lib/marketplace-currency";
 import { PageHeader } from "@/components/layout/PageHeader";
 import CancelOrderAction from "@/components/admin/CancelOrderAction";
+import { StatusDot, type StatusTone } from "@/components/layout/StatusDot";
 
-const STATUS_STYLES: Record<string, string> = {
-  awaiting_payment: "bg-amber-100 text-amber-700",
-  being_sewn: "bg-blue-100 text-blue-700",
-  shipped: "bg-indigo-100 text-indigo-700",
-  delivered: "bg-emerald-100 text-emerald-700",
-  cancelled: "bg-gray-100 text-gray-600",
+const STATUS_TONES: Record<string, StatusTone> = {
+  awaiting_payment: "amber",
+  being_sewn: "blue",
+  shipped: "indigo",
+  delivered: "emerald",
+  cancelled: "gray",
 };
 
 export default async function AdminOrdersPage() {
@@ -48,9 +49,7 @@ export default async function AdminOrdersPage() {
                 <td className="px-4 py-2.5 text-right">{formatZmw(o.total)}</td>
                 <td className="px-4 py-2.5">{o.payment_status}</td>
                 <td className="px-4 py-2.5">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[o.status] ?? ""}`}>
-                    {o.status}
-                  </span>
+                  <StatusDot label={o.status} tone={STATUS_TONES[o.status]} />
                 </td>
                 <td className="px-4 py-2.5 text-right">
                   {o.status !== "cancelled" && <CancelOrderAction orderId={o.id} />}

@@ -3,13 +3,14 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { formatZmw } from "@/lib/marketplace-currency";
 import { PageHeader } from "@/components/layout/PageHeader";
 import AdminPayoutRowActions from "@/components/admin/AdminPayoutRowActions";
+import { StatusDot, type StatusTone } from "@/components/layout/StatusDot";
 
-const STATUS_STYLES: Record<string, string> = {
-  not_eligible: "bg-gray-100 text-gray-600",
-  pending: "bg-amber-100 text-amber-700",
-  processing: "bg-blue-100 text-blue-700",
-  completed: "bg-emerald-100 text-emerald-700",
-  failed: "bg-red-100 text-red-700",
+const STATUS_TONES: Record<string, StatusTone> = {
+  not_eligible: "gray",
+  pending: "amber",
+  processing: "blue",
+  completed: "emerald",
+  failed: "red",
 };
 
 export default async function AdminPayoutsPage() {
@@ -49,9 +50,7 @@ export default async function AdminPayoutsPage() {
                   {p.payout_amount != null ? formatZmw(p.payout_amount) : "-"}
                 </td>
                 <td className="px-4 py-2.5">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[p.payout_status] ?? ""}`}>
-                    {p.payout_status}
-                  </span>
+                  <StatusDot label={p.payout_status} tone={STATUS_TONES[p.payout_status]} />
                   {p.payout_retries > 0 && (
                     <span className="text-xs text-muted-foreground ml-1.5">({p.payout_retries} retries)</span>
                   )}

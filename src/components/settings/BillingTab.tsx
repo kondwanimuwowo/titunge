@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatZmw } from "@/lib/marketplace-currency";
 import { upgradeToTeamPlanAction, saveBillingProfileAction } from "@/app/actions/billing";
+import { StatusDot, type StatusTone } from "@/components/layout/StatusDot";
 
 interface BillingTabProps {
   plan: "free" | "team";
@@ -19,10 +20,10 @@ interface BillingTabProps {
   charges: { id: string; period: string; seat_count: number; amount: number; status: string }[];
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  successful: "bg-emerald-100 text-emerald-700",
-  failed: "bg-red-100 text-red-700",
+const STATUS_TONES: Record<string, StatusTone> = {
+  pending: "amber",
+  successful: "emerald",
+  failed: "red",
 };
 
 export default function BillingTab({ plan, seatCount, seatPriceKwacha, billingProfile, charges }: BillingTabProps) {
@@ -143,9 +144,7 @@ export default function BillingTab({ plan, seatCount, seatPriceKwacha, billingPr
                   <span>{c.period}</span>
                   <span className="text-muted-foreground">{c.seat_count} seat{c.seat_count === 1 ? "" : "s"}</span>
                   <span className="font-medium">{formatZmw(c.amount)}</span>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[c.status] ?? ""}`}>
-                    {c.status}
-                  </span>
+                  <StatusDot label={c.status} tone={STATUS_TONES[c.status]} />
                 </div>
               ))}
             </div>
