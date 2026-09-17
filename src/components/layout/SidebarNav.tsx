@@ -24,6 +24,7 @@ import {
   CreditCard,
   ListOrdered,
   LineChart,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/types/database";
@@ -47,6 +48,7 @@ const NAV_ITEMS = [
 ] as const;
 
 const PLATFORM_ADMIN_ITEMS = [
+  { path: "/admin/businesses", icon: Building2,  label: "Businesses" },
   { path: "/admin/settings", icon: ShieldCheck, label: "Platform Settings" },
   { path: "/admin/orders",   icon: ListOrdered,  label: "Orders" },
   { path: "/admin/payouts",  icon: Wallet,       label: "Payouts" },

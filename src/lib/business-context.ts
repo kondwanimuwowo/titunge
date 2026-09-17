@@ -46,6 +46,7 @@ export const getBusinessContext = cache(async function getBusinessContext(): Pro
     .single();
 
   if (bizError || !business) redirect("/onboarding");
+  if (business.status === "suspended") redirect("/suspended");
 
   const { data: membership } = await supabase
     .from("business_users")
@@ -108,11 +109,12 @@ export async function requireBusinessContext(): Promise<{
 
   const { data: business } = await supabase
     .from("businesses")
-    .select("id, plan")
+    .select("id, plan, status")
     .eq("slug", slug)
     .single();
 
   if (!business) throw new Error("Business not found");
+  if (business.status === "suspended") throw new Error("This business has been suspended");
 
   const { data: membership } = await supabase
     .from("business_users")
