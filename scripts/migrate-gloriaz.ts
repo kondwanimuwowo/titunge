@@ -2,7 +2,7 @@
  * One-time migration: Gloria'z Daughter → Titunge
  *
  * Usage:
- *   GD_SERVICE_ROLE_KEY=<key> SUPABASE_SERVICE_ROLE_KEY=<key> npx tsx scripts/migrate-gloriaz.ts
+ *   GD_SERVICE_ROLE_KEY=<key> TT_SERVICE_ROLE_KEY=<key> npx tsx scripts/migrate-gloriaz.ts
  *
  * Safe to re-run — skips tables that already have rows for gloriaz-daughter.
  */
