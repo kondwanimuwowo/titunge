@@ -86,12 +86,14 @@ export default function ProductForm({ product }: ProductFormProps) {
 
   const onSubmit = (data: any) => {
     startTransition(async () => {
-      const productType = data.customizable ? "custom_design" : "finished_good";
+      // `customizable` is a form-only field; the DB stores it as product_type.
+      const { customizable, ...fields } = data;
+      const productType = customizable ? "custom_design" : "finished_good";
 
       if (product) {
         // Edit mode — images are already uploaded; just save the form + current gallery.
         const payload = {
-          ...data,
+          ...fields,
           product_type: productType,
           images: imageGallery,
         };
@@ -107,7 +109,7 @@ export default function ProductForm({ product }: ProductFormProps) {
 
       // Create mode — create the row first, then upload any selected images and link them.
       const createResult = await addProductAction({
-        ...data,
+        ...fields,
         product_type: productType,
         images: [],
       });
