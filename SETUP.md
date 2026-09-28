@@ -54,7 +54,9 @@ Every secret `process.env` reads at runtime needs to be set with
 only covers local dev. See `CRONS.md` for the full list of Lenco/cron
 secrets; also required regardless of crons: `SUPABASE_SERVICE_ROLE_KEY`,
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-`RESEND_API_KEY`.
+`RESEND_API_KEY`. Optional: `RESEND_FROM_EMAIL` (sender address) and
+`NEXT_PUBLIC_APP_DOMAIN` (only if the root domain isn't `titunge.com`).
+The full list with descriptions is in `README.md`.
 
 ## 6. Scheduled jobs
 
