@@ -73,8 +73,11 @@ export default function ProductFormModal({ product, onClose }: ProductFormModalP
 
   const onSubmit = (data: FormData) => {
     startTransition(async () => {
+      // `customizable` is a form-only field; the DB stores it as product_type.
+      const { customizable, ...fields } = data;
       const payload = {
-        ...data,
+        ...fields,
+        product_type: customizable ? "custom_design" : "finished_good",
         images: imageGallery,
       };
 
