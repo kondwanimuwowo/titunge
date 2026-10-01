@@ -12,6 +12,23 @@ usage_model = "unbound"
 # Wrangler >= 4.13.0 (this project is on 4.118.0).
 keep_names = false
 
+# Product images. Reads are public via the bucket's custom domain
+# (R2_PUBLIC_BASE_URL); writes/deletes are tenant-scoped in src/lib/r2.ts by the
+# `{business_id}/` key prefix. Create with:
+#   wrangler r2 bucket create titunge-product-images
+[[r2_buckets]]
+binding = "PRODUCT_IMAGES"
+bucket_name = "titunge-product-images"
+
+[vars]
+# Must match the public custom domain attached to the bucket above.
+#
+# IMPORTANT: the zone-level route `*.titunge.com/*` sends this hostname to this
+# Worker, which would shadow R2. images.titunge.com needs its own, more specific
+# route with NO Worker assigned so it falls through to the bucket. More specific
+# routes win over wildcards.
+R2_PUBLIC_BASE_URL = "https://images.titunge.com"
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
@@ -41,3 +58,10 @@ persist = true
 # sandbox/staging values). LENCO_SANDBOX should stay "true" here always.
 [env.staging]
 name = "titunge-staging"
+
+[[env.staging.r2_buckets]]
+binding = "PRODUCT_IMAGES"
+bucket_name = "titunge-product-images-staging"
+
+[env.staging.vars]
+R2_PUBLIC_BASE_URL = "https://images-staging.titunge.com"

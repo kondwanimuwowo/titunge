@@ -922,6 +922,49 @@ CREATE POLICY "Authenticated users can update their business assets"
   USING (bucket_id = 'business-assets');
 
 -- ============================================================
+-- STORAGE: Profile avatars
+-- Supabase Storage holds ONLY business logos (business-assets) and profile
+-- avatars (user-avatars). Product images live in Cloudflare R2 -- see
+-- src/lib/r2.ts and the PRODUCT_IMAGES binding in wrangler.toml.
+-- ============================================================
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'user-avatars',
+  'user-avatars',
+  true,
+  2097152, -- 2 MB
+  ARRAY['image/png','image/jpeg','image/jpg','image/gif','image/webp']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Avatars are keyed `{auth.uid()}/avatar.<ext>` so a user can only write their own
+CREATE POLICY "Users can upload their own avatar"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'user-avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+CREATE POLICY "Avatars are publicly readable"
+  ON storage.objects FOR SELECT TO public
+  USING (bucket_id = 'user-avatars');
+
+CREATE POLICY "Users can update their own avatar"
+  ON storage.objects FOR UPDATE TO authenticated
+  USING (
+    bucket_id = 'user-avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+CREATE POLICY "Users can delete their own avatar"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'user-avatars'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- ============================================================
 -- SEED: Gloriaz Daughter as tenant #1
 -- (data will be migrated from the standalone GD project later)
 -- ============================================================

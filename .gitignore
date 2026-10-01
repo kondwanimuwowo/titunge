@@ -45,3 +45,6 @@ npm-debug.log*
 # Editor
 .vscode/
 .idea/
+
+# wrangler local state / platform proxy cache
+.wrangler/

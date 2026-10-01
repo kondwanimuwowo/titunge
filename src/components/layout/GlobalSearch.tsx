@@ -130,7 +130,7 @@ export default function GlobalSearch() {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`, {
           signal: controller.signal,
         });
-        const data = await res.json();
+        const data = (await res.json()) as { groups?: ResultGroup[] };
         setGroups(data.groups || []);
         setActiveIndex(0);
       } catch (err: any) {

@@ -75,3 +75,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Upstream Single-Tenant App (gloriaz-daughter)
+The single-tenant ERP this system derives from lives at `~/Desktop/repos/gloriaz-daughter` and is **still in active client use** (not retired).
+- Bug fixes made there are ported here. When fixing a bug in either repo, check for the equivalent code in the other and fix both.
+- Port with multi-tenancy respected: `business_id` scoping, RLS, and the route-group layout (`src/app/(app)`, `(auth)`, `(marketing)`, `(marketplace)`, platform admin).
+- Run lint/build here after a port and report results.
