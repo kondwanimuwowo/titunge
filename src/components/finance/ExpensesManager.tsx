@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { deleteExpense } from "@/app/actions/finance";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Receipt, Download } from "lucide-react";
+import { Plus, Trash2, Receipt, Download, Sparkle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ExpensesManagerProps {
@@ -103,8 +103,15 @@ export default function ExpensesManager({
                         {expense.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-foreground max-w-[200px] truncate">
-                      {expense.description}
+                    <td className="px-4 py-3 text-foreground max-w-[220px]">
+                      <span className="block truncate">{expense.description}</span>
+                      {expense.auto_generated && (
+                        <span className="inline-flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
+                          <Sparkle className="h-3 w-3" />
+                          Auto-posted
+                          {expense.orders?.order_number ? ` from #${expense.orders.order_number}` : ""}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-foreground whitespace-nowrap">
                       K{parseFloat(String(expense.amount || 0)).toLocaleString()}

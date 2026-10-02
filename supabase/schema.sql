@@ -262,13 +262,17 @@ CREATE TABLE public.materials (
 CREATE TABLE public.inventory_transactions (
   id               uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   business_id      uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
-  material_id      uuid NOT NULL REFERENCES public.materials(id) ON DELETE CASCADE,
+  material_id      uuid REFERENCES public.materials(id) ON DELETE CASCADE,
+  product_id       uuid REFERENCES public.products(id) ON DELETE CASCADE,
   order_id         uuid REFERENCES public.orders(id),
-  operation_type   text NOT NULL, -- restock | order_deduction | cancellation_restore | usage | production_use | production_completed
+  operation_type   text NOT NULL, -- restock | order_deduction | cancellation_restore | usage | production_use | production_completed | order_reservation_released
   quantity_change  numeric NOT NULL,
   unit_cost        numeric,
   notes            text,
-  created_at       timestamptz DEFAULT now()
+  created_at       timestamptz DEFAULT now(),
+  -- Exactly one subject per row: a material movement or a product movement.
+  CONSTRAINT inventory_transactions_subject_chk
+    CHECK ((material_id IS NOT NULL) <> (product_id IS NOT NULL))
 );
 
 CREATE TABLE public.order_materials (
@@ -320,6 +324,7 @@ CREATE TABLE public.expenses (
   amount           numeric NOT NULL DEFAULT 0,
   payment_method   text,
   notes            text,
+  auto_generated   boolean NOT NULL DEFAULT false,
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()
 );
@@ -356,6 +361,7 @@ CREATE TABLE public.financial_settings (
   default_profit_margin     numeric,
   expected_monthly_orders   integer,
   tax_rate                  numeric DEFAULT 0,
+  default_labour_hours      numeric NOT NULL DEFAULT 2 CHECK (default_labour_hours >= 0),
   updated_at       timestamptz DEFAULT now(),
   UNIQUE(business_id)
 );

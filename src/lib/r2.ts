@@ -92,11 +92,44 @@ export async function deleteProductImageByUrl(
   url: string,
   businessId: string
 ): Promise<DeleteOutcome> {
-  const { bucket, baseUrl } = await getBucketContext();
-  const key = productImageKeyFromUrl(url, baseUrl);
+  // Work out whether this is even ours before reaching for the binding, so a
+  // missing or misconfigured R2 can't take the legacy Supabase path down too.
+  const { env } = await getCloudflareContext({ async: true });
+  const key = productImageKeyFromUrl(url, readPublicBaseUrl(env));
   if (!key) return "not-in-r2";
   if (!keyBelongsToBusiness(key, businessId)) return "forbidden";
 
+  const { bucket } = await getBucketContext();
   await bucket.delete(key);
   return "deleted";
+}
+
+/**
+ * Removes every object a product owns. Called when a product is permanently
+ * deleted — otherwise its images stay in the bucket forever, billed and
+ * unreachable. Scoped to the business prefix, so it can only ever clear the
+ * caller's own objects.
+ */
+export async function deleteProductImagePrefix(
+  businessId: string,
+  productId: string
+): Promise<number> {
+  if (!UUID_RE.test(businessId) || !UUID_RE.test(productId)) return 0;
+
+  const { bucket } = await getBucketContext();
+  const prefix = `${businessId}/${productId}/`;
+  let removed = 0;
+  let cursor: string | undefined;
+
+  do {
+    const listed = await bucket.list({ prefix, cursor });
+    const keys = listed.objects.map((o) => o.key);
+    if (keys.length > 0) {
+      await bucket.delete(keys);
+      removed += keys.length;
+    }
+    cursor = listed.truncated ? listed.cursor : undefined;
+  } while (cursor);
+
+  return removed;
 }

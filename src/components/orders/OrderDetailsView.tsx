@@ -85,6 +85,9 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
       if (result.success) {
         toast.success(`Order moved to ${nextStatus}`);
         setStatusNotes("");
+        // The status moved but something alongside it did not — a stock
+        // shortfall, say. Worth saying out loud, but not a failed update.
+        if (result.warning) toast.error(result.warning);
       } else {
         toast.error(`Failed to update status: ${result.message}`);
       }

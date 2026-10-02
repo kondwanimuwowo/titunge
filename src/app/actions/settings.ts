@@ -11,6 +11,7 @@ export async function updateFinancialSettings(data: {
   default_profit_margin: number;
   expected_monthly_orders: number;
   tax_rate: number;
+  default_labour_hours: number;
 }) {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
@@ -43,6 +44,9 @@ export async function updateFinancialSettings(data: {
   }
 
   revalidatePath("/settings");
+  // The order forms derive their labour estimate from these settings.
+  revalidatePath("/orders/new");
+  revalidatePath("/orders");
   return { success: true };
 }
 

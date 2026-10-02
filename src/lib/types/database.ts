@@ -542,6 +542,7 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          auto_generated: boolean
           business_id: string
           category: string
           created_at: string | null
@@ -556,6 +557,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          auto_generated?: boolean
           business_id: string
           category: string
           created_at?: string | null
@@ -570,6 +572,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          auto_generated?: boolean
           business_id?: string
           category?: string
           created_at?: string | null
@@ -610,6 +613,7 @@ export type Database = {
         Row: {
           business_id: string
           custom_hourly_rate: number | null
+          default_labour_hours: number
           default_profit_margin: number | null
           expected_monthly_orders: number | null
           id: string
@@ -619,6 +623,7 @@ export type Database = {
         Insert: {
           business_id: string
           custom_hourly_rate?: number | null
+          default_labour_hours?: number
           default_profit_margin?: number | null
           expected_monthly_orders?: number | null
           id?: string
@@ -628,6 +633,7 @@ export type Database = {
         Update: {
           business_id?: string
           custom_hourly_rate?: number | null
+          default_labour_hours?: number
           default_profit_margin?: number | null
           expected_monthly_orders?: number | null
           id?: string
@@ -696,10 +702,11 @@ export type Database = {
           business_id: string
           created_at: string | null
           id: string
-          material_id: string
+          material_id: string | null
           notes: string | null
           operation_type: string
           order_id: string | null
+          product_id: string | null
           quantity_change: number
           unit_cost: number | null
         }
@@ -707,10 +714,11 @@ export type Database = {
           business_id: string
           created_at?: string | null
           id?: string
-          material_id: string
+          material_id?: string | null
           notes?: string | null
           operation_type: string
           order_id?: string | null
+          product_id?: string | null
           quantity_change: number
           unit_cost?: number | null
         }
@@ -718,10 +726,11 @@ export type Database = {
           business_id?: string
           created_at?: string | null
           id?: string
-          material_id?: string
+          material_id?: string | null
           notes?: string | null
           operation_type?: string
           order_id?: string | null
+          product_id?: string | null
           quantity_change?: number
           unit_cost?: number | null
         }

@@ -15,7 +15,7 @@ export async function getFinancialSummary(businessId: string, startDate: string,
       .gte("month", startDate)
       .lte("month", endDate),
     (supabase.from("expenses") as any)
-      .select("amount")
+      .select("amount, auto_generated")
       .eq("business_id", businessId)
       .gte("expense_date", startDate)
       .lte("expense_date", endDate),
@@ -54,8 +54,12 @@ export async function getFinancialSummary(businessId: string, startDate: string,
     (sum: number, o: any) => sum + parseFloat(String(o.amount || 0)),
     0
   );
+  // Auto-posted order expenses restate material/labour costs that totalMaterial
+  // and totalLabour already derive from the orders table — counting both would
+  // double them.
   const totalExpenses = expenses.reduce(
-    (sum: number, e: any) => sum + parseFloat(String(e.amount || 0)),
+    (sum: number, e: any) =>
+      e.auto_generated ? sum : sum + parseFloat(String(e.amount || 0)),
     0
   );
   const totalCosts = totalMaterial + totalLabour + totalOverhead + totalExpenses;

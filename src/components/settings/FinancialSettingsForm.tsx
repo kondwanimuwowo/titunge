@@ -16,6 +16,7 @@ interface FinancialSettingsFormProps {
     default_profit_margin?: number;
     expected_monthly_orders?: number;
     tax_rate?: number;
+    default_labour_hours?: number;
   } | null;
 }
 
@@ -24,6 +25,7 @@ type FormValues = {
   default_profit_margin: number;
   expected_monthly_orders: number;
   tax_rate: number;
+  default_labour_hours: number;
 };
 
 export default function FinancialSettingsForm({
@@ -41,6 +43,7 @@ export default function FinancialSettingsForm({
       default_profit_margin: settings?.default_profit_margin ?? 0,
       expected_monthly_orders: settings?.expected_monthly_orders ?? 0,
       tax_rate: settings?.tax_rate ?? 0,
+      default_labour_hours: settings?.default_labour_hours ?? 2,
     },
   });
 
@@ -51,6 +54,7 @@ export default function FinancialSettingsForm({
         default_profit_margin: Number(data.default_profit_margin),
         expected_monthly_orders: Number(data.expected_monthly_orders),
         tax_rate: Number(data.tax_rate),
+        default_labour_hours: Number(data.default_labour_hours),
       });
 
       if (result.success) {
@@ -87,6 +91,28 @@ export default function FinancialSettingsForm({
           {errors.custom_hourly_rate && (
             <p className="text-xs text-destructive">
               Please enter a valid hourly rate.
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          {/* @ts-ignore */}
+          <Label htmlFor="default_labour_hours">Default Labour Hours</Label>
+          {/* @ts-ignore */}
+          <Input
+            id="default_labour_hours"
+            type="number"
+            step="0.25"
+            min="0"
+            {...register("default_labour_hours", { required: true, min: 0 })}
+          />
+          <p className="text-xs text-muted-foreground">
+            Multiplied by the hourly rate to estimate labour on orders with no garment
+            type, such as product orders. Garment types use their own base labour cost.
+          </p>
+          {errors.default_labour_hours && (
+            <p className="text-xs text-destructive">
+              Please enter a valid number of hours.
             </p>
           )}
         </div>

@@ -218,6 +218,9 @@ export async function addGarmentType(data: {
   }
 
   revalidatePath("/settings");
+  // The order forms seed their labour estimate from these values.
+  revalidatePath("/orders/new");
+  revalidatePath("/orders");
   return { success: true };
 }
 
@@ -244,6 +247,9 @@ export async function updateGarmentType(
   }
 
   revalidatePath("/settings");
+  // The order forms seed their labour estimate from these values.
+  revalidatePath("/orders/new");
+  revalidatePath("/orders");
   return { success: true };
 }
 
@@ -263,6 +269,9 @@ export async function deleteGarmentType(
   }
 
   revalidatePath("/settings");
+  // The order forms seed their labour estimate from these values.
+  revalidatePath("/orders/new");
+  revalidatePath("/orders");
   return { success: true };
 }
 
@@ -282,6 +291,9 @@ export async function restoreGarmentTypeAction(
   }
 
   revalidatePath("/settings");
+  // The order forms seed their labour estimate from these values.
+  revalidatePath("/orders/new");
+  revalidatePath("/orders");
   revalidatePath("/recycle-bin");
   return { success: true };
 }
@@ -307,6 +319,9 @@ export async function hardDeleteGarmentTypeAction(
   }
 
   revalidatePath("/settings");
+  // The order forms seed their labour estimate from these values.
+  revalidatePath("/orders/new");
+  revalidatePath("/orders");
   revalidatePath("/recycle-bin");
   return { success: true };
 }
@@ -316,6 +331,7 @@ export async function updateFinancialSettings(data: {
   default_profit_margin?: number;
   expected_monthly_orders?: number;
   tax_rate?: number;
+  default_labour_hours?: number;
 }): Promise<{ success: boolean; message?: string }> {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
@@ -343,5 +359,8 @@ export async function updateFinancialSettings(data: {
   }
 
   revalidatePath("/settings");
+  // The order forms seed their labour estimate from these values.
+  revalidatePath("/orders/new");
+  revalidatePath("/orders");
   return { success: true };
 }

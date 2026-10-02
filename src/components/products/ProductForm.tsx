@@ -190,7 +190,12 @@ export default function ProductForm({ product }: ProductFormProps) {
   const handleRemoveImage = async (url: string, index: number) => {
     if (!product) return;
     setUploading(true);
-    await deleteProductImageAction(url);
+    const removal = await deleteProductImageAction(url);
+    if (!removal.success) {
+      toast.error(removal.message || "Failed to remove image");
+      setUploading(false);
+      return;
+    }
     const newGallery = imageGallery.filter((_, i) => i !== index);
     setImageGallery(newGallery);
     await updateProductAction(product.id, {

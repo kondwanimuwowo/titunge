@@ -119,14 +119,20 @@ export async function updateBatchStatusAction(
       if (batch) {
         // Atomically increment product stock (runs via SECURITY DEFINER so
         // employees completing a batch don't need broad write access to products)
-        await (supabase as any).rpc("apply_finished_goods_stock", {
+        const { error: stockError } = await (supabase as any).rpc("apply_finished_goods_stock", {
           p_product_id: batch.product_id,
           p_quantity_added: batch.quantity,
+          p_business_id: businessId,
         });
+
+        if (stockError) {
+          console.error("Failed to add finished goods stock:", stockError.message);
+        }
 
         // Log inventory addition
         await (supabase.from("inventory_transactions") as any).insert([
           {
+            product_id: batch.product_id,
             operation_type: "production_completed",
             quantity_change: batch.quantity,
             notes: `Batch ${batch.batch_number} completed`,

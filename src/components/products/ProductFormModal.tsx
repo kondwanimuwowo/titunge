@@ -52,6 +52,10 @@ export default function ProductFormModal({ product, onClose }: ProductFormModalP
     }
     return [];
   });
+  // Images taken out of the gallery but not yet deleted from storage. Closing
+  // the dialog without saving has to leave them where they are, or the product
+  // is left pointing at objects that no longer exist.
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
 
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
     defaultValues: product
@@ -86,6 +90,14 @@ export default function ProductFormModal({ product, onClose }: ProductFormModalP
         : await addProductAction(payload);
 
       if (result.success) {
+        // The gallery is saved, so the dropped images are safe to delete.
+        for (const url of removedImages) {
+          const removal = await deleteProductImageAction(url);
+          if (!removal.success) {
+            console.error("Could not delete removed image:", removal.message);
+          }
+        }
+        setRemovedImages([]);
         toast.success(product ? "Product updated" : "Product created");
         router.refresh();
         onClose();
@@ -130,12 +142,10 @@ export default function ProductFormModal({ product, onClose }: ProductFormModalP
     }
   };
 
-  const handleRemoveImage = async (url: string, index: number) => {
-    setUploading(true);
-    await deleteProductImageAction(url);
+  const handleRemoveImage = (url: string, index: number) => {
     setImageGallery(imageGallery.filter((_, i) => i !== index));
-    toast.success("Image removed");
-    setUploading(false);
+    setRemovedImages((prev) => [...prev, url]);
+    toast.success("Image removed — save to confirm");
   };
 
   return (

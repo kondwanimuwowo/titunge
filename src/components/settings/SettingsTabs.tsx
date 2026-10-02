@@ -20,6 +20,7 @@ interface SettingsTabsProps {
     default_profit_margin?: number;
     expected_monthly_orders?: number;
     tax_rate?: number;
+    default_labour_hours?: number;
   } | null;
   garmentTypes: any[];
   business: {

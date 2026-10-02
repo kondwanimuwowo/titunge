@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireBusinessContext } from "@/lib/business-context";
-import { deleteProductImageByUrl, putProductImage } from "@/lib/r2";
+import { deleteProductImageByUrl, deleteProductImagePrefix, putProductImage } from "@/lib/r2";
 
 export async function addProductAction(
   data: any
@@ -108,6 +108,14 @@ export async function hardDeleteProductAction(
     return { success: false, message: error.message };
   }
 
+  // The row is gone for good, so its images have nothing left pointing at them.
+  // A failure here only leaves objects behind; it must not fail the delete.
+  try {
+    await deleteProductImagePrefix(businessId, id);
+  } catch (err) {
+    console.error("Could not clear product images from R2:", err);
+  }
+
   revalidatePath("/products");
   return { success: true };
 }
@@ -180,18 +188,22 @@ export async function deleteProductImageAction(
     if (outcome === "not-in-r2") {
       // Product images migrated from the single-tenant app still live in
       // Supabase Storage; remove those through the legacy path.
-      return await deleteLegacySupabaseImage(imageUrl);
+      return await deleteLegacySupabaseImage(imageUrl, businessId);
     }
 
     return { success: true };
   } catch (err) {
     console.error("Failed to delete product image:", err);
-    return { success: true }; // Don't fail the main operation
+    return {
+      success: false,
+      message: "Could not remove the image. It is still attached to the product.",
+    };
   }
 }
 
 async function deleteLegacySupabaseImage(
-  imageUrl: string
+  imageUrl: string,
+  businessId: string
 ): Promise<{ success: boolean; message?: string }> {
   const supabase = await createClient();
 
@@ -204,18 +216,36 @@ async function deleteLegacySupabaseImage(
       return { success: false, message: "Invalid image URL" };
     }
 
+    // Legacy keys carry no business id, so the path cannot prove ownership.
+    // Only remove the object if one of this business's products still points
+    // at it — otherwise any tenant could delete another tenant's image.
+    const { data: owner } = await supabase
+      .from("products")
+      .select("id")
+      .eq("business_id", businessId)
+      .contains("images", [imageUrl])
+      .limit(1)
+      .maybeSingle();
+
+    if (!owner) {
+      return { success: false, message: "That image belongs to another business" };
+    }
+
     const filePath = pathParts.slice(bucketIndex + 1).join("/");
 
     const { error } = await supabase.storage.from("product-images").remove([filePath]);
 
     if (error) {
       console.error("Failed to delete legacy image:", error);
-      return { success: true }; // Don't fail the main operation
+      return {
+        success: false,
+        message: "Could not remove the image. It is still attached to the product.",
+      };
     }
 
     return { success: true };
   } catch (err) {
     console.error("Error parsing image URL:", err);
-    return { success: true }; // Don't fail the main operation
+    return { success: false, message: "Invalid image URL" };
   }
 }

@@ -32,8 +32,10 @@ export function OrderBulkActions({
     startTransition(async () => {
       const results = await Promise.all(selected.map((o) => updateOrderStatus(o.id, status)));
       const failed = results.filter((r) => !r?.success).length;
+      const warned = results.filter((r) => r?.success && r?.warning).length;
       if (failed > 0) toast.error(`${failed} order(s) failed to update`);
       else toast.success(`${selected.length} order(s) updated`);
+      if (warned > 0) toast.error(`${warned} order(s) updated but stock did not move`);
       clearSelection();
       router.refresh();
     });

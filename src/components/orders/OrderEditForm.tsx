@@ -105,9 +105,10 @@ export default function OrderEditForm({
   // Cost calculations
   const materialCost = selectedMaterials.reduce((s, m) => s + m.cost, 0);
   const selectedGarmentType = garmentTypes.find((g: any) => g.id === watchedGarmentTypeId);
+  const defaultLabourHours = parseFloat(String(financialSettings?.default_labour_hours ?? 2));
   const labourCost = selectedGarmentType
     ? parseFloat(selectedGarmentType.base_labour_cost || "0")
-    : (financialSettings?.custom_hourly_rate || 0) * 2;
+    : (financialSettings?.custom_hourly_rate || 0) * defaultLabourHours;
   const baseCost = materialCost + labourCost + perOrderOverhead;
   const margin = financialSettings?.default_profit_margin || 30;
   const recommendedPrice = parseFloat((baseCost * (1 + margin / 100)).toFixed(2));
@@ -274,9 +275,19 @@ export default function OrderEditForm({
                     <SelectValue placeholder="Select product..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {products.map((p: any) => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
+                    {products.map((p: any) => {
+                      const tracksStock =
+                        p.product_type === "finished_good" && p.stock_quantity != null;
+                      return (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                          {tracksStock &&
+                            (p.stock_quantity <= 0
+                              ? " — out of stock"
+                              : ` — ${p.stock_quantity} in stock`)}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               )}

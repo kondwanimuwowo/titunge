@@ -146,9 +146,10 @@ export default function CreateOrderForm({
   // --- Cost calculations ---
   const materialCost = selectedMaterials.reduce((s, m) => s + m.cost, 0);
   const selectedGarmentType = garmentTypes.find((g: any) => g.id === watchedGarmentTypeId);
+  const defaultLabourHours = parseFloat(String(financialSettings?.default_labour_hours ?? 2));
   const calculatedLabourCost = selectedGarmentType
     ? parseFloat(selectedGarmentType.base_labour_cost || "0")
-    : (financialSettings?.custom_hourly_rate || 0) * 2;
+    : (financialSettings?.custom_hourly_rate || 0) * defaultLabourHours;
   const labourCost = watchedLabourCost !== "" && watchedLabourCost != null
     ? parseFloat(watchedLabourCost || "0")
     : calculatedLabourCost;
@@ -164,7 +165,7 @@ export default function CreateOrderForm({
   useEffect(() => {
     setValue("labour_cost", calculatedLabourCost.toFixed(2));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedGarmentTypeId, orderType]);
+  }, [watchedGarmentTypeId, orderType, calculatedLabourCost]);
 
   // --- Material search ---
   const filteredMaterials = materialSearch.length >= 1
@@ -536,11 +537,22 @@ export default function CreateOrderForm({
                         <SelectValue placeholder="Select product..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {products.map((p: any) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.name} — K{parseFloat(p.price || "0").toFixed(0)}
-                          </SelectItem>
-                        ))}
+                        {products.map((p: any) => {
+                          // Shown for information only. An enquiry may be taken
+                          // for an item that is out of stock — stock is checked
+                          // when the order is confirmed, not when it is logged.
+                          const tracksStock =
+                            p.product_type === "finished_good" && p.stock_quantity != null;
+                          return (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name} — K{parseFloat(p.price || "0").toFixed(0)}
+                              {tracksStock &&
+                                (p.stock_quantity <= 0
+                                  ? " — out of stock"
+                                  : ` — ${p.stock_quantity} in stock`)}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   )}
