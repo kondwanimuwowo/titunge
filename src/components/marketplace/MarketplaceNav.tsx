@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, ShoppingBag } from "lucide-react";
+import { Menu, Search, ShoppingBag, X } from "lucide-react";
 import { getMyBusinessSlug } from "@/app/actions/onboarding";
 import { useCart } from "./CartProvider";
 
@@ -15,6 +15,7 @@ export function MarketplaceNav() {
   const { items, hydrated } = useCart();
   const [businessUrl, setBusinessUrl] = useState("/business");
   const [query, setQuery] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
   const cartCount = items.reduce((sum, line) => sum + line.qty, 0);
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export function MarketplaceNav() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = query.trim();
+    setMobileOpen(false);
     router.push(trimmed ? `/browse?q=${encodeURIComponent(trimmed)}` : "/browse");
   };
 
@@ -73,21 +75,76 @@ export function MarketplaceNav() {
               </span>
             )}
           </Link>
-          <Link href="/account" className="hidden sm:inline text-sm font-semibold text-[#0e1a18] hover:text-[#5fa8a0] transition-colors whitespace-nowrap">
+          <Link href="/account" className="hidden md:inline text-sm font-semibold text-[#0e1a18] hover:text-[#5fa8a0] transition-colors whitespace-nowrap">
             Account
           </Link>
-          <Link href="/sell" className="hidden sm:inline text-sm font-semibold text-[#0e1a18] hover:text-[#5fa8a0] transition-colors whitespace-nowrap">
+          <Link href="/sell" className="hidden md:inline text-sm font-semibold text-[#0e1a18] hover:text-[#5fa8a0] transition-colors whitespace-nowrap">
             Sell on Titunge
           </Link>
           <a
             href={businessUrl}
-            className="text-sm font-semibold text-white rounded-full px-6 py-3 whitespace-nowrap transition-colors hover:bg-[#1c2f2c]"
+            className="hidden md:inline text-sm font-semibold text-white rounded-full px-6 py-3 whitespace-nowrap transition-colors hover:bg-[#1c2f2c]"
             style={{ backgroundColor: "#0e1a18" }}
           >
             Go to Titunge for Business
           </a>
+
+          <button
+            type="button"
+            className="md:hidden p-2 -mr-2 text-[#0e1a18] hover:text-[#5fa8a0] transition-colors"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-4">
+          <form onSubmit={handleSearchSubmit} className="flex items-center w-full bg-gray-100 rounded-full pl-5 pr-1.5 py-1.5 gap-3">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search fabric, garments, and makers"
+              className="min-w-0 flex-1 bg-transparent border-none outline-none text-sm text-[#0e1a18] placeholder:text-gray-500 py-2"
+            />
+            <button
+              type="submit"
+              aria-label="Search"
+              className="flex items-center justify-center shrink-0 w-9 h-9 rounded-full text-white transition-colors"
+              style={{ backgroundColor: "#5fa8a0" }}
+            >
+              <Search size={16} />
+            </button>
+          </form>
+
+          <Link
+            href="/account"
+            className="block text-sm font-semibold text-[#0e1a18] hover:text-[#5fa8a0] transition-colors"
+            onClick={() => setMobileOpen(false)}
+          >
+            Account
+          </Link>
+          <Link
+            href="/sell"
+            className="block text-sm font-semibold text-[#0e1a18] hover:text-[#5fa8a0] transition-colors"
+            onClick={() => setMobileOpen(false)}
+          >
+            Sell on Titunge
+          </Link>
+          <a
+            href={businessUrl}
+            className="block text-center text-sm font-semibold text-white rounded-full px-6 py-3 transition-colors hover:bg-[#1c2f2c]"
+            style={{ backgroundColor: "#0e1a18" }}
+            onClick={() => setMobileOpen(false)}
+          >
+            Go to Titunge for Business
+          </a>
+        </div>
+      )}
     </header>
   );
 }
