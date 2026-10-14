@@ -168,6 +168,62 @@ export async function getPayments(businessId: string, startDate?: string, endDat
   return data || [];
 }
 
+/** Orders with a balance still owed — total_cost minus every payment
+ *  recorded against them (manual entries plus the deposit/balance rows
+ *  post_order_deposit_payment/post_order_completion_payment post
+ *  automatically). Not period-scoped like the rest of Finance: a balance
+ *  owed from an old order is still owed today, regardless of which month
+ *  is selected. */
+export async function getReceivables(businessId: string) {
+  const supabase = await createClient();
+
+  const [ordersResult, paymentsResult] = await Promise.all([
+    (supabase.from("orders") as any)
+      .select("id, order_number, order_date, due_date, total_cost, status, customers(name, phone)")
+      .eq("business_id", businessId)
+      .is("deleted_at", null)
+      .neq("status", "cancelled"),
+    (supabase.from("payments") as any)
+      .select("order_id, amount")
+      .eq("business_id", businessId)
+      .not("order_id", "is", null),
+  ]);
+
+  const orders = ordersResult.data || [];
+  const payments = paymentsResult.data || [];
+
+  const paidByOrder = new Map<string, number>();
+  for (const p of payments as any[]) {
+    paidByOrder.set(p.order_id, (paidByOrder.get(p.order_id) || 0) + parseFloat(String(p.amount || 0)));
+  }
+
+  const now = new Date();
+
+  return orders
+    .map((o: any) => {
+      const total = parseFloat(String(o.total_cost || 0));
+      const paid = paidByOrder.get(o.id) || 0;
+      return {
+        id: o.id,
+        order_number: o.order_number,
+        customer_name: o.customers?.name || "Walk-in",
+        customer_phone: o.customers?.phone || null,
+        order_date: o.order_date,
+        due_date: o.due_date,
+        status: o.status,
+        total: Math.round(total * 100) / 100,
+        paid: Math.round(paid * 100) / 100,
+        balance: Math.round((total - paid) * 100) / 100,
+        overdue: Boolean(o.due_date && new Date(o.due_date) < now),
+      };
+    })
+    .filter((o: any) => o.balance > 0.01)
+    .sort((a: any, b: any) => {
+      if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+      return b.balance - a.balance;
+    });
+}
+
 export async function getOverheadCosts(businessId: string, startDate: string, endDate: string) {
   const supabase = await createClient();
 

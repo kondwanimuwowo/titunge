@@ -5,6 +5,7 @@ import {
   getPayments,
   getOverheadCosts,
   getProfitLossOrders,
+  getReceivables,
 } from "@/lib/data/finance";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -16,12 +17,13 @@ export default async function FinancePage() {
   const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
   const monthEnd = format(endOfMonth(now), "yyyy-MM-dd");
 
-  const [summary, profitLossOrders, expenses, payments, overhead] = await Promise.all([
+  const [summary, profitLossOrders, expenses, payments, overhead, receivables] = await Promise.all([
     getFinancialSummary(businessId, monthStart, monthEnd),
     getProfitLossOrders(businessId, monthStart, monthEnd),
     getExpenses(businessId, monthStart, monthEnd),
     getPayments(businessId, monthStart, monthEnd),
     getOverheadCosts(businessId, monthStart, monthEnd),
+    getReceivables(businessId),
   ]);
 
   return (
@@ -37,6 +39,7 @@ export default async function FinancePage() {
         expenses={expenses}
         payments={payments}
         overhead={overhead}
+        receivables={receivables}
       />
     </div>
   );

@@ -8,6 +8,7 @@ import ExpensesManager from "@/components/finance/ExpensesManager";
 import PaymentsManager from "@/components/finance/PaymentsManager";
 import OverheadManager from "@/components/finance/OverheadManager";
 import ProfitLossTab from "@/components/finance/ProfitLossTab";
+import ReceivablesManager from "@/components/finance/ReceivablesManager";
 import { fetchFinanceData } from "@/app/actions/finance";
 import {
   TrendingUp,
@@ -20,6 +21,7 @@ import {
   Receipt,
   CreditCard,
   Wallet,
+  AlertCircle,
   ChevronLeft,
   ChevronRight,
   Calendar,
@@ -51,6 +53,7 @@ interface FinanceTabsProps {
   expenses: any[];
   payments: any[];
   overhead: any[];
+  receivables: any[];
 }
 
 function computeDateRange(
@@ -126,6 +129,7 @@ export default function FinanceTabs({
   expenses: initialExpenses,
   payments: initialPayments,
   overhead: initialOverhead,
+  receivables: initialReceivables,
 }: FinanceTabsProps) {
   const [periodType, setPeriodType] = useState<PeriodType>("monthly");
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -137,6 +141,8 @@ export default function FinanceTabs({
   const [expenses, setExpenses] = useState(initialExpenses);
   const [payments, setPayments] = useState(initialPayments);
   const [overhead, setOverhead] = useState(initialOverhead);
+  const [receivables, setReceivables] = useState(initialReceivables);
+  const totalReceivables = receivables.reduce((sum: number, r: any) => sum + r.balance, 0);
 
   const periodLabel = useMemo(
     () => formatPeriodLabel(selectedDate, periodType),
@@ -156,6 +162,7 @@ export default function FinanceTabs({
       setExpenses(result.expenses);
       setPayments(result.payments);
       setOverhead(result.overhead);
+      setReceivables(result.receivables);
     });
   };
 
@@ -233,6 +240,21 @@ export default function FinanceTabs({
         p.orders?.customers?.name || "",
         parseFloat(String(p.amount || 0)),
         p.payment_method || "",
+      ])
+    );
+  };
+
+  const exportReceivables = () => {
+    downloadCSV(
+      "receivables.csv",
+      ["Order #", "Customer", "Due date", "Total (ZMW)", "Paid (ZMW)", "Balance (ZMW)"],
+      receivables.map((r: any) => [
+        r.order_number,
+        r.customer_name,
+        r.due_date || "",
+        r.total,
+        r.paid,
+        r.balance,
       ])
     );
   };
@@ -323,7 +345,7 @@ export default function FinanceTabs({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-5 sm:w-fit">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-6 sm:w-fit">
           <TabsTrigger value="overview" className="gap-2">
             <LayoutDashboard size={16} />
             Overview
@@ -339,6 +361,10 @@ export default function FinanceTabs({
           <TabsTrigger value="payments" className="gap-2">
             <CreditCard size={16} />
             Payments
+          </TabsTrigger>
+          <TabsTrigger value="receivables" className="gap-2">
+            <AlertCircle size={16} />
+            Receivables
           </TabsTrigger>
           <TabsTrigger value="overhead" className="gap-2">
             <Wallet size={16} />
@@ -380,11 +406,19 @@ export default function FinanceTabs({
               subtitle="Payments received"
             />
             <StatsCard
+              title="Receivables"
+              value={fmt(totalReceivables)}
+              icon={<AlertCircle size={18} />}
+              color={totalReceivables > 0 ? "red" : "green"}
+              delay={0.3}
+              subtitle={`${receivables.length} order${receivables.length === 1 ? "" : "s"} owed`}
+            />
+            <StatsCard
               title="Total Orders"
               value={summary.totalOrders.toString()}
               icon={<ShoppingCart size={18} />}
               color="yellow"
-              delay={0.3}
+              delay={0.4}
               subtitle={`${summary.pendingOrders} in progress`}
             />
             <StatsCard
@@ -392,7 +426,7 @@ export default function FinanceTabs({
               value={summary.completedOrders.toString()}
               icon={<CheckCircle size={18} />}
               color="green"
-              delay={0.4}
+              delay={0.5}
             />
             <StatsCard
               title="Profit Margin"
@@ -405,7 +439,7 @@ export default function FinanceTabs({
                   ? "yellow"
                   : "red"
               }
-              delay={0.5}
+              delay={0.6}
               subtitle={`Expenses: ${fmt(summary.totalExpenses)}`}
             />
           </div>
@@ -541,6 +575,11 @@ export default function FinanceTabs({
             onExport={exportPayments}
             onRefresh={() => refetch(selectedDate, periodType)}
           />
+        </TabsContent>
+
+        {/* Receivables */}
+        <TabsContent value="receivables">
+          <ReceivablesManager receivables={receivables} onExport={exportReceivables} />
         </TabsContent>
 
         {/* Overhead */}

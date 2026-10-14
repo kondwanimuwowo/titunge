@@ -9,19 +9,23 @@ import {
   getExpenses,
   getPayments,
   getOverheadCosts,
+  getReceivables,
 } from "@/lib/data/finance";
 
 export async function fetchFinanceData(startDate: string, endDate: string) {
   const { businessId } = await requireBusinessContext();
 
-  const [summary, profitLossOrders, expenses, payments, overhead] = await Promise.all([
+  const [summary, profitLossOrders, expenses, payments, overhead, receivables] = await Promise.all([
     getFinancialSummary(businessId, startDate, endDate),
     getProfitLossOrders(businessId, startDate, endDate),
     getExpenses(businessId, startDate, endDate),
     getPayments(businessId, startDate, endDate),
     getOverheadCosts(businessId, startDate, endDate),
+    // Not period-scoped — a balance owed from an older order is still owed
+    // today regardless of which month/quarter/year is selected.
+    getReceivables(businessId),
   ]);
-  return { summary, profitLossOrders, expenses, payments, overhead };
+  return { summary, profitLossOrders, expenses, payments, overhead, receivables };
 }
 
 export async function addExpense(data: {
