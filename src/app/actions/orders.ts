@@ -247,8 +247,9 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
     }
   }
 
-  // 4. Post the order's material and labour costs to Finance > Expenses.
-  //    The function is idempotent, so re-completing an order posts nothing new.
+  // 4. Post the order's material and labour costs to Finance > Expenses, and
+  //    its remaining balance to Finance > Payments. Both are idempotent, so
+  //    re-completing an order posts nothing new.
   if (status === "completed") {
     const { error: expenseError } = await (supabase as any).rpc(
       "post_order_completion_expenses",
@@ -259,9 +260,18 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
     // still be entered by hand — so it is logged rather than returned.
     if (expenseError) {
       console.error("Failed to post order completion expenses:", expenseError.message);
-    } else {
-      revalidatePath("/finance");
     }
+
+    const { error: paymentError } = await (supabase as any).rpc(
+      "post_order_completion_payment",
+      { p_order_id: orderId, p_business_id: businessId }
+    );
+
+    if (paymentError) {
+      console.error("Failed to post order completion payment:", paymentError.message);
+    }
+
+    revalidatePath("/finance");
   }
 
   revalidatePath("/orders");
@@ -404,6 +414,16 @@ export async function createOrderAction(orderData: any) {
     if (orderError) throw new Error(orderError.message);
 
     const newOrderId = newOrder.id;
+
+    // Step 2.5: Post the deposit (if any) to Finance > Payments. Non-fatal —
+    // the order itself was created successfully either way.
+    const { error: depositError } = await (supabase as any).rpc(
+      "post_order_deposit_payment",
+      { p_order_id: newOrderId, p_business_id: businessId }
+    );
+    if (depositError) {
+      console.error("Failed to post order deposit payment:", depositError.message);
+    }
 
     // Step 3: Insert order materials if provided
     if (materialsData && Array.isArray(materialsData) && materialsData.length > 0) {
@@ -551,6 +571,16 @@ export async function updateOrderAction(orderId: string, orderData: any) {
       .eq("business_id", businessId);
 
     if (orderError) throw new Error(orderError.message);
+
+    // Post the deposit to Finance > Payments if one was added on this edit.
+    // Idempotent — a no-op if it was already posted at creation.
+    const { error: depositError } = await (supabase as any).rpc(
+      "post_order_deposit_payment",
+      { p_order_id: orderId, p_business_id: businessId }
+    );
+    if (depositError) {
+      console.error("Failed to post order deposit payment:", depositError.message);
+    }
 
     // Replace materials if provided
     if (Array.isArray(materialsData)) {

@@ -1500,6 +1500,7 @@ export type Database = {
           payment_date: string
           payment_method: string | null
           reference_number: string | null
+          source: string
         }
         Insert: {
           amount?: number
@@ -1511,6 +1512,7 @@ export type Database = {
           payment_date: string
           payment_method?: string | null
           reference_number?: string | null
+          source?: string
         }
         Update: {
           amount?: number
@@ -1522,6 +1524,7 @@ export type Database = {
           payment_date?: string
           payment_method?: string | null
           reference_number?: string | null
+          source?: string
         }
         Relationships: [
           {
@@ -1760,6 +1763,14 @@ export type Database = {
     }
     Functions: {
       my_business_ids: { Args: never; Returns: string[] }
+      post_order_deposit_payment: {
+        Args: { p_order_id: string; p_business_id: string }
+        Returns: number
+      }
+      post_order_completion_payment: {
+        Args: { p_order_id: string; p_business_id: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
