@@ -59,6 +59,7 @@ export async function createPendingOrderAction(params: {
   shippingDetails: ShippingDetailsInput;
   buyerEmail?: string;
   promoCode?: string;
+  fulfillmentMethod?: "delivery" | "pickup";
 }): Promise<{ success: boolean; message?: string; orderId?: string; orderNumber?: string; reference?: string; total?: number }> {
   if (params.items.length === 0) {
     return { success: false, message: "Your basket is empty." };
@@ -78,7 +79,12 @@ export async function createPendingOrderAction(params: {
   }
 
   const subtotal = validItems.reduce((sum, { line, product }) => sum + product.priceZmw * line.qty, 0);
-  const deliveryFee = DELIVERY_FEE_ZMW;
+
+  // Never trust the client's choice at face value — pickup only makes sense
+  // when every line in the order comes from the same seller.
+  const sellerSlugs = new Set(validItems.map(({ product }) => product.sellerSlug));
+  const isPickup = params.fulfillmentMethod === "pickup" && sellerSlugs.size === 1;
+  const deliveryFee = isPickup ? 0 : DELIVERY_FEE_ZMW;
 
   const admin = createAdminClient();
 
@@ -141,6 +147,7 @@ export async function createPendingOrderAction(params: {
         },
         subtotal,
         delivery_fee: deliveryFee,
+        fulfillment_method: isPickup ? "pickup" : "delivery",
         promo_code: appliedPromoCode,
         discount_amount: discountAmount,
         total,

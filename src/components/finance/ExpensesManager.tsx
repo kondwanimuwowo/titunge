@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { deleteExpense } from "@/app/actions/finance";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Receipt, Download, Sparkle } from "lucide-react";
+import { Plus, Trash2, Receipt, Download, Sparkle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ExpensesManagerProps {
@@ -110,6 +110,12 @@ export default function ExpensesManager({
                           <Sparkle className="h-3 w-3" />
                           Auto-posted
                           {expense.orders?.order_number ? ` from #${expense.orders.order_number}` : ""}
+                        </span>
+                      )}
+                      {expense.is_recurring && (
+                        <span className="inline-flex items-center gap-1 mt-0.5 text-xs text-emerald-700">
+                          <RefreshCw className="h-3 w-3" />
+                          Recurring monthly
                         </span>
                       )}
                     </td>

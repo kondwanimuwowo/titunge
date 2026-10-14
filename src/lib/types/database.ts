@@ -550,9 +550,11 @@ export type Database = {
           employee_id: string | null
           expense_date: string
           id: string
+          is_recurring: boolean
           notes: string | null
           order_id: string | null
           payment_method: string | null
+          recurrence_source_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -565,9 +567,11 @@ export type Database = {
           employee_id?: string | null
           expense_date: string
           id?: string
+          is_recurring?: boolean
           notes?: string | null
           order_id?: string | null
           payment_method?: string | null
+          recurrence_source_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -580,9 +584,11 @@ export type Database = {
           employee_id?: string | null
           expense_date?: string
           id?: string
+          is_recurring?: boolean
           notes?: string | null
           order_id?: string | null
           payment_method?: string | null
+          recurrence_source_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -605,6 +611,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_recurrence_source_id_fkey"
+            columns: ["recurrence_source_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
             referencedColumns: ["id"]
           },
         ]
@@ -820,6 +833,7 @@ export type Database = {
           created_at: string | null
           currency: string
           delivery_fee: number
+          fulfillment_method: string
           promo_code: string | null
           discount_amount: number
           delivered_at: string | null
@@ -844,6 +858,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           delivery_fee?: number
+          fulfillment_method?: string
           promo_code?: string | null
           discount_amount?: number
           delivered_at?: string | null
@@ -868,6 +883,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           delivery_fee?: number
+          fulfillment_method?: string
           promo_code?: string | null
           discount_amount?: number
           delivered_at?: string | null

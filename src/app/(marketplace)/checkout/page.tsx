@@ -10,7 +10,19 @@ const COUNTRIES = ["Zambia", "Ghana", "Nigeria", "Kenya", "Senegal", "South Afri
 
 export default function CheckoutShippingPage() {
   const router = useRouter();
-  const { items, subtotal, delivery, total, hydrated, shippingDetails, setShippingDetails, products } = useCart();
+  const {
+    items,
+    subtotal,
+    delivery,
+    total,
+    hydrated,
+    shippingDetails,
+    setShippingDetails,
+    fulfillmentMethod,
+    setFulfillmentMethod,
+    canPickup,
+    products,
+  } = useCart();
 
   const [fullName, setFullName] = useState(shippingDetails?.fullName ?? "");
   const [email, setEmail] = useState(shippingDetails?.email ?? "");
@@ -23,6 +35,10 @@ export default function CheckoutShippingPage() {
   useEffect(() => {
     if (hydrated && items.length === 0) router.replace("/cart");
   }, [hydrated, items.length, router]);
+
+  useEffect(() => {
+    if (hydrated && !canPickup && fulfillmentMethod === "pickup") setFulfillmentMethod("delivery");
+  }, [hydrated, canPickup, fulfillmentMethod, setFulfillmentMethod]);
 
   if (!hydrated || items.length === 0) return null;
 
@@ -52,6 +68,39 @@ export default function CheckoutShippingPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <h2 className="text-lg font-bold">Delivery details</h2>
+
+          {canPickup && (
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setFulfillmentMethod("delivery")}
+                className="text-sm font-semibold rounded-full px-6 py-2.5"
+                style={{
+                  backgroundColor: fulfillmentMethod === "delivery" ? "#0e1a18" : "#f5f5f5",
+                  color: fulfillmentMethod === "delivery" ? "#fff" : "#0e1a18",
+                }}
+              >
+                Delivery
+              </button>
+              <button
+                type="button"
+                onClick={() => setFulfillmentMethod("pickup")}
+                className="text-sm font-semibold rounded-full px-6 py-2.5"
+                style={{
+                  backgroundColor: fulfillmentMethod === "pickup" ? "#0e1a18" : "#f5f5f5",
+                  color: fulfillmentMethod === "pickup" ? "#fff" : "#0e1a18",
+                }}
+              >
+                Pick up from store
+              </button>
+            </div>
+          )}
+
+          {fulfillmentMethod === "pickup" && (
+            <p className="text-sm text-gray-600 bg-gray-50 rounded-md p-4">
+              No delivery fee. The seller will contact you to arrange pickup once your order is confirmed.
+            </p>
+          )}
 
           <div>
             <label className="block text-sm font-semibold mb-1.5" htmlFor="fullName">Full name</label>
@@ -87,45 +136,51 @@ export default function CheckoutShippingPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1.5" htmlFor="country">Country</label>
-              <select
-                id="country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-md px-3 py-2.5"
-              >
-                {COUNTRIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1.5" htmlFor="city">City</label>
-              <input
-                id="city"
-                required
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-md px-3 py-2.5"
-              />
-            </div>
-          </div>
+          {fulfillmentMethod === "delivery" && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-1.5" htmlFor="country">Country</label>
+                  <select
+                    id="country"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full text-sm border border-gray-200 rounded-md px-3 py-2.5"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1.5" htmlFor="city">City</label>
+                  <input
+                    id="city"
+                    required
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full text-sm border border-gray-200 rounded-md px-3 py-2.5"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1.5" htmlFor="street">Street address</label>
+                <input
+                  id="street"
+                  required
+                  value={street}
+                  onChange={(e) => setStreet(e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-md px-3 py-2.5"
+                />
+              </div>
+            </>
+          )}
 
           <div>
-            <label className="block text-sm font-semibold mb-1.5" htmlFor="street">Street address</label>
-            <input
-              id="street"
-              required
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded-md px-3 py-2.5"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1.5" htmlFor="notes">Delivery notes (optional)</label>
+            <label className="block text-sm font-semibold mb-1.5" htmlFor="notes">
+              {fulfillmentMethod === "pickup" ? "Notes (optional)" : "Delivery notes (optional)"}
+            </label>
             <textarea
               id="notes"
               value={notes}
@@ -144,7 +199,13 @@ export default function CheckoutShippingPage() {
           </button>
         </form>
 
-        <OrderSummaryPanel items={summaryItems} subtotal={subtotal} delivery={delivery} total={total} />
+        <OrderSummaryPanel
+          items={summaryItems}
+          subtotal={subtotal}
+          delivery={delivery}
+          total={total}
+          deliveryLabel={fulfillmentMethod === "pickup" ? "Pickup" : "Delivery"}
+        />
       </div>
     </div>
   );

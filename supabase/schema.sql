@@ -325,6 +325,8 @@ CREATE TABLE public.expenses (
   payment_method   text,
   notes            text,
   auto_generated   boolean NOT NULL DEFAULT false,
+  is_recurring     boolean NOT NULL DEFAULT false,
+  recurrence_source_id uuid REFERENCES public.expenses(id) ON DELETE SET NULL,
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()
 );
@@ -437,6 +439,7 @@ CREATE TABLE public.marketplace_orders (
                       CHECK (status IN ('awaiting_payment','being_sewn','shipped','delivered','cancelled')),
   payment_status    text NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending','successful','failed')),
   payment_method    text CHECK (payment_method IN ('mobile-money','card')),
+  fulfillment_method text NOT NULL DEFAULT 'delivery' CHECK (fulfillment_method IN ('delivery','pickup')),
   payment_reference text NOT NULL UNIQUE,
   lenco_reference   text,
   paid_at           timestamptz,

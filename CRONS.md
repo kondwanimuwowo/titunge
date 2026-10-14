@@ -93,6 +93,23 @@ retries failed charges on a fixed backoff (+1, +3, +7 days).
 | Timeout | 30s |
 | Notify on failure | Yes |
 
+## 5. Generate recurring expenses
+
+Rolls each expense marked "Recurring monthly expense" in Finance > Expenses
+forward into the current month, so rent and other fixed costs don't need
+re-entering by hand every month.
+
+| Setting | Value |
+|---|---|
+| Title | `Titunge - Generate recurring expenses` |
+| URL | `https://titunge.com/api/cron/generate-recurring-expenses` |
+| Header name | `Authorization` |
+| Header value | `Bearer <CRON_SECRET>` |
+| Method | GET |
+| Schedule | Daily, once (e.g. 03:00 UTC) |
+| Timeout | 30s |
+| Notify on failure | Yes |
+
 ---
 
 ## Required environment (Cloudflare Worker secrets)

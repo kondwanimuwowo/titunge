@@ -9,6 +9,7 @@ import {
   getProductReservationBalance,
   isConfirmedOrderStatus,
 } from "@/lib/productStock";
+import { sendOrderReceiptEmail } from "@/app/actions/order-documents";
 
 export async function deleteOrder(orderId: string) {
   const { businessId } = await requireBusinessContext();
@@ -272,6 +273,14 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
     }
 
     revalidatePath("/finance");
+
+    // Email the receipt/invoice to the customer, if they have an email on
+    // file. Best-effort — sendEmail() never throws, and a delivery failure
+    // must not undo a legitimate status change.
+    const emailResult = await sendOrderReceiptEmail(orderId);
+    if (!emailResult.success) {
+      console.error("Failed to email order receipt:", emailResult.message);
+    }
   }
 
   revalidatePath("/orders");

@@ -20,9 +20,12 @@ export interface ShippingDetails {
   notes: string;
 }
 
+export type FulfillmentMethod = "delivery" | "pickup";
+
 interface CartState {
   items: CartLine[];
   shippingDetails: ShippingDetails | null;
+  fulfillmentMethod: FulfillmentMethod;
 }
 
 const STORAGE_KEY = "titunge-cart";
@@ -34,12 +37,17 @@ function lineKey(productId: string, size: string) {
 interface CartContextValue {
   items: CartLine[];
   shippingDetails: ShippingDetails | null;
+  fulfillmentMethod: FulfillmentMethod;
+  /** True only when every line in the cart is sold by the same seller —
+   *  picking up a multi-seller order from "a store" isn't a coherent offer. */
+  canPickup: boolean;
   addItem: (productId: string, size: string, qty?: number) => void;
   incQty: (productId: string, size: string) => void;
   decQty: (productId: string, size: string) => void;
   removeItem: (productId: string, size: string) => void;
   clearCart: () => void;
   setShippingDetails: (details: ShippingDetails) => void;
+  setFulfillmentMethod: (method: FulfillmentMethod) => void;
   subtotal: number;
   delivery: number;
   total: number;
@@ -50,14 +58,14 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<CartState>({ items: [], shippingDetails: null });
+  const [state, setState] = useState<CartState>({ items: [], shippingDetails: null, fulfillmentMethod: "delivery" });
   const [hydrated, setHydrated] = useState(false);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setState(JSON.parse(raw));
+      if (raw) setState((s) => ({ ...s, ...JSON.parse(raw) }));
     } catch {
       // ignore malformed storage
     }
@@ -113,11 +121,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, shippingDetails: details }));
   };
 
+  const setFulfillmentMethod = (method: FulfillmentMethod) => {
+    setState((s) => ({ ...s, fulfillmentMethod: method }));
+  };
+
+  const cartSellerSlugs = new Set(
+    state.items
+      .map((line) => products.find((p) => p.id === line.productId)?.sellerSlug)
+      .filter((slug): slug is string => Boolean(slug))
+  );
+  const canPickup = cartSellerSlugs.size === 1;
+
   const subtotal = state.items.reduce((sum, line) => {
     const product = products.find((p) => p.id === line.productId);
     return sum + (product ? product.priceZmw * line.qty : 0);
   }, 0);
-  const delivery = state.items.length > 0 ? DELIVERY_FEE_ZMW : 0;
+  const delivery = state.items.length === 0 || (state.fulfillmentMethod === "pickup" && canPickup) ? 0 : DELIVERY_FEE_ZMW;
   const total = subtotal + delivery;
 
   return (
@@ -125,12 +144,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         items: state.items,
         shippingDetails: state.shippingDetails,
+        fulfillmentMethod: state.fulfillmentMethod,
+        canPickup,
         addItem,
         incQty,
         decQty,
         removeItem,
         clearCart,
         setShippingDetails,
+        setFulfillmentMethod,
         subtotal,
         delivery,
         total,

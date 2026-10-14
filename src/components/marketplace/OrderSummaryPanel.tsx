@@ -23,9 +23,11 @@ interface OrderSummaryPanelProps {
   footnote?: string;
   /** Slot for a promo code input, rendered above the totals. */
   promoSlot?: ReactNode;
+  /** Label for the delivery/pickup line — defaults to "Delivery". */
+  deliveryLabel?: string;
 }
 
-export function OrderSummaryPanel({ items, subtotal, delivery, discount = 0, discountLabel, total, cta, footnote, promoSlot }: OrderSummaryPanelProps) {
+export function OrderSummaryPanel({ items, subtotal, delivery, discount = 0, discountLabel, total, cta, footnote, promoSlot, deliveryLabel = "Delivery" }: OrderSummaryPanelProps) {
   return (
     <div className="sticky top-[104px] bg-white rounded-xl shadow-[0_2px_12px_rgba(14,26,24,0.10)] p-6 flex flex-col gap-4 self-start">
       <h2 className="text-lg font-bold">Order summary</h2>
@@ -53,7 +55,7 @@ export function OrderSummaryPanel({ items, subtotal, delivery, discount = 0, dis
           <span>{formatZmw(subtotal)}</span>
         </div>
         <div className="flex justify-between text-gray-600">
-          <span>Delivery</span>
+          <span>{deliveryLabel}</span>
           <span>{formatZmw(delivery)}</span>
         </div>
         {discount > 0 && (

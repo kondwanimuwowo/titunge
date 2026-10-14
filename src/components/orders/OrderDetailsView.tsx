@@ -45,6 +45,7 @@ import {
 import OrderStatusBadge from "./OrderStatusBadge";
 import { StatusTimeline } from "./StatusTimeline";
 import { updateOrderStatus } from "@/app/actions/orders";
+import { sendOrderReceiptEmail, sendOrderQuotationEmail } from "@/app/actions/order-documents";
 import type { OrderStatus } from "@/lib/types/database";
 
 // Matches what CreateOrderForm actually creates orders with (status: "enquiry")
@@ -68,6 +69,30 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [statusNotes, setStatusNotes] = useState("");
+  const [isSendingReceipt, setIsSendingReceipt] = useState(false);
+  const [isSendingQuotation, setIsSendingQuotation] = useState(false);
+
+  const handleEmailReceipt = async () => {
+    setIsSendingReceipt(true);
+    const result = await sendOrderReceiptEmail(order.id);
+    setIsSendingReceipt(false);
+    if (result.success) {
+      toast.success("Receipt emailed to customer");
+    } else {
+      toast.error(result.message || "Failed to email receipt");
+    }
+  };
+
+  const handleEmailQuotation = async () => {
+    setIsSendingQuotation(true);
+    const result = await sendOrderQuotationEmail(order.id);
+    setIsSendingQuotation(false);
+    if (result.success) {
+      toast.success("Quotation emailed to customer");
+    } else {
+      toast.error(result.message || "Failed to email quotation");
+    }
+  };
 
   const getNextStatus = (): OrderStatus | null => {
     const currentIndex = STATUS_FLOW.indexOf(order.status as OrderStatus);
@@ -124,6 +149,16 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
           <Button variant="secondary" onClick={() => router.push(`/orders/${order.id}/receipt`)} className="print:hidden">
             <Printer className="mr-2 h-4 w-4" />
             Print Receipt
+          </Button>
+          {!["completed", "delivered", "cancelled"].includes(order.status) && (
+            <Button variant="outline" onClick={handleEmailQuotation} disabled={isSendingQuotation} className="print:hidden">
+              {isSendingQuotation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+              Email Quotation
+            </Button>
+          )}
+          <Button variant="outline" onClick={handleEmailReceipt} disabled={isSendingReceipt} className="print:hidden">
+            {isSendingReceipt ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+            Email {["completed", "delivered"].includes(order.status) ? "Receipt" : "Invoice"}
           </Button>
         </div>
       </div>

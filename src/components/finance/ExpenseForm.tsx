@@ -31,6 +31,7 @@ type FormData = {
   amount: number;
   payment_method: string;
   notes: string;
+  is_recurring: boolean;
 };
 
 export default function ExpenseForm({ expense }: ExpenseFormProps) {
@@ -46,6 +47,7 @@ export default function ExpenseForm({ expense }: ExpenseFormProps) {
           amount: parseFloat(String(expense.amount || 0)),
           payment_method: expense.payment_method || "",
           notes: expense.notes || "",
+          is_recurring: expense.is_recurring || false,
         }
       : {
           expense_date: format(new Date(), "yyyy-MM-dd"),
@@ -54,6 +56,7 @@ export default function ExpenseForm({ expense }: ExpenseFormProps) {
           amount: 0,
           payment_method: "",
           notes: "",
+          is_recurring: false,
         },
   });
 
@@ -158,6 +161,11 @@ export default function ExpenseForm({ expense }: ExpenseFormProps) {
           disabled={isPending}
         />
       </div>
+
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" {...register("is_recurring")} disabled={isPending} className="rounded" />
+        <span className="text-sm font-medium">Recurring monthly expense</span>
+      </label>
 
       <div className="flex gap-3 pt-4 border-t">
         <Button type="button" variant="outline" onClick={() => router.push("/finance")} disabled={isPending}>

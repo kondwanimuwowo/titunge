@@ -31,6 +31,7 @@ export async function addExpense(data: {
   amount: number;
   payment_method?: string;
   notes?: string;
+  is_recurring?: boolean;
 }): Promise<{ success: boolean; message?: string }> {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
@@ -56,6 +57,7 @@ export async function updateExpense(
     amount: number;
     payment_method: string;
     notes: string;
+    is_recurring: boolean;
   }>
 ): Promise<{ success: boolean; message?: string }> {
   const { businessId } = await requireBusinessContext();
