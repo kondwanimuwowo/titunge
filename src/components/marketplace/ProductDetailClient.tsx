@@ -26,6 +26,11 @@ export function ProductDetailClient({ product, moreFromShop, initialWishlisted =
   const [activeImage, setActiveImage] = useState(product.image);
 
   const category = MARKETPLACE_CATEGORIES.find((c) => c.slug === product.categorySlug);
+  const sizingLabel =
+    product.sizingStandard === "uk" ? "UK sizing"
+    : product.sizingStandard === "us" ? "US sizing"
+    : product.sizingStandard === "aus" ? "Australian sizing"
+    : null;
 
   const handleAddToBasket = () => {
     addItem(product.id, size);
@@ -81,7 +86,10 @@ export function ProductDetailClient({ product, moreFromShop, initialWishlisted =
           <p className="text-sm text-gray-600 leading-relaxed mt-4">{product.description}</p>
 
           <div className="mt-6">
-            <h3 className="text-sm font-bold mb-3">Size</h3>
+            <h3 className="text-sm font-bold mb-3">
+              Size
+              {sizingLabel && <span className="font-normal text-gray-500"> ({sizingLabel})</span>}
+            </h3>
             <div className="flex flex-wrap gap-2">
               {product.sizes.map((s) => (
                 <button

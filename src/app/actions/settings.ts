@@ -89,6 +89,23 @@ export async function updateBusinessFocus(
   return { success: true };
 }
 
+export async function updateSizingStandardAction(
+  sizingStandard: "not_specified" | "uk" | "us" | "aus"
+): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("businesses")
+    .update({ sizing_standard: sizingStandard, updated_at: new Date().toISOString() })
+    .eq("id", businessId);
+
+  if (error) return { success: false, message: error.message };
+
+  revalidatePath("/settings");
+  return { success: true };
+}
+
 export async function uploadLogo(formData: FormData): Promise<{ success: boolean; url?: string; message?: string }> {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();

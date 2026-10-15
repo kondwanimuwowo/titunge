@@ -26,6 +26,7 @@ CREATE TABLE public.businesses (
   focus            text NOT NULL DEFAULT 'full_erp' CHECK (focus IN ('full_erp', 'marketplace_only')), -- UI preference only, editable in Settings
   status           text NOT NULL DEFAULT 'active',  -- active | suspended | trial
   marketplace_fee_mode text NOT NULL DEFAULT 'absorb' CHECK (marketplace_fee_mode IN ('absorb', 'pass_to_customer')),
+  sizing_standard  text NOT NULL DEFAULT 'not_specified' CHECK (sizing_standard IN ('not_specified', 'uk', 'us', 'aus')),
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()
 );

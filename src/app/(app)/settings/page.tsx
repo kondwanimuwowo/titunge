@@ -65,6 +65,7 @@ export default async function SettingsPage() {
           plan: business.plan as "free" | "team",
           focus: business.focus as "full_erp" | "marketplace_only",
           marketplace_fee_mode: (business as any).marketplace_fee_mode as "absorb" | "pass_to_customer",
+          sizing_standard: (business as any).sizing_standard as "not_specified" | "uk" | "us" | "aus",
         }}
         storefront={storefront}
         storefrontProducts={storefrontProducts}

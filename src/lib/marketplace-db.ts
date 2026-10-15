@@ -24,6 +24,7 @@ export interface MarketplaceProduct {
   name: string;
   businessId: string;
   marketplaceFeeMode: "absorb" | "pass_to_customer";
+  sizingStandard: "not_specified" | "uk" | "us" | "aus";
   seller: string;
   sellerSlug: string;
   categorySlug: string;
@@ -82,6 +83,7 @@ function toMarketplaceProduct(row: any): MarketplaceProduct {
     name: row.name,
     businessId: row.business_id,
     marketplaceFeeMode: business.marketplace_fee_mode === "pass_to_customer" ? "pass_to_customer" : "absorb",
+    sizingStandard: ["uk", "us", "aus"].includes(business.sizing_standard) ? business.sizing_standard : "not_specified",
     seller: business.name ?? "Unknown seller",
     sellerSlug: business.slug ?? "",
     categorySlug: extra?.category_slug ?? "",
@@ -124,7 +126,7 @@ function toMarketplaceSeller(row: any, itemCount: number): MarketplaceSeller {
 
 const PRODUCT_SELECT = `
   id, name, description, price, sizes, images, business_id, created_at,
-  businesses!inner(name, slug, status, marketplace_fee_mode, business_storefront(location, delivery_policy, returns_policy)),
+  businesses!inner(name, slug, status, marketplace_fee_mode, sizing_standard, business_storefront(location, delivery_policy, returns_policy)),
   product_storefront_extra(category_slug, care_instructions, shipping_lead_time, featured)
 `;
 

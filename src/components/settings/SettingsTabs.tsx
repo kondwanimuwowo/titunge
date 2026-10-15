@@ -10,6 +10,7 @@ import BrandingTab from "./BrandingTab";
 import StorefrontProfileForm from "./StorefrontProfileForm";
 import StorefrontProductsList from "./StorefrontProductsList";
 import PayoutProfileForm from "./PayoutProfileForm";
+import SizingStandardToggle from "./SizingStandardToggle";
 import BillingTab from "./BillingTab";
 import WorkspaceFocusToggle from "./WorkspaceFocusToggle";
 import GarmentTypesManager from "@/components/finance/GarmentTypesManager";
@@ -31,6 +32,7 @@ interface SettingsTabsProps {
     plan: "free" | "team";
     focus: "full_erp" | "marketplace_only";
     marketplace_fee_mode: "absorb" | "pass_to_customer";
+    sizing_standard: "not_specified" | "uk" | "us" | "aus";
   };
   storefront: {
     bio: string | null;
@@ -164,6 +166,7 @@ export default function SettingsTabs({
       {/* Marketplace */}
       <TabsContent value="marketplace" className="space-y-4">
         <StorefrontProfileForm storefront={storefront} businessName={business.name} businessSlug={business.slug} />
+        <SizingStandardToggle sizingStandard={business.sizing_standard} />
         <PayoutProfileForm profile={payoutProfile} banks={banks} />
         <StorefrontProductsList products={storefrontProducts} />
       </TabsContent>

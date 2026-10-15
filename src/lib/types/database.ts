@@ -257,6 +257,7 @@ export type Database = {
           plan: string
           focus: string
           marketplace_fee_mode: string
+          sizing_standard: string
           slug: string
           status: string
           theme_key: string
@@ -273,6 +274,7 @@ export type Database = {
           plan?: string
           focus?: string
           marketplace_fee_mode?: string
+          sizing_standard?: string
           slug: string
           status?: string
           theme_key?: string
@@ -289,6 +291,7 @@ export type Database = {
           plan?: string
           focus?: string
           marketplace_fee_mode?: string
+          sizing_standard?: string
           slug?: string
           status?: string
           theme_key?: string
