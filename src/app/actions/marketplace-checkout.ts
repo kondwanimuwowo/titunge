@@ -180,6 +180,7 @@ export async function createPendingOrderAction(params: {
   const itemRows = validItems.map(({ line, product }) => ({
     order_id: order.id,
     product_id: line.productId,
+    business_id: product.businessId,
     product_name: product.name,
     seller_name: product.seller,
     image_url: product.image || null,

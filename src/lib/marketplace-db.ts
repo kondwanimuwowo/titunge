@@ -22,6 +22,7 @@ export interface MarketplaceProductShipping {
 export interface MarketplaceProduct {
   id: string;
   name: string;
+  businessId: string;
   seller: string;
   sellerSlug: string;
   categorySlug: string;
@@ -78,6 +79,7 @@ function toMarketplaceProduct(row: any): MarketplaceProduct {
   return {
     id: row.id,
     name: row.name,
+    businessId: row.business_id,
     seller: business.name ?? "Unknown seller",
     sellerSlug: business.slug ?? "",
     categorySlug: extra?.category_slug ?? "",
