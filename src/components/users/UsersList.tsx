@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import {
   UserCheck, UserX, ChevronDown, Plus, Shield, UserCog,
-  Users, Mail, Copy, Check, CheckCircle2, Loader2, Link2, XCircle, Clock,
+  Users, Mail, Copy, Check, CheckCircle2, Loader2, Link2, XCircle, Clock, Lock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { updateUserRole, toggleUserActive } from "@/app/actions/users";
 import { inviteUserAction, revokeInviteAction } from "@/app/actions/invites";
+import { upgradeToTeamPlanAction } from "@/app/actions/billing";
 import { ROLE_BADGE_COLORS } from "@/lib/constants";
 
 const ROLES = ["admin", "manager", "employee"] as const;
@@ -41,28 +42,53 @@ function inviteLink(token: string) {
 }
 
 // ─── Invite User Dialog ─────────────────────────────────────────────────────
-function InviteUserDialog({ onInvited }: { onInvited: () => void }) {
+function InviteUserDialog({
+  onInvited,
+  seatPriceKwacha,
+}: {
+  onInvited: () => void;
+  seatPriceKwacha: number;
+}) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isUpgrading, startUpgrading] = useTransition();
   const [successToken, setSuccessToken] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
 
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, setValue, reset, getValues, formState: { errors } } = useForm({
     defaultValues: { email: "", role: "employee" },
   });
   const role = watch("role");
 
-  const onSubmit = (data: any) => {
+  const submitInvite = (data: { email: string; role: string }) => {
     startTransition(async () => {
-      const result = await inviteUserAction({ email: data.email, role: data.role });
+      const result = await inviteUserAction({ email: data.email, role: data.role as "admin" | "manager" | "employee" });
       if (result.success) {
+        setNeedsUpgrade(false);
         setSuccessToken(result.token!);
         setEmailSent(!!result.emailSent);
         reset();
         onInvited();
+      } else if (result.seatLimitReached) {
+        setNeedsUpgrade(true);
       } else {
         toast.error(result.message || "Failed to send invite");
+      }
+    });
+  };
+
+  const onSubmit = (data: any) => submitInvite(data);
+
+  const handleUpgrade = () => {
+    startUpgrading(async () => {
+      const result = await upgradeToTeamPlanAction();
+      if (result.success) {
+        toast.success("Upgraded to Team — sending your invite...");
+        submitInvite(getValues());
+      } else {
+        toast.error(result.message || "Failed to upgrade");
       }
     });
   };
@@ -78,6 +104,7 @@ function InviteUserDialog({ onInvited }: { onInvited: () => void }) {
     setOpen(false);
     setSuccessToken(null);
     setEmailSent(false);
+    setNeedsUpgrade(false);
     reset();
   };
 
@@ -89,13 +116,44 @@ function InviteUserDialog({ onInvited }: { onInvited: () => void }) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Invite a User</DialogTitle>
+          <DialogTitle>{needsUpgrade ? "Upgrade to add more users" : "Invite a User"}</DialogTitle>
           <DialogDescription>
-            They'll set up their own login — you never see or set their password.
+            {needsUpgrade
+              ? "Your Free plan is limited to 1 user."
+              : "They'll set up their own login — you never see or set their password."}
           </DialogDescription>
         </DialogHeader>
 
-        {successToken ? (
+        {needsUpgrade ? (
+          <div className="space-y-4 py-2">
+            <div className="flex flex-col gap-3 p-6 bg-primary/5 rounded-xl border border-primary/20">
+              <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <Lock className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Upgrade to Team</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Your first seat stays free. Every seat after that is K{seatPriceKwacha}/month, billed monthly via
+                  mobile money. You can add a payment method afterward in Settings &gt; Billing.
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              We&apos;ll send the invite to <span className="font-medium">{getValues("email") || "this address"}</span> right
+              after you upgrade.
+            </p>
+            <DialogFooter className="gap-2">
+              {/* @ts-ignore */}
+              <Button variant="outline" onClick={() => setNeedsUpgrade(false)} disabled={isUpgrading} className="flex-1">
+                Back
+              </Button>
+              {/* @ts-ignore */}
+              <Button onClick={handleUpgrade} loading={isUpgrading} className="flex-1">
+                {isUpgrading ? "Upgrading..." : "Upgrade to Team"}
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : successToken ? (
           <div className="space-y-4 py-2">
             <div className="flex flex-col items-center text-center gap-3 p-6 bg-green-50 rounded-xl border border-green-100">
               <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -227,9 +285,10 @@ function PendingInvites({ invites, onChanged }: { invites: any[]; onChanged: () 
 interface UsersListProps {
   initialUsers: any[];
   initialInvites: any[];
+  seatPriceKwacha: number;
 }
 
-export default function UsersList({ initialUsers, initialInvites }: UsersListProps) {
+export default function UsersList({ initialUsers, initialInvites, seatPriceKwacha }: UsersListProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
@@ -334,7 +393,7 @@ export default function UsersList({ initialUsers, initialInvites }: UsersListPro
           <span className="text-sm text-muted-foreground">{filtered.length} of {initialUsers.length}</span>
         </div>
 
-        <InviteUserDialog onInvited={() => router.refresh()} />
+        <InviteUserDialog onInvited={() => router.refresh()} seatPriceKwacha={seatPriceKwacha} />
       </div>
 
       <PendingInvites invites={initialInvites} onChanged={() => router.refresh()} />

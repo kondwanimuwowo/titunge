@@ -18,7 +18,7 @@ function admin() {
 export async function inviteUserAction(data: {
   email: string;
   role: "admin" | "manager" | "employee";
-}): Promise<{ success: boolean; message?: string; token?: string; emailSent?: boolean }> {
+}): Promise<{ success: boolean; message?: string; token?: string; emailSent?: boolean; seatLimitReached?: boolean }> {
   const { businessId, role: callerRole, plan } = await requireBusinessContext();
 
   if (callerRole !== "admin") {
@@ -40,7 +40,8 @@ export async function inviteUserAction(data: {
     if ((count ?? 0) >= seatLimit) {
       return {
         success: false,
-        message: `The Free plan is limited to ${seatLimit} user. Upgrade to Team in Settings to add more.`,
+        seatLimitReached: true,
+        message: `The Free plan is limited to ${seatLimit} user. Upgrade to Team to add more.`,
       };
     }
   }
