@@ -51,6 +51,6 @@ export async function advanceMarketplaceOrderStatusAction(
     return { success: false, message: error.message };
   }
 
-  revalidatePath("/marketplace-orders");
+  revalidatePath("/orders");
   return { success: true };
 }

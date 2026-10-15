@@ -18,12 +18,10 @@ import {
   Settings,
   MessageSquare,
   Trash2,
-  Store,
   ShieldCheck,
   Wallet,
   CreditCard,
   ListOrdered,
-  LineChart,
   Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,7 +57,6 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Sales",
     items: [
       { path: "/orders", icon: ShoppingCart, label: "Orders", roles: ["admin", "manager", "employee"] },
-      { path: "/marketplace-orders", icon: Store, label: "Marketplace Orders", roles: ["admin", "manager"] },
       { path: "/inquiries", icon: MessageSquare, label: "Inquiries", roles: ["admin", "manager"] },
     ],
   },
@@ -86,7 +83,6 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Insights",
     items: [
       { path: "/analytics", icon: BarChart3, label: "Analytics", roles: ["admin", "manager"] },
-      { path: "/marketplace-analytics", icon: LineChart, label: "Marketplace Sales", roles: ["admin", "manager"] },
       { path: "/finance", icon: DollarSign, label: "Finance", roles: ["admin", "manager"] },
     ],
   },
@@ -111,7 +107,11 @@ const PLATFORM_ADMIN_ITEMS = [
 // A business set up for "just sell on the marketplace" gets a decluttered
 // default menu — soft preference only, nothing is actually blocked if they
 // navigate to a full-ERP page directly, and it's editable in Settings.
-const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/marketplace-orders", "/marketplace-analytics", "/settings"]);
+// Orders and Analytics now default to their Workshop/Business tab even for
+// marketplace-only businesses — a small bit of friction (one extra tab
+// click to reach the Marketplace tab) traded for not needing two nav-item
+// shapes depending on focus.
+const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/orders", "/analytics", "/settings"]);
 
 interface SidebarNavProps {
   role: UserRole;
