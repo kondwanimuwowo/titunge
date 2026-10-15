@@ -15,6 +15,9 @@ interface OrderSummaryPanelProps {
   items?: OrderSummaryItem[];
   subtotal: number;
   delivery: number;
+  /** Marketplace fee passed through to the buyer by sellers who opted into
+   *  it — omitted from the receipt entirely when zero. */
+  platformFee?: number;
   /** Positive amount taken off the total by a promo code, if any. */
   discount?: number;
   discountLabel?: string;
@@ -27,7 +30,7 @@ interface OrderSummaryPanelProps {
   deliveryLabel?: string;
 }
 
-export function OrderSummaryPanel({ items, subtotal, delivery, discount = 0, discountLabel, total, cta, footnote, promoSlot, deliveryLabel = "Delivery" }: OrderSummaryPanelProps) {
+export function OrderSummaryPanel({ items, subtotal, delivery, platformFee = 0, discount = 0, discountLabel, total, cta, footnote, promoSlot, deliveryLabel = "Delivery" }: OrderSummaryPanelProps) {
   return (
     <div className="sticky top-[104px] bg-white rounded-xl shadow-[0_2px_12px_rgba(14,26,24,0.10)] p-6 flex flex-col gap-4 self-start">
       <h2 className="text-lg font-bold">Order summary</h2>
@@ -58,6 +61,12 @@ export function OrderSummaryPanel({ items, subtotal, delivery, discount = 0, dis
           <span>{deliveryLabel}</span>
           <span>{formatZmw(delivery)}</span>
         </div>
+        {platformFee > 0 && (
+          <div className="flex justify-between text-gray-600">
+            <span>Marketplace fee</span>
+            <span>{formatZmw(platformFee)}</span>
+          </div>
+        )}
         {discount > 0 && (
           <div className="flex justify-between text-[#5fa8a0] font-medium">
             <span>{discountLabel ?? "Promo"}</span>

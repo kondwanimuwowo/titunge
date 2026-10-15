@@ -30,6 +30,7 @@ interface SettingsTabsProps {
     logo_url?: string | null;
     plan: "free" | "team";
     focus: "full_erp" | "marketplace_only";
+    marketplace_fee_mode: "absorb" | "pass_to_customer";
   };
   storefront: {
     bio: string | null;
@@ -48,8 +49,10 @@ interface SettingsTabsProps {
     verified_at: string | null;
   } | null;
   seatPriceKwacha: number;
+  commissionRate: number;
   billingProfile: { payment_method: string | null; account_details: Record<string, unknown> | null } | null;
   billingCharges: { id: string; period: string; seat_count: number; amount: number; status: string }[];
+  payouts: any[];
   banks: { id: string; name: string; country: string }[];
 }
 
@@ -62,8 +65,10 @@ export default function SettingsTabs({
   seatCount,
   payoutProfile,
   seatPriceKwacha,
+  commissionRate,
   billingProfile,
   billingCharges,
+  payouts,
   banks,
 }: SettingsTabsProps) {
   const [activeTab, setActiveTab] = useState("general");
@@ -171,6 +176,9 @@ export default function SettingsTabs({
           seatPriceKwacha={seatPriceKwacha}
           billingProfile={billingProfile}
           charges={billingCharges}
+          marketplaceFeeMode={business.marketplace_fee_mode}
+          commissionRate={commissionRate}
+          payouts={payouts}
         />
       </TabsContent>
     </Tabs>

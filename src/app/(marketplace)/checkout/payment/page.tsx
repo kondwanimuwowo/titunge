@@ -51,7 +51,7 @@ type PaymentPhase = "idle" | "starting" | "awaiting-approval" | "polling" | "fai
 
 export default function CheckoutPaymentPage() {
   const router = useRouter();
-  const { items, subtotal, delivery, total, hydrated, shippingDetails, fulfillmentMethod, clearCart, products } = useCart();
+  const { items, subtotal, delivery, platformFee, total, hydrated, shippingDetails, fulfillmentMethod, clearCart, products } = useCart();
   const [method, setMethod] = useState<"momo" | "card">("momo");
   const [operator, setOperator] = useState<"airtel" | "mtn" | "zamtel">("airtel");
   const [momoPhone, setMomoPhone] = useState(shippingDetails?.phone ?? "");
@@ -336,6 +336,7 @@ export default function CheckoutPaymentPage() {
           discount={appliedPromo?.discount ?? 0}
           discountLabel={appliedPromo ? `Promo (${appliedPromo.code})` : undefined}
           deliveryLabel={fulfillmentMethod === "pickup" ? "Pickup" : "Delivery"}
+          platformFee={platformFee}
           promoSlot={
             appliedPromo ? (
               <div className="flex items-center justify-between bg-[#5fa8a0]/10 border border-[#5fa8a0]/30 rounded-md px-3 py-2 text-sm">

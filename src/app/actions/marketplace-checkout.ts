@@ -13,6 +13,7 @@ import { DELIVERY_FEE_ZMW } from "@/data/marketplace-orders";
 import { createFulfillmentRowsForOrder } from "@/lib/marketplace-fulfillments";
 import { insertWithOrderNumberRetry } from "@/lib/marketplace-order-number";
 import { computeDiscount, isPromoCodeValid } from "@/lib/marketplace-promo";
+import { computePayoutAmount } from "@/lib/marketplace-payout-math";
 
 interface CartLineInput {
   productId: string;
@@ -88,6 +89,29 @@ export async function createPendingOrderAction(params: {
 
   const admin = createAdminClient();
 
+  // Each seller in the cart can independently choose to absorb the
+  // marketplace commission or pass it to the buyer (businesses.marketplace_fee_mode).
+  // Locked in here, at checkout time — see the migration comment on
+  // marketplace_order_items.fee_passed_to_customer for why.
+  const businessIds = Array.from(new Set(validItems.map(({ product }) => product.businessId)));
+  const [{ data: feeModeBusinesses }, { data: platformSettings }] = await Promise.all([
+    (admin.from("businesses") as any).select("id, marketplace_fee_mode").in("id", businessIds),
+    (admin.from("platform_settings") as any).select("commission_rate").eq("id", true).single(),
+  ]);
+  const feeModeByBusiness = new Map<string, string>(
+    (feeModeBusinesses ?? []).map((b: any) => [b.id, b.marketplace_fee_mode])
+  );
+  const commissionRate = platformSettings?.commission_rate ?? 0.1;
+
+  let platformFeePassed = 0;
+  for (const businessId of businessIds) {
+    if (feeModeByBusiness.get(businessId) !== "pass_to_customer") continue;
+    const businessSubtotal = validItems
+      .filter(({ product }) => product.businessId === businessId)
+      .reduce((sum, { line, product }) => sum + product.priceZmw * line.qty, 0);
+    platformFeePassed += computePayoutAmount(businessSubtotal, commissionRate).platformFee;
+  }
+
   // The code itself comes from the client, but the discount it grants never
   // does — recomputed here and the redemption claimed atomically, same
   // "never trust the client" rule already enforced on subtotal/total above.
@@ -117,7 +141,7 @@ export async function createPendingOrderAction(params: {
     discountAmount = computeDiscount(subtotal, promo);
   }
 
-  const total = subtotal - discountAmount + deliveryFee;
+  const total = subtotal - discountAmount + deliveryFee + platformFeePassed;
 
   // If the buyer is signed in, associate the order with their account so it
   // shows up on /account without relying on the localStorage pointer list.
@@ -147,6 +171,7 @@ export async function createPendingOrderAction(params: {
         },
         subtotal,
         delivery_fee: deliveryFee,
+        platform_fee_passed: platformFeePassed,
         fulfillment_method: isPickup ? "pickup" : "delivery",
         promo_code: appliedPromoCode,
         discount_amount: discountAmount,
@@ -187,6 +212,7 @@ export async function createPendingOrderAction(params: {
     size: line.size,
     qty: line.qty,
     unit_price: product.priceZmw,
+    fee_passed_to_customer: feeModeByBusiness.get(product.businessId) === "pass_to_customer",
   }));
 
   const { error: itemsError } = await (admin.from("marketplace_order_items") as any).insert(itemRows);

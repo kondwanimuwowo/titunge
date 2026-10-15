@@ -3,6 +3,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import { DELIVERY_FEE_ZMW } from "@/data/marketplace-orders";
+import { computePayoutAmount } from "@/lib/marketplace-payout-math";
+
+// Mirrors platform_settings.commission_rate's default. Used only for the
+// pre-payment preview shown here — the authoritative figure is always
+// recomputed server-side from the live setting in createPendingOrderAction,
+// so a stale value here can only make this preview momentarily off, never
+// the actual amount charged.
+const PREVIEW_COMMISSION_RATE = 0.1;
 
 export interface CartLine {
   productId: string;
@@ -50,6 +58,10 @@ interface CartContextValue {
   setFulfillmentMethod: (method: FulfillmentMethod) => void;
   subtotal: number;
   delivery: number;
+  /** Preview of the marketplace fee passed through to the buyer, for sellers
+   *  with marketplace_fee_mode = 'pass_to_customer'. Server-recomputed and
+   *  authoritative at order creation — see PREVIEW_COMMISSION_RATE above. */
+  platformFee: number;
   total: number;
   hydrated: boolean;
   products: MarketplaceProduct[];
@@ -137,7 +149,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return sum + (product ? product.priceZmw * line.qty : 0);
   }, 0);
   const delivery = state.items.length === 0 || (state.fulfillmentMethod === "pickup" && canPickup) ? 0 : DELIVERY_FEE_ZMW;
-  const total = subtotal + delivery;
+
+  const subtotalByBusiness = new Map<string, number>();
+  for (const line of state.items) {
+    const product = products.find((p) => p.id === line.productId);
+    if (!product) continue;
+    subtotalByBusiness.set(
+      product.businessId,
+      (subtotalByBusiness.get(product.businessId) || 0) + product.priceZmw * line.qty
+    );
+  }
+  let platformFee = 0;
+  for (const line of state.items) {
+    const product = products.find((p) => p.id === line.productId);
+    if (!product || product.marketplaceFeeMode !== "pass_to_customer") continue;
+    // Each business's fee is computed once, on its own total subtotal, not
+    // per line — delete after the first line so a second line from the same
+    // seller doesn't recompute (and re-add) it.
+    const businessSubtotal = subtotalByBusiness.get(product.businessId);
+    if (businessSubtotal === undefined) continue;
+    platformFee += computePayoutAmount(businessSubtotal, PREVIEW_COMMISSION_RATE).platformFee;
+    subtotalByBusiness.delete(product.businessId);
+  }
+
+  const total = subtotal + delivery + platformFee;
 
   return (
     <CartContext.Provider
@@ -155,6 +190,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setFulfillmentMethod,
         subtotal,
         delivery,
+        platformFee,
         total,
         hydrated,
         products,

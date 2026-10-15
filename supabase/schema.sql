@@ -25,6 +25,7 @@ CREATE TABLE public.businesses (
   plan             text NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'team')), -- free = 1 seat, team = pay-per-additional-seat
   focus            text NOT NULL DEFAULT 'full_erp' CHECK (focus IN ('full_erp', 'marketplace_only')), -- UI preference only, editable in Settings
   status           text NOT NULL DEFAULT 'active',  -- active | suspended | trial
+  marketplace_fee_mode text NOT NULL DEFAULT 'absorb' CHECK (marketplace_fee_mode IN ('absorb', 'pass_to_customer')),
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()
 );
@@ -431,6 +432,7 @@ CREATE TABLE public.marketplace_orders (
   shipping_address  jsonb NOT NULL DEFAULT '{}'::jsonb,
   subtotal          numeric NOT NULL,
   delivery_fee      numeric NOT NULL DEFAULT 0,
+  platform_fee_passed numeric NOT NULL DEFAULT 0,
   promo_code        text,
   discount_amount   numeric NOT NULL DEFAULT 0,
   total             numeric NOT NULL,
@@ -459,6 +461,7 @@ CREATE TABLE public.marketplace_order_items (
   size          text,
   qty           integer NOT NULL DEFAULT 1,
   unit_price    numeric NOT NULL,
+  fee_passed_to_customer boolean NOT NULL DEFAULT false,
   created_at    timestamptz DEFAULT now()
 );
 
@@ -784,6 +787,7 @@ CREATE TABLE public.marketplace_order_payouts (
   business_id        uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
   subtotal           numeric NOT NULL,
   platform_fee       numeric,
+  fee_passed_to_customer boolean NOT NULL DEFAULT false,
   lenco_transfer_fee numeric,
   payout_amount      numeric,
   payout_status      text NOT NULL DEFAULT 'not_eligible'
@@ -866,6 +870,7 @@ AS $$
 DECLARE
   window_hours integer;
   order_subtotal numeric;
+  fee_passed boolean;
 BEGIN
   IF NEW.status = 'delivered' AND (OLD.status IS DISTINCT FROM 'delivered') THEN
     IF NEW.delivered_at IS NULL THEN
@@ -875,14 +880,18 @@ BEGIN
     SELECT payout_release_window_hours INTO window_hours FROM public.platform_settings WHERE id = true;
     window_hours := COALESCE(window_hours, 24);
 
-    SELECT COALESCE(SUM(unit_price * qty), 0) INTO order_subtotal
+    SELECT COALESCE(SUM(unit_price * qty), 0), COALESCE(bool_or(fee_passed_to_customer), false)
+      INTO order_subtotal, fee_passed
     FROM public.marketplace_order_items
     WHERE order_id = NEW.order_id AND business_id = NEW.business_id;
 
-    INSERT INTO public.marketplace_order_payouts (order_id, business_id, subtotal, payout_status, payout_eligible_at)
-    VALUES (NEW.order_id, NEW.business_id, order_subtotal, 'pending', NEW.delivered_at + (window_hours || ' hours')::interval)
+    INSERT INTO public.marketplace_order_payouts
+      (order_id, business_id, subtotal, fee_passed_to_customer, payout_status, payout_eligible_at)
+    VALUES
+      (NEW.order_id, NEW.business_id, order_subtotal, fee_passed, 'pending', NEW.delivered_at + (window_hours || ' hours')::interval)
     ON CONFLICT (order_id, business_id) DO UPDATE
       SET payout_eligible_at = EXCLUDED.payout_eligible_at,
+          fee_passed_to_customer = EXCLUDED.fee_passed_to_customer,
           payout_status = CASE WHEN public.marketplace_order_payouts.payout_status = 'not_eligible'
                                 THEN 'pending' ELSE public.marketplace_order_payouts.payout_status END,
           updated_at = now();

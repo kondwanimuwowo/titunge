@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   const commissionRate = settings?.commission_rate ?? 0.1;
 
   const { data: duePayouts, error } = await (admin.from("marketplace_order_payouts") as any)
-    .select("id, business_id, subtotal")
+    .select("id, business_id, subtotal, fee_passed_to_customer")
     .eq("payout_status", "pending")
     .lte("payout_eligible_at", new Date().toISOString());
 
@@ -72,7 +72,12 @@ export async function GET(request: NextRequest) {
       continue;
     }
 
-    const { platformFee, amount } = computePayoutAmount(payout.subtotal, commissionRate);
+    // The commission was already collected from the buyer at checkout for
+    // sellers with marketplace_fee_mode = 'pass_to_customer' (see
+    // createPendingOrderAction) — don't deduct it again here.
+    const { platformFee, amount } = payout.fee_passed_to_customer
+      ? { platformFee: 0, amount: payout.subtotal }
+      : computePayoutAmount(payout.subtotal, commissionRate);
     const reference = `payout-${payout.id}`;
 
     try {

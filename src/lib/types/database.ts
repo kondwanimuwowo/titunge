@@ -256,6 +256,7 @@ export type Database = {
           order_prefix: string
           plan: string
           focus: string
+          marketplace_fee_mode: string
           slug: string
           status: string
           theme_key: string
@@ -271,6 +272,7 @@ export type Database = {
           order_prefix?: string
           plan?: string
           focus?: string
+          marketplace_fee_mode?: string
           slug: string
           status?: string
           theme_key?: string
@@ -286,6 +288,7 @@ export type Database = {
           order_prefix?: string
           plan?: string
           focus?: string
+          marketplace_fee_mode?: string
           slug?: string
           status?: string
           theme_key?: string
@@ -833,6 +836,7 @@ export type Database = {
           created_at: string | null
           currency: string
           delivery_fee: number
+          platform_fee_passed: number
           fulfillment_method: string
           promo_code: string | null
           discount_amount: number
@@ -858,6 +862,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           delivery_fee?: number
+          platform_fee_passed?: number
           fulfillment_method?: string
           promo_code?: string | null
           discount_amount?: number
@@ -883,6 +888,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           delivery_fee?: number
+          platform_fee_passed?: number
           fulfillment_method?: string
           promo_code?: string | null
           discount_amount?: number
@@ -939,6 +945,7 @@ export type Database = {
           business_id: string
           subtotal: number
           platform_fee: number | null
+          fee_passed_to_customer: boolean
           lenco_transfer_fee: number | null
           payout_amount: number | null
           payout_status: string
@@ -955,6 +962,7 @@ export type Database = {
           business_id: string
           subtotal: number
           platform_fee?: number | null
+          fee_passed_to_customer?: boolean
           lenco_transfer_fee?: number | null
           payout_amount?: number | null
           payout_status?: string
@@ -971,6 +979,7 @@ export type Database = {
           business_id?: string
           subtotal?: number
           platform_fee?: number | null
+          fee_passed_to_customer?: boolean
           lenco_transfer_fee?: number | null
           payout_amount?: number | null
           payout_status?: string
@@ -1179,6 +1188,7 @@ export type Database = {
         Row: {
           business_id: string | null
           created_at: string | null
+          fee_passed_to_customer: boolean
           id: string
           image_url: string | null
           order_id: string
@@ -1192,6 +1202,7 @@ export type Database = {
         Insert: {
           business_id?: string | null
           created_at?: string | null
+          fee_passed_to_customer?: boolean
           id?: string
           image_url?: string | null
           order_id: string
@@ -1205,6 +1216,7 @@ export type Database = {
         Update: {
           business_id?: string | null
           created_at?: string | null
+          fee_passed_to_customer?: boolean
           id?: string
           image_url?: string | null
           order_id?: string

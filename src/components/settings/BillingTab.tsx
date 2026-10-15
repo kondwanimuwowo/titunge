@@ -2,14 +2,18 @@
 
 import { useState, useTransition } from "react";
 import toast from "react-hot-toast";
-import { Users, Save } from "lucide-react";
+import { Users, Save, Wallet } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatZmw } from "@/lib/marketplace-currency";
-import { upgradeToTeamPlanAction, saveBillingProfileAction } from "@/app/actions/billing";
+import {
+  upgradeToTeamPlanAction,
+  saveBillingProfileAction,
+  updateMarketplaceFeeModeAction,
+} from "@/app/actions/billing";
 import { StatusDot, type StatusTone } from "@/components/layout/StatusDot";
 
 interface BillingTabProps {
@@ -18,6 +22,9 @@ interface BillingTabProps {
   seatPriceKwacha: number;
   billingProfile: { payment_method: string | null; account_details: Record<string, unknown> | null } | null;
   charges: { id: string; period: string; seat_count: number; amount: number; status: string }[];
+  marketplaceFeeMode: "absorb" | "pass_to_customer";
+  commissionRate: number;
+  payouts: any[];
 }
 
 const STATUS_TONES: Record<string, StatusTone> = {
@@ -26,14 +33,34 @@ const STATUS_TONES: Record<string, StatusTone> = {
   failed: "red",
 };
 
-export default function BillingTab({ plan, seatCount, seatPriceKwacha, billingProfile, charges }: BillingTabProps) {
+const PAYOUT_STATUS_TONES: Record<string, StatusTone> = {
+  not_eligible: "gray",
+  pending: "amber",
+  processing: "blue",
+  completed: "emerald",
+  failed: "red",
+};
+
+export default function BillingTab({
+  plan,
+  seatCount,
+  seatPriceKwacha,
+  billingProfile,
+  charges,
+  marketplaceFeeMode,
+  commissionRate,
+  payouts,
+}: BillingTabProps) {
   const seatLimit = plan === "free" ? 1 : null;
+  const commissionPct = Math.round(commissionRate * 100);
   const [phone, setPhone] = useState((billingProfile?.account_details?.phone as string) ?? "");
   const [operator, setOperator] = useState<"airtel" | "mtn" | "zamtel">(
     (billingProfile?.account_details?.operator as "airtel" | "mtn" | "zamtel") ?? "airtel"
   );
+  const [feeMode, setFeeMode] = useState(marketplaceFeeMode);
   const [isSavingProfile, startSavingProfile] = useTransition();
   const [isUpgrading, startUpgrading] = useTransition();
+  const [isSavingFeeMode, startSavingFeeMode] = useTransition();
 
   const handleSaveProfile = () => {
     startSavingProfile(async () => {
@@ -48,6 +75,20 @@ export default function BillingTab({ plan, seatCount, seatPriceKwacha, billingPr
       const result = await upgradeToTeamPlanAction();
       if (result.success) toast.success("Upgraded to Team plan — add a billing payment method below.");
       else toast.error(result.message || "Failed to upgrade");
+    });
+  };
+
+  const handleFeeModeChange = (mode: "absorb" | "pass_to_customer") => {
+    const previous = feeMode;
+    setFeeMode(mode);
+    startSavingFeeMode(async () => {
+      const result = await updateMarketplaceFeeModeAction(mode);
+      if (result.success) {
+        toast.success("Marketplace fee setting saved");
+      } else {
+        setFeeMode(previous);
+        toast.error(result.message || "Failed to save");
+      }
     });
   };
 
@@ -125,9 +166,107 @@ export default function BillingTab({ plan, seatCount, seatPriceKwacha, billingPr
             </div>
           )}
 
-          <div className="text-xs text-muted-foreground pt-2 border-t">
-            Marketplace sales carry a 10% Titunge transaction fee on both plans, deducted before your payout.
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Marketplace fee</CardTitle>
+          <CardDescription>
+            Every marketplace sale carries a {commissionPct}% Titunge transaction fee. Choose who pays it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleFeeModeChange("absorb")}
+              disabled={isSavingFeeMode}
+              className={`text-left border rounded-md p-4 space-y-1 transition-colors disabled:opacity-60 ${
+                feeMode === "absorb" ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"
+              }`}
+            >
+              <p className="text-sm font-medium text-foreground">I absorb it</p>
+              <p className="text-xs text-muted-foreground">
+                {commissionPct}% is deducted from your payout, same as today. The customer pays the listed price.
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleFeeModeChange("pass_to_customer")}
+              disabled={isSavingFeeMode}
+              className={`text-left border rounded-md p-4 space-y-1 transition-colors disabled:opacity-60 ${
+                feeMode === "pass_to_customer" ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"
+              }`}
+            >
+              <p className="text-sm font-medium text-foreground">Pass it to the customer</p>
+              <p className="text-xs text-muted-foreground">
+                Added as a separate line at checkout. You receive your full listed price.
+              </p>
+            </button>
           </div>
+          <p className="text-xs text-muted-foreground pt-2 border-t">
+            Either way, Lenco also charges its own transfer fee on top (roughly K8.50–K35, depending on the payout
+            amount) — that comes out of every payout regardless of this setting. See the breakdown for each payout
+            below.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <CardTitle>Payouts</CardTitle>
+          </div>
+          <CardDescription>What you were paid for marketplace sales, and what was deducted</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {payouts.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No marketplace payouts yet.</p>
+          ) : (
+            <div className="overflow-x-auto -mx-6">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
+                    <th className="text-left px-6 py-2 font-medium">Order</th>
+                    <th className="text-right px-4 py-2 font-medium">Subtotal</th>
+                    <th className="text-right px-4 py-2 font-medium">Titunge fee</th>
+                    <th className="text-right px-4 py-2 font-medium">Lenco fee</th>
+                    <th className="text-right px-4 py-2 font-medium">You receive</th>
+                    <th className="text-left px-4 py-2 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payouts.map((p: any) => (
+                    <tr key={p.id} className="border-b border-border last:border-0">
+                      <td className="px-6 py-2.5">{p.marketplace_orders?.order_number ?? "—"}</td>
+                      <td className="px-4 py-2.5 text-right">{formatZmw(p.subtotal)}</td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">
+                        {p.fee_passed_to_customer
+                          ? "Paid by customer"
+                          : p.platform_fee != null
+                          ? formatZmw(p.platform_fee)
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-2.5 text-right text-muted-foreground">
+                        {p.lenco_transfer_fee != null ? formatZmw(p.lenco_transfer_fee) : "—"}
+                      </td>
+                      <td className="px-4 py-2.5 text-right font-medium">
+                        {p.payout_amount != null ? formatZmw(p.payout_amount) : "—"}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <StatusDot
+                          label={p.payout_status.replace(/_/g, " ")}
+                          tone={PAYOUT_STATUS_TONES[p.payout_status]}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 

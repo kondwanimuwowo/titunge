@@ -18,7 +18,7 @@ export default async function AdminPayoutsPage() {
   const supabase = createAdminClient();
 
   const { data: payouts } = await (supabase.from("marketplace_order_payouts") as any)
-    .select("id, subtotal, platform_fee, payout_amount, payout_status, payout_eligible_at, payout_retries, businesses(name), marketplace_orders(order_number)")
+    .select("id, subtotal, platform_fee, fee_passed_to_customer, lenco_transfer_fee, payout_amount, payout_status, payout_eligible_at, payout_retries, businesses(name), marketplace_orders(order_number)")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -33,7 +33,8 @@ export default async function AdminPayoutsPage() {
               <th className="text-left px-4 py-2.5">Order</th>
               <th className="text-left px-4 py-2.5">Seller</th>
               <th className="text-right px-4 py-2.5">Subtotal</th>
-              <th className="text-right px-4 py-2.5">Fee</th>
+              <th className="text-right px-4 py-2.5">Titunge fee</th>
+              <th className="text-right px-4 py-2.5">Lenco fee</th>
               <th className="text-right px-4 py-2.5">Payout</th>
               <th className="text-left px-4 py-2.5">Status</th>
               <th className="text-right px-4 py-2.5"></th>
@@ -45,7 +46,10 @@ export default async function AdminPayoutsPage() {
                 <td className="px-4 py-2.5">{p.marketplace_orders?.order_number ?? "-"}</td>
                 <td className="px-4 py-2.5">{p.businesses?.name ?? "-"}</td>
                 <td className="px-4 py-2.5 text-right">{formatZmw(p.subtotal)}</td>
-                <td className="px-4 py-2.5 text-right">{p.platform_fee != null ? formatZmw(p.platform_fee) : "-"}</td>
+                <td className="px-4 py-2.5 text-right">
+                  {p.fee_passed_to_customer ? "Paid by customer" : p.platform_fee != null ? formatZmw(p.platform_fee) : "-"}
+                </td>
+                <td className="px-4 py-2.5 text-right">{p.lenco_transfer_fee != null ? formatZmw(p.lenco_transfer_fee) : "-"}</td>
                 <td className="px-4 py-2.5 text-right font-medium">
                   {p.payout_amount != null ? formatZmw(p.payout_amount) : "-"}
                 </td>
@@ -62,7 +66,7 @@ export default async function AdminPayoutsPage() {
             ))}
             {(!payouts || payouts.length === 0) && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
                   No payouts yet.
                 </td>
               </tr>

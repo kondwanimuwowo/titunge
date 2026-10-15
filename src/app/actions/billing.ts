@@ -22,6 +22,26 @@ export async function upgradeToTeamPlanAction(): Promise<{ success: boolean; mes
   return { success: true };
 }
 
+export async function updateMarketplaceFeeModeAction(
+  mode: "absorb" | "pass_to_customer"
+): Promise<{ success: boolean; message?: string }> {
+  const { businessId, role } = await requireBusinessContext();
+  if (role !== "admin") {
+    return { success: false, message: "Only admins can change how the marketplace fee is charged." };
+  }
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("businesses")
+    .update({ marketplace_fee_mode: mode, updated_at: new Date().toISOString() })
+    .eq("id", businessId);
+
+  if (error) return { success: false, message: error.message };
+
+  revalidatePath("/settings");
+  return { success: true };
+}
+
 export async function saveBillingProfileAction(data: {
   phone: string;
   operator: "airtel" | "mtn" | "zamtel";

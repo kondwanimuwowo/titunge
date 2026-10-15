@@ -42,6 +42,12 @@ export default async function SettingsPage() {
     listBanks().catch(() => []),
   ]);
 
+  const { data: payouts } = await (supabase.from("marketplace_order_payouts") as any)
+    .select("id, subtotal, platform_fee, fee_passed_to_customer, lenco_transfer_fee, payout_amount, payout_status, payout_eligible_at, marketplace_orders(order_number)")
+    .eq("business_id", businessId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <PageHeader
@@ -58,14 +64,17 @@ export default async function SettingsPage() {
           logo_url: business.logo_url,
           plan: business.plan as "free" | "team",
           focus: business.focus as "full_erp" | "marketplace_only",
+          marketplace_fee_mode: (business as any).marketplace_fee_mode as "absorb" | "pass_to_customer",
         }}
         storefront={storefront}
         storefrontProducts={storefrontProducts}
         seatCount={seatCount ?? 0}
         payoutProfile={payoutProfile}
         seatPriceKwacha={platformSettings?.seat_price_kwacha ?? 250}
+        commissionRate={platformSettings?.commission_rate ?? 0.1}
         billingProfile={billingProfile}
         billingCharges={billingCharges ?? []}
+        payouts={payouts ?? []}
         banks={banks}
       />
     </div>

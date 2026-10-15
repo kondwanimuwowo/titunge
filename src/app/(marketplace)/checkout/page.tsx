@@ -14,6 +14,7 @@ export default function CheckoutShippingPage() {
     items,
     subtotal,
     delivery,
+    platformFee,
     total,
     hydrated,
     shippingDetails,
@@ -203,6 +204,7 @@ export default function CheckoutShippingPage() {
           items={summaryItems}
           subtotal={subtotal}
           delivery={delivery}
+          platformFee={platformFee}
           total={total}
           deliveryLabel={fulfillmentMethod === "pickup" ? "Pickup" : "Delivery"}
         />
