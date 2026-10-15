@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import toast from "react-hot-toast";
 import {
-  User, Search, X, Plus, Package, Loader2, ChevronRight,
-  Users, Scissors, ShoppingBag, DollarSign, Check, Ruler, Edit, Info,
+  User, Search, X, Plus, ChevronRight,
+  Users, Scissors, ShoppingBag, DollarSign, Check, Ruler, Edit, Info, Trash2, ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ import { createOrderAction } from "@/app/actions/orders";
 import { addCustomerAction, updateMeasurementsAction } from "@/app/actions/customers";
 import { convertToOrderAction } from "@/app/actions/inquiries";
 import MeasurementsForm from "@/components/customers/MeasurementsForm";
+import type { OrderItemInput } from "@/lib/orderItems";
 
 const UNASSIGNED = "__unassigned";
 
@@ -40,24 +41,13 @@ interface SelectedMaterial {
   unit_cost: number;
   quantity_used: number;
   cost: number;
-  stock_quantity: number;
 }
 
-interface FormData {
-  customer_id: string;
-  new_customer_name: string;
-  new_customer_phone: string;
-  new_customer_email: string;
-  order_type: "custom" | "product";
-  garment_type_id: string;
-  product_id: string;
-  assigned_tailor_id: string;
-  due_date: string;
-  description: string;
-  notes: string;
-  labour_cost: string;
-  total_cost: string;
-  deposit: string;
+/** One item sitting in the basket, with enough display info to render the
+ *  row — OrderItemInput alone doesn't carry names/labels. */
+interface BasketItem extends OrderItemInput {
+  key: string;
+  displayName: string;
 }
 
 interface Props {
@@ -74,9 +64,8 @@ interface Props {
 
 const STEPS = [
   { id: 1, label: "Customer", icon: User },
-  { id: 2, label: "Garment", icon: Scissors },
-  { id: 3, label: "Materials", icon: Package },
-  { id: 4, label: "Pricing", icon: DollarSign },
+  { id: 2, label: "Items", icon: ShoppingCart },
+  { id: 3, label: "Review", icon: DollarSign },
 ];
 
 export default function CreateOrderForm({
@@ -94,90 +83,98 @@ export default function CreateOrderForm({
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState(1);
 
-  // New customer inline
+  // --- Customer (identical to before) ---
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [savingCustomer, setSavingCustomer] = useState(false);
   const [createdCustomerId, setCreatedCustomerId] = useState<string | null>(null);
   const [locallyCreatedCustomers, setLocallyCreatedCustomers] = useState<any[]>([]);
-
-  // Customer search
   const [customerSearch, setCustomerSearch] = useState("");
-
-  // Measurements snapshot (Materials step)
   const [measurementsOverride, setMeasurementsOverride] = useState<Record<string, any>>({});
   const [showMeasurementsDialog, setShowMeasurementsDialog] = useState(false);
 
-  // Materials
-  const [selectedMaterials, setSelectedMaterials] = useState<SelectedMaterial[]>([]);
+  // --- Basket ---
+  const [basket, setBasket] = useState<BasketItem[]>([]);
+
+  // --- Item builder (the form for the item currently being configured) ---
+  const [itemType, setItemType] = useState<"custom" | "ready_made">("custom");
+  const [builderGarmentTypeId, setBuilderGarmentTypeId] = useState("");
+  const [builderProductId, setBuilderProductId] = useState("");
+  const [builderQty, setBuilderQty] = useState(1);
+  const [builderUnitPrice, setBuilderUnitPrice] = useState("");
+  const [builderLabourCost, setBuilderLabourCost] = useState("");
+  const [builderStyleNotes, setBuilderStyleNotes] = useState("");
+  const [builderMaterials, setBuilderMaterials] = useState<SelectedMaterial[]>([]);
   const [materialSearch, setMaterialSearch] = useState("");
   const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
 
-  const { register, control, watch, setValue, getValues, formState: { errors } } = useForm<FormData>({
+  const { register, control, watch, setValue, getValues } = useForm({
     defaultValues: {
       customer_id: prefill?.customer_id ?? "",
       new_customer_name: prefill?.customer_name ?? "",
       new_customer_phone: prefill?.customer_phone ?? "",
       new_customer_email: prefill?.customer_email ?? "",
-      order_type: "custom",
-      garment_type_id: "",
-      product_id: prefill?.product_id ?? "",
       assigned_tailor_id: UNASSIGNED,
       due_date: "",
       description: prefill?.special_requests ?? "",
       notes: "",
-      labour_cost: "",
-      total_cost: "",
       deposit: "",
     },
   });
 
-  const orderType = watch("order_type");
-  const watchedGarmentTypeId = watch("garment_type_id");
-  const watchedLabourCost = watch("labour_cost");
-  const watchedTotalCost = watch("total_cost");
-  const watchedDeposit = watch("deposit");
-
-  // Pre-select product type if prefill has a product
   useEffect(() => {
-    if (prefill?.product_id) setValue("order_type", "product");
     if (prefill?.customer_id) setCreatedCustomerId(prefill.customer_id);
-  }, [prefill, setValue]);
+  }, [prefill]);
 
-  // --- Cost calculations ---
-  const materialCost = selectedMaterials.reduce((s, m) => s + m.cost, 0);
-  const selectedGarmentType = garmentTypes.find((g: any) => g.id === watchedGarmentTypeId);
+  // --- Builder cost calculations ---
+  const builderMaterialCost = builderMaterials.reduce((s, m) => s + m.cost, 0);
+  const selectedGarmentType = garmentTypes.find((g: any) => g.id === builderGarmentTypeId);
+  const selectedProduct = products.find((p: any) => p.id === builderProductId);
   const defaultLabourHours = parseFloat(String(financialSettings?.default_labour_hours ?? 2));
   const calculatedLabourCost = selectedGarmentType
     ? parseFloat(selectedGarmentType.base_labour_cost || "0")
     : (financialSettings?.custom_hourly_rate || 0) * defaultLabourHours;
-  const labourCost = watchedLabourCost !== "" && watchedLabourCost != null
-    ? parseFloat(watchedLabourCost || "0")
-    : calculatedLabourCost;
-  const baseCost = materialCost + labourCost + perOrderOverhead;
+  const labourCost = itemType === "custom"
+    ? (builderLabourCost !== "" ? parseFloat(builderLabourCost || "0") : calculatedLabourCost)
+    : 0;
   const margin = financialSettings?.default_profit_margin || 30;
-  const recommendedPrice = parseFloat((baseCost * (1 + margin / 100)).toFixed(2));
-  const totalCost = parseFloat(watchedTotalCost || "0");
-  const deposit = parseFloat(watchedDeposit || "0");
-  const balance = totalCost - deposit;
+  const recommendedUnitPrice = itemType === "custom"
+    ? parseFloat(((builderMaterialCost + labourCost) * (1 + margin / 100)).toFixed(2))
+    : parseFloat(selectedProduct?.price || "0");
 
-  // Seed the editable labour cost field whenever the underlying calculation changes
-  // (garment type / order type switch) — does not run on manual edits.
+  // Seed labour cost whenever the garment type changes
   useEffect(() => {
-    setValue("labour_cost", calculatedLabourCost.toFixed(2));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedGarmentTypeId, orderType, calculatedLabourCost]);
+    setBuilderLabourCost(calculatedLabourCost.toFixed(2));
+  }, [builderGarmentTypeId, calculatedLabourCost]);
 
-  // --- Material search ---
+  // Seed unit price with the recommendation whenever its inputs change, unless
+  // the user already typed something different for this item.
+  useEffect(() => {
+    setBuilderUnitPrice(recommendedUnitPrice > 0 ? recommendedUnitPrice.toFixed(2) : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [builderGarmentTypeId, builderProductId, itemType]);
+
+  const resetBuilder = () => {
+    setItemType("custom");
+    setBuilderGarmentTypeId("");
+    setBuilderProductId("");
+    setBuilderQty(1);
+    setBuilderUnitPrice("");
+    setBuilderLabourCost("");
+    setBuilderStyleNotes("");
+    setBuilderMaterials([]);
+    setMaterialSearch("");
+  };
+
   const filteredMaterials = materialSearch.length >= 1
     ? materials.filter(
         (m: any) =>
           m.name.toLowerCase().includes(materialSearch.toLowerCase()) &&
-          !selectedMaterials.find((s) => s.material_id === m.id)
+          !builderMaterials.find((s) => s.material_id === m.id)
       ).slice(0, 8)
     : [];
 
   const handleAddMaterial = (m: any) => {
-    setSelectedMaterials((prev) => [
+    setBuilderMaterials((prev) => [
       ...prev,
       {
         material_id: m.id,
@@ -187,14 +184,14 @@ export default function CreateOrderForm({
         quantity_used: 1,
         cost: parseFloat(m.unit_cost || "0"),
         stock_quantity: m.stock_quantity,
-      },
+      } as SelectedMaterial,
     ]);
     setMaterialSearch("");
     setShowMaterialDropdown(false);
   };
 
   const handleMaterialQtyChange = (id: string, qty: number) => {
-    setSelectedMaterials((prev) =>
+    setBuilderMaterials((prev) =>
       prev.map((m) =>
         m.material_id === id
           ? { ...m, quantity_used: qty, cost: parseFloat((m.unit_cost * qty).toFixed(2)) }
@@ -204,7 +201,43 @@ export default function CreateOrderForm({
   };
 
   const handleRemoveMaterial = (id: string) => {
-    setSelectedMaterials((prev) => prev.filter((m) => m.material_id !== id));
+    setBuilderMaterials((prev) => prev.filter((m) => m.material_id !== id));
+  };
+
+  const canAddItem = itemType === "custom"
+    ? !!builderGarmentTypeId && parseFloat(builderUnitPrice || "0") > 0
+    : !!builderProductId && parseFloat(builderUnitPrice || "0") > 0;
+
+  const handleAddItemToBasket = () => {
+    if (!canAddItem) {
+      toast.error(itemType === "custom" ? "Select a garment type and a price" : "Select a product and a price");
+      return;
+    }
+
+    const newItem: BasketItem = {
+      key: `${Date.now()}-${Math.random()}`,
+      item_type: itemType,
+      product_id: itemType === "ready_made" ? builderProductId : null,
+      garment_type_id: itemType === "custom" ? builderGarmentTypeId : null,
+      description: itemType === "custom" ? selectedGarmentType?.name || null : selectedProduct?.name || null,
+      quantity: builderQty || 1,
+      unit_price: parseFloat(builderUnitPrice || "0"),
+      material_cost: itemType === "custom" ? builderMaterialCost : 0,
+      labour_cost: itemType === "custom" ? labourCost : 0,
+      style_notes: builderStyleNotes || null,
+      materials: itemType === "custom"
+        ? builderMaterials.map((m) => ({ material_id: m.material_id, quantity_used: m.quantity_used, unit_cost: m.unit_cost }))
+        : [],
+      displayName: itemType === "custom" ? (selectedGarmentType?.name || "Custom item") : (selectedProduct?.name || "Product"),
+    };
+
+    setBasket((prev) => [...prev, newItem]);
+    resetBuilder();
+    toast.success("Item added");
+  };
+
+  const handleRemoveBasketItem = (key: string) => {
+    setBasket((prev) => prev.filter((i) => i.key !== key));
   };
 
   // --- Customer search filter ---
@@ -217,7 +250,6 @@ export default function CreateOrderForm({
       )
     : customers;
 
-  // --- Selected customer + measurements snapshot ---
   const selectedCustomerId = watch("customer_id") || createdCustomerId;
   const selectedCustomer = allCustomers.find((c: any) => c.id === selectedCustomerId) || null;
   const effectiveMeasurements = selectedCustomerId
@@ -237,7 +269,6 @@ export default function CreateOrderForm({
     });
   };
 
-  // --- Save new customer ---
   const handleSaveNewCustomer = async () => {
     const name = getValues("new_customer_name").trim();
     const phone = getValues("new_customer_phone").trim();
@@ -260,56 +291,55 @@ export default function CreateOrderForm({
     setSavingCustomer(false);
   };
 
-  // --- Step validation ---
   const canAdvanceStep1 = () => {
     const cid = getValues("customer_id") || createdCustomerId;
     return !!cid;
   };
 
-  const canAdvanceStep2 = () => {
-    if (orderType === "custom") return !!watchedGarmentTypeId;
-    return !!getValues("product_id");
-  };
+  // --- Order totals ---
+  const orderSubtotal = basket.reduce((s, it) => s + it.unit_price * it.quantity, 0);
+  const orderMaterialCost = basket.reduce((s, it) => s + it.material_cost, 0);
+  const orderLabourCost = basket.reduce((s, it) => s + it.labour_cost, 0);
+  const watchedDeposit = watch("deposit");
+  const deposit = parseFloat(watchedDeposit || "0");
+  const balance = orderSubtotal - deposit;
 
-  // --- Submit ---
   const handleSubmit = () => {
     const values = getValues();
     const customerId = values.customer_id || createdCustomerId;
     if (!customerId) { toast.error("Please select a customer"); setStep(1); return; }
-    if (!values.total_cost || parseFloat(values.total_cost) <= 0) {
-      toast.error("Please enter a selling price"); return;
-    }
+    if (basket.length === 0) { toast.error("Add at least one item"); setStep(2); return; }
 
     startTransition(async () => {
       const orderData = {
         customer_id: customerId,
-        garment_type_id: orderType === "custom" ? values.garment_type_id || null : null,
-        product_id: orderType === "product" ? values.product_id || null : null,
         assigned_tailor_id: values.assigned_tailor_id === UNASSIGNED ? null : values.assigned_tailor_id || null,
         due_date: values.due_date || null,
-        total_cost: parseFloat(values.total_cost),
-        labour_cost: parseFloat(values.labour_cost || "0"),
-        material_cost: materialCost,
-        deposit: parseFloat(values.deposit || "0"),
+        deposit: deposit || 0,
         description: values.description,
         notes: values.notes,
         status: "enquiry",
-        materials: selectedMaterials.map((m) => ({
-          material_id: m.material_id,
-          quantity_used: m.quantity_used,
-          cost: m.cost,
+        items: basket.map((item) => ({
+          item_type: item.item_type,
+          product_id: item.product_id,
+          garment_type_id: item.garment_type_id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          material_cost: item.material_cost,
+          labour_cost: item.labour_cost,
+          style_notes: item.style_notes,
+          materials: item.materials,
         })),
       };
 
-      let result: any;
-      if (inquiryId) {
-        result = await convertToOrderAction(inquiryId, orderData);
-      } else {
-        result = await createOrderAction(orderData);
-      }
+      const result = inquiryId
+        ? await convertToOrderAction(inquiryId, orderData)
+        : await createOrderAction(orderData);
 
       if (result.success) {
         toast.success(inquiryId ? "Inquiry converted to order" : "Order created successfully");
+        if (result.warning) toast.error(result.warning);
         router.push(`/orders/${result.orderId}`);
       } else {
         toast.error(result.message || "Failed to create order");
@@ -348,6 +378,9 @@ export default function CreateOrderForm({
                   {isDone ? <Check size={12} /> : s.id}
                 </div>
                 <span className="hidden sm:block">{s.label}</span>
+                {s.id === 2 && basket.length > 0 && (
+                  <span className="text-[10px] bg-primary/20 text-primary rounded-full px-1.5 py-0.5">{basket.length}</span>
+                )}
               </button>
               {i < STEPS.length - 1 && (
                 <ChevronRight size={14} className="text-muted-foreground/30 shrink-0 mx-1" />
@@ -440,22 +473,10 @@ export default function CreateOrderForm({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleSaveNewCustomer}
-                    loading={savingCustomer}
-                    className="h-7 text-xs"
-                  >
+                  <Button type="button" size="sm" onClick={handleSaveNewCustomer} loading={savingCustomer} className="h-7 text-xs">
                     Save Customer
                   </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsNewCustomer(false)}
-                    className="h-7 text-xs"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setIsNewCustomer(false)} className="h-7 text-xs">
                     Cancel
                   </Button>
                 </div>
@@ -470,48 +491,76 @@ export default function CreateOrderForm({
           </div>
         )}
 
-        {/* STEP 2: Garment */}
+        {/* STEP 2: Items */}
         {step === 2 && (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
               <h2 className="text-base font-semibold flex items-center gap-2">
-                <Scissors size={16} className="text-primary" /> Garment Details
+                <ShoppingCart size={16} className="text-primary" /> Items
               </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Choose what you're making and who's making it</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Add each garment or product to this order one at a time — ready-made items pull straight from
+                stock, custom ones go through measurements and materials.
+              </p>
             </div>
 
-            {/* Order type toggle */}
-            <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wider">Order Type</Label>
-              <div className="flex gap-2 mt-1.5">
-                {(["custom", "product"] as const).map((type) => (
+            {/* Customer measurements snapshot */}
+            {selectedCustomer && (
+              <div className="border border-border rounded-lg p-3 bg-muted/20">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Ruler size={14} className="text-primary" />
+                    <span className="text-xs font-semibold">{selectedCustomer.name}&apos;s Measurements</span>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setShowMeasurementsDialog(true)} className="h-7 text-xs gap-1">
+                    {effectiveMeasurements ? <Edit size={12} /> : <Plus size={12} />}
+                    {effectiveMeasurements ? "Edit" : "Add Measurements"}
+                  </Button>
+                </div>
+                {effectiveMeasurements ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {Object.entries(effectiveMeasurements)
+                      .filter(([key, value]) => key !== "notes" && value !== undefined && value !== "")
+                      .map(([key, value]) => (
+                        <div key={key} className="rounded-md border border-border/60 bg-card px-2 py-1.5">
+                          <p className="text-[9px] uppercase font-semibold text-muted-foreground tracking-wide truncate">{key.replace(/_/g, " ")}</p>
+                          <p className="text-sm font-bold text-foreground">{value as React.ReactNode}<span className="text-[9px] ml-0.5 text-muted-foreground">in</span></p>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No measurements on file yet.</p>
+                )}
+              </div>
+            )}
+
+            {/* Item builder */}
+            <div className="border border-dashed border-primary/30 rounded-lg p-4 bg-primary/5 space-y-4">
+              <div className="flex gap-2">
+                {(["custom", "ready_made"] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setValue("order_type", type)}
+                    onClick={() => setItemType(type)}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors",
-                      orderType === type
+                      itemType === type
                         ? "bg-primary text-primary-foreground border-primary"
-                        : "border-border text-muted-foreground hover:border-primary/40"
+                        : "border-border text-muted-foreground hover:border-primary/40 bg-card"
                     )}
                   >
                     {type === "custom" ? <Scissors size={14} /> : <ShoppingBag size={14} />}
-                    {type === "custom" ? "Custom Design" : "From Product"}
+                    {type === "custom" ? "Custom Design" : "Ready-made Product"}
                   </button>
                 ))}
               </div>
-            </div>
 
-            {orderType === "custom" ? (
-              <div>
-                <Label htmlFor="garment_type_id">Garment Type *</Label>
-                <Controller
-                  name="garment_type_id"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="garment_type_id" className="mt-1 w-full h-9">
+              {itemType === "custom" ? (
+                <>
+                  <div>
+                    <Label>Garment Type *</Label>
+                    <Select value={builderGarmentTypeId} onValueChange={setBuilderGarmentTypeId}>
+                      <SelectTrigger className="mt-1 w-full h-9 bg-card">
                         <SelectValue placeholder="Select garment type..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -522,45 +571,177 @@ export default function CreateOrderForm({
                         ))}
                       </SelectContent>
                     </Select>
-                  )}
-                />
-              </div>
-            ) : (
-              <div>
-                <Label htmlFor="product_id">Product *</Label>
-                <Controller
-                  name="product_id"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="product_id" className="mt-1 w-full h-9">
+                  </div>
+
+                  {/* Materials */}
+                  <div className="relative">
+                    <Label className="text-xs">Materials</Label>
+                    <div className="flex items-center border border-input rounded-md bg-card px-3 gap-2 h-9 mt-1">
+                      <Search size={14} className="text-muted-foreground shrink-0" />
+                      <input
+                        type="text"
+                        placeholder="Search materials to add..."
+                        value={materialSearch}
+                        onChange={(e) => { setMaterialSearch(e.target.value); setShowMaterialDropdown(e.target.value.length > 0); }}
+                        onBlur={() => setTimeout(() => setShowMaterialDropdown(false), 150)}
+                        className="flex-1 text-sm bg-transparent outline-none"
+                      />
+                      {materialSearch && (
+                        <button type="button" onClick={() => { setMaterialSearch(""); setShowMaterialDropdown(false); }}>
+                          <X size={13} className="text-muted-foreground hover:text-foreground" />
+                        </button>
+                      )}
+                    </div>
+                    {showMaterialDropdown && filteredMaterials.length > 0 && (
+                      <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg overflow-hidden">
+                        {filteredMaterials.map((m: any) => (
+                          <button key={m.id} type="button" onMouseDown={() => handleAddMaterial(m)}
+                            className="w-full px-3 py-2 text-sm text-left hover:bg-muted/50 flex justify-between items-center gap-2">
+                            <span className="font-medium">{m.name}</span>
+                            <span className="text-xs text-muted-foreground shrink-0">K{parseFloat(m.unit_cost || "0").toFixed(2)}/{m.unit}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {builderMaterials.length > 0 && (
+                      <div className="border border-border rounded-lg overflow-hidden mt-2 bg-card">
+                        {builderMaterials.map((m) => (
+                          <div key={m.material_id} className="px-3 py-2 border-b border-border last:border-0 grid grid-cols-12 gap-2 items-center">
+                            <div className="col-span-5 text-sm font-medium">{m.name}</div>
+                            <div className="col-span-4 flex items-center gap-1">
+                              <Input type="number" min="0.01" step="0.01" value={m.quantity_used}
+                                onChange={(e) => handleMaterialQtyChange(m.material_id, parseFloat(e.target.value) || 0)}
+                                className="w-16 h-7 text-xs text-center" />
+                              <span className="text-xs text-muted-foreground">{m.unit}</span>
+                            </div>
+                            <div className="col-span-2 text-right text-sm font-semibold text-primary">K{m.cost.toFixed(2)}</div>
+                            <div className="col-span-1 flex justify-end">
+                              <button type="button" onClick={() => handleRemoveMaterial(m.material_id)} className="p-1 text-muted-foreground hover:text-destructive rounded">
+                                <X size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs flex items-center gap-1">
+                        Labour Cost
+                        <Tooltip>
+                          <TooltipTrigger asChild><Info size={11} className="cursor-help" /></TooltipTrigger>
+                          <TooltipContent className="max-w-xs">Auto-calculated from the garment type, editable per item.</TooltipContent>
+                        </Tooltip>
+                      </Label>
+                      <Input type="number" min="0" step="0.01" value={builderLabourCost}
+                        onChange={(e) => setBuilderLabourCost(e.target.value)} className="mt-1 h-9 bg-card" />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Quantity</Label>
+                      <Input type="number" min="1" step="1" value={builderQty}
+                        onChange={(e) => setBuilderQty(parseInt(e.target.value, 10) || 1)} className="mt-1 h-9 bg-card" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs">Style notes for this item</Label>
+                    <textarea value={builderStyleNotes} onChange={(e) => setBuilderStyleNotes(e.target.value)} rows={2}
+                      placeholder="Style preferences specific to this garment..."
+                      className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <Label>Product *</Label>
+                    <Select value={builderProductId} onValueChange={setBuilderProductId}>
+                      <SelectTrigger className="mt-1 w-full h-9 bg-card">
                         <SelectValue placeholder="Select product..." />
                       </SelectTrigger>
                       <SelectContent>
                         {products.map((p: any) => {
-                          // Shown for information only. An enquiry may be taken
-                          // for an item that is out of stock — stock is checked
-                          // when the order is confirmed, not when it is logged.
-                          const tracksStock =
-                            p.product_type === "finished_good" && p.stock_quantity != null;
+                          const tracksStock = p.product_type === "finished_good" && p.stock_quantity != null;
                           return (
                             <SelectItem key={p.id} value={p.id}>
                               {p.name} — K{parseFloat(p.price || "0").toFixed(0)}
-                              {tracksStock &&
-                                (p.stock_quantity <= 0
-                                  ? " — out of stock"
-                                  : ` — ${p.stock_quantity} in stock`)}
+                              {tracksStock && (p.stock_quantity <= 0 ? " — out of stock" : ` — ${p.stock_quantity} in stock`)}
                             </SelectItem>
                           );
                         })}
                       </SelectContent>
                     </Select>
-                  )}
-                />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Quantity</Label>
+                    <Input type="number" min="1" step="1" value={builderQty}
+                      onChange={(e) => setBuilderQty(parseInt(e.target.value, 10) || 1)} className="mt-1 h-9 w-24 bg-card" />
+                  </div>
+                </>
+              )}
+
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <Label className="text-xs flex items-center gap-1">
+                    Unit Price (K) *
+                    {itemType === "custom" && recommendedUnitPrice > 0 && (
+                      <button type="button" onClick={() => setBuilderUnitPrice(recommendedUnitPrice.toFixed(2))}
+                        className="text-[10px] text-primary hover:underline font-normal">
+                        use recommended K{recommendedUnitPrice.toFixed(2)}
+                      </button>
+                    )}
+                  </Label>
+                  <Input type="number" min="0" step="0.01" value={builderUnitPrice}
+                    onChange={(e) => setBuilderUnitPrice(e.target.value)} className="mt-1 h-9 bg-card" />
+                </div>
+                <Button type="button" onClick={handleAddItemToBasket} disabled={!canAddItem} className="gap-1.5 h-9">
+                  <Plus size={14} /> Add to Order
+                </Button>
+              </div>
+            </div>
+
+            {/* Basket */}
+            {basket.length > 0 ? (
+              <div className="border border-border rounded-lg overflow-hidden">
+                <div className="bg-muted/30 px-3 py-2 border-b border-border grid grid-cols-12 gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <span className="col-span-5">Item</span>
+                  <span className="col-span-2 text-center">Qty</span>
+                  <span className="col-span-2 text-right">Unit Price</span>
+                  <span className="col-span-2 text-right">Line Total</span>
+                  <span className="col-span-1" />
+                </div>
+                {basket.map((item) => (
+                  <div key={item.key} className="px-3 py-2.5 border-b border-border last:border-0 grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-5">
+                      <p className="text-sm font-medium flex items-center gap-1.5">
+                        {item.item_type === "custom" ? <Scissors size={12} className="text-muted-foreground" /> : <ShoppingBag size={12} className="text-muted-foreground" />}
+                        {item.displayName}
+                      </p>
+                    </div>
+                    <div className="col-span-2 text-center text-sm">{item.quantity}</div>
+                    <div className="col-span-2 text-right text-sm">K{item.unit_price.toFixed(2)}</div>
+                    <div className="col-span-2 text-right text-sm font-semibold text-primary">K{(item.unit_price * item.quantity).toFixed(2)}</div>
+                    <div className="col-span-1 flex justify-end">
+                      <button type="button" onClick={() => handleRemoveBasketItem(item.key)} className="p-1 text-muted-foreground hover:text-destructive rounded">
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <div className="bg-muted/20 px-3 py-2 flex justify-between items-center">
+                  <span className="text-xs font-semibold text-muted-foreground">Order Total</span>
+                  <span className="text-sm font-bold text-primary">K{orderSubtotal.toFixed(2)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="border border-dashed border-border rounded-lg py-8 text-center text-muted-foreground text-sm">
+                <ShoppingCart size={24} className="mx-auto mb-2 opacity-30" />
+                No items added yet
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
               <div>
                 <Label htmlFor="assigned_tailor_id">Assigned Tailor</Label>
                 <Controller
@@ -589,363 +770,96 @@ export default function CreateOrderForm({
 
             <div>
               <Label htmlFor="description">Special Requests / Description</Label>
-              <textarea
-                id="description"
-                {...register("description")}
-                rows={3}
-                placeholder="Describe the garment, style preferences, measurements notes..."
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-              />
+              <textarea id="description" {...register("description")} rows={2}
+                placeholder="Anything about this order as a whole..."
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
             </div>
 
             <div>
               <Label htmlFor="notes">Internal Notes</Label>
-              <textarea
-                id="notes"
-                {...register("notes")}
-                rows={2}
+              <textarea id="notes" {...register("notes")} rows={2}
                 placeholder="Notes visible to staff only..."
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-              />
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
             </div>
           </div>
         )}
 
-        {/* STEP 3: Materials */}
+        {/* STEP 3: Review */}
         {step === 3 && (
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-base font-semibold flex items-center gap-2">
-                <Package size={16} className="text-primary" /> Materials
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Add materials needed for this order. Leave empty for product-based orders.
-              </p>
-            </div>
-
-            {/* Customer measurements snapshot */}
-            {selectedCustomer && (
-              <div className="border border-border rounded-lg p-3 bg-muted/20">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Ruler size={14} className="text-primary" />
-                    <span className="text-xs font-semibold">
-                      {selectedCustomer.name}&apos;s Measurements
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowMeasurementsDialog(true)}
-                    className="h-7 text-xs gap-1"
-                  >
-                    {effectiveMeasurements ? <Edit size={12} /> : <Plus size={12} />}
-                    {effectiveMeasurements ? "Edit" : "Add Measurements"}
-                  </Button>
-                </div>
-                {effectiveMeasurements ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {Object.entries(effectiveMeasurements)
-                      .filter(([key, value]) => key !== "notes" && value !== undefined && value !== "")
-                      .map(([key, value]) => (
-                        <div key={key} className="rounded-md border border-border/60 bg-card px-2 py-1.5">
-                          <p className="text-[9px] uppercase font-semibold text-muted-foreground tracking-wide truncate">
-                            {key.replace(/_/g, " ")}
-                          </p>
-                          <p className="text-sm font-bold text-foreground">
-                            {value as React.ReactNode}
-                            <span className="text-[9px] ml-0.5 text-muted-foreground">in</span>
-                          </p>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">No measurements on file yet.</p>
-                )}
-              </div>
-            )}
-
-            {/* Material search */}
-            <div className="relative">
-              <div className="flex items-center border border-input rounded-md bg-background px-3 gap-2 h-9">
-                <Search size={14} className="text-muted-foreground shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search materials to add..."
-                  value={materialSearch}
-                  onChange={(e) => {
-                    setMaterialSearch(e.target.value);
-                    setShowMaterialDropdown(e.target.value.length > 0);
-                  }}
-                  onBlur={() => setTimeout(() => setShowMaterialDropdown(false), 150)}
-                  className="flex-1 text-sm bg-transparent outline-none"
-                />
-                {materialSearch && (
-                  <button type="button" onClick={() => { setMaterialSearch(""); setShowMaterialDropdown(false); }}>
-                    <X size={13} className="text-muted-foreground hover:text-foreground" />
-                  </button>
-                )}
-              </div>
-              {showMaterialDropdown && filteredMaterials.length > 0 && (
-                <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg overflow-hidden">
-                  {filteredMaterials.map((m: any) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onMouseDown={() => handleAddMaterial(m)}
-                      className="w-full px-3 py-2 text-sm text-left hover:bg-muted/50 flex justify-between items-center gap-2"
-                    >
-                      <span className="font-medium">{m.name}</span>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                        <span>K{parseFloat(m.unit_cost || "0").toFixed(2)}/{m.unit}</span>
-                        <span className={cn(
-                          "px-1.5 py-0.5 rounded-full font-medium",
-                          m.stock_quantity > 5 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
-                        )}>
-                          {m.stock_quantity} {m.unit}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Selected materials */}
-            {selectedMaterials.length > 0 ? (
-              <div className="border border-border rounded-lg overflow-hidden">
-                <div className="bg-muted/30 px-3 py-2 border-b border-border grid grid-cols-12 gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  <span className="col-span-5">Material</span>
-                  <span className="col-span-3 text-center">Quantity</span>
-                  <span className="col-span-3 text-right">Cost</span>
-                  <span className="col-span-1" />
-                </div>
-                {selectedMaterials.map((m) => (
-                  <div key={m.material_id} className="px-3 py-2.5 border-b border-border last:border-0 grid grid-cols-12 gap-2 items-center">
-                    <div className="col-span-5">
-                      <p className="text-sm font-medium">{m.name}</p>
-                    </div>
-                    <div className="col-span-3 flex items-center gap-1 justify-center">
-                      <Input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        value={m.quantity_used}
-                        onChange={(e) => handleMaterialQtyChange(m.material_id, parseFloat(e.target.value) || 0)}
-                        className="w-16 h-7 text-xs text-center"
-                      />
-                      <span className="text-xs text-muted-foreground">{m.unit}</span>
-                    </div>
-                    <div className="col-span-3 text-right">
-                      <span className="text-sm font-semibold text-primary">K{m.cost.toFixed(2)}</span>
-                    </div>
-                    <div className="col-span-1 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMaterial(m.material_id)}
-                        className="p-1 text-muted-foreground hover:text-destructive rounded transition-colors"
-                      >
-                        <X size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                <div className="bg-muted/20 px-3 py-2 flex justify-between items-center">
-                  <span className="text-xs font-semibold text-muted-foreground">Materials Total</span>
-                  <span className="text-sm font-bold text-primary">K{materialCost.toFixed(2)}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="border border-dashed border-border rounded-lg py-8 text-center text-muted-foreground text-sm">
-                <Package size={24} className="mx-auto mb-2 opacity-30" />
-                No materials added yet
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* STEP 4: Pricing */}
-        {step === 4 && (
           <TooltipProvider delayDuration={150}>
             <div className="space-y-4">
               <div>
                 <h2 className="text-base font-semibold flex items-center gap-2">
-                  <DollarSign size={16} className="text-primary" /> Pricing & Review
+                  <DollarSign size={16} className="text-primary" /> Review & Pricing
                 </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Review the full cost breakdown, adjust labour if needed, and confirm the selling price
-                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">Confirm the items, take a deposit if needed, and create the order</p>
               </div>
 
-              {/* Cost breakdown */}
-              <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-3 text-sm">
+              <div className="border border-border rounded-lg divide-y divide-border">
+                {basket.map((item) => (
+                  <div key={item.key} className="px-4 py-2.5 flex justify-between items-center text-sm">
+                    <span>{item.displayName} {item.quantity > 1 ? `× ${item.quantity}` : ""}</span>
+                    <span className="font-medium">K{(item.unit_price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-2 text-sm">
                 <div className="flex justify-between items-center text-muted-foreground">
                   <span className="flex items-center gap-1.5">
                     Material Cost
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info size={12} className="cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        Sum of all materials added in the Materials step, at current cost per unit.
-                      </TooltipContent>
+                      <TooltipTrigger asChild><Info size={12} className="cursor-help" /></TooltipTrigger>
+                      <TooltipContent className="max-w-xs">Sum of materials across every custom item in this order.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <span>K{materialCost.toFixed(2)}</span>
+                  <span>K{orderMaterialCost.toFixed(2)}</span>
                 </div>
-
                 <div className="flex justify-between items-center text-muted-foreground">
                   <span className="flex items-center gap-1.5">
-                    Labour Cost {selectedGarmentType ? `(${selectedGarmentType.name})` : ""}
+                    Labour Cost
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info size={12} className="cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        Tailor&apos;s time for this garment type — calculated automatically from
-                        Settings, but you can edit it below for this order.
-                      </TooltipContent>
+                      <TooltipTrigger asChild><Info size={12} className="cursor-help" /></TooltipTrigger>
+                      <TooltipContent className="max-w-xs">Sum of labour across every custom item in this order.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <span className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      {...register("labour_cost")}
-                      className="h-7 w-24 text-right text-sm"
-                    />
-                    {Math.abs(labourCost - calculatedLabourCost) > 0.005 && (
-                      <button
-                        type="button"
-                        onClick={() => setValue("labour_cost", calculatedLabourCost.toFixed(2))}
-                        className="text-[10px] text-muted-foreground hover:text-foreground underline shrink-0"
-                      >
-                        Reset
-                      </button>
-                    )}
-                  </span>
+                  <span>K{orderLabourCost.toFixed(2)}</span>
                 </div>
-
                 <div className="flex justify-between items-center text-muted-foreground">
                   <span className="flex items-center gap-1.5">
                     Overhead / Order
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info size={12} className="cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        This order&apos;s share of monthly business expenses, set in Settings &gt; Financial.
-                      </TooltipContent>
+                      <TooltipTrigger asChild><Info size={12} className="cursor-help" /></TooltipTrigger>
+                      <TooltipContent className="max-w-xs">This order&apos;s share of monthly business expenses, set in Settings &gt; Financial. Already folded into each item&apos;s recommended price.</TooltipContent>
                     </Tooltip>
                   </span>
                   <span>K{perOrderOverhead.toFixed(2)}</span>
                 </div>
-
                 <div className="border-t border-border my-1" />
-
-                <div className="flex justify-between items-center font-medium">
-                  <span className="flex items-center gap-1.5">
-                    Base Cost
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info size={12} className="cursor-help text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        Materials + Labour + Overhead — the break-even point with no profit.
-                      </TooltipContent>
-                    </Tooltip>
-                  </span>
-                  <span>K{baseCost.toFixed(2)}</span>
-                </div>
-
-                {recommendedPrice > 0 && (
-                  <div className="flex justify-between items-center font-semibold text-primary">
-                    <span className="flex items-center gap-1.5">
-                      Recommended ({margin}% margin)
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info size={12} className="cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          Base Cost marked up by your default profit margin, set in Settings &gt; Financial.
-                        </TooltipContent>
-                      </Tooltip>
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span>K{recommendedPrice.toFixed(2)}</span>
-                      <button
-                        type="button"
-                        onClick={() => setValue("total_cost", recommendedPrice.toFixed(2))}
-                        className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full hover:bg-primary/20 font-medium"
-                      >
-                        Use
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="total_cost" className="flex items-center gap-1.5">
-                    Selling Price (K) *
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info size={12} className="cursor-help text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        What the customer is actually charged. Defaults to nothing — use the
-                        &quot;Use&quot; button above or enter your own price.
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Input
-                    id="total_cost"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...register("total_cost")}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="deposit" className="flex items-center gap-1.5">
-                    Deposit (K)
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info size={12} className="cursor-help text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        Amount collected upfront. The rest shows as Balance Due below.
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Input
-                    id="deposit"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...register("deposit")}
-                    className="mt-1"
-                  />
+                <div className="flex justify-between items-center font-semibold text-primary">
+                  <span>Order Total</span>
+                  <span>K{orderSubtotal.toFixed(2)}</span>
                 </div>
               </div>
 
-              {totalCost > 0 && (
+              <div>
+                <Label htmlFor="deposit" className="flex items-center gap-1.5">
+                  Deposit (K)
+                  <Tooltip>
+                    <TooltipTrigger asChild><Info size={12} className="cursor-help text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent className="max-w-xs">Amount collected upfront. The rest shows as Balance Due below.</TooltipContent>
+                  </Tooltip>
+                </Label>
+                <Input id="deposit" type="number" min="0" step="0.01" placeholder="0.00" {...register("deposit")} className="mt-1 max-w-xs" />
+              </div>
+
+              {orderSubtotal > 0 && (
                 <div className="flex justify-between items-center bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 text-sm">
                   <span className="font-medium flex items-center gap-1.5">
                     Balance Due
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info size={12} className="cursor-help text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        Selling Price minus Deposit — what&apos;s still owed on completion.
-                      </TooltipContent>
+                      <TooltipTrigger asChild><Info size={12} className="cursor-help text-muted-foreground" /></TooltipTrigger>
+                      <TooltipContent className="max-w-xs">Order Total minus Deposit — what&apos;s still owed on completion.</TooltipContent>
                     </Tooltip>
                   </span>
                   <span className={cn("font-bold text-base", balance < 0 ? "text-destructive" : "text-primary")}>
@@ -960,16 +874,12 @@ export default function CreateOrderForm({
 
       {/* Navigation footer */}
       <div className="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => step === 1 ? router.back() : setStep((s) => s - 1)}
-        >
+        <Button type="button" variant="outline" onClick={() => step === 1 ? router.back() : setStep((s) => s - 1)}>
           {step === 1 ? "Cancel" : "Back"}
         </Button>
 
         <div className="flex items-center gap-2">
-          {step < 4 ? (
+          {step < 3 ? (
             <Button
               type="button"
               onClick={() => {
@@ -977,8 +887,8 @@ export default function CreateOrderForm({
                   toast.error("Please select a customer first");
                   return;
                 }
-                if (step === 2 && !canAdvanceStep2()) {
-                  toast.error(`Please select a ${orderType === "custom" ? "garment type" : "product"}`);
+                if (step === 2 && basket.length === 0) {
+                  toast.error("Add at least one item");
                   return;
                 }
                 setStep((s) => s + 1);
@@ -987,11 +897,7 @@ export default function CreateOrderForm({
               Continue <ChevronRight size={15} className="ml-1" />
             </Button>
           ) : (
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              loading={isPending}
-            >
+            <Button type="button" onClick={handleSubmit} loading={isPending}>
               {isPending ? "Creating..." : inquiryId ? "Convert to Order" : "Create Order"}
             </Button>
           )}

@@ -5,11 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { requireBusinessContext } from "@/lib/business-context";
 import { format } from "date-fns";
 import {
-  applyProductStock,
-  getProductReservationBalance,
+  reconcileOrderProductStock,
   isConfirmedOrderStatus,
 } from "@/lib/productStock";
 import { sendOrderReceiptEmail } from "@/app/actions/order-documents";
+import { type OrderItemInput, computeOrderAggregates, insertOrderItems } from "@/lib/orderItems";
 
 export async function deleteOrder(orderId: string) {
   const { businessId } = await requireBusinessContext();
@@ -32,17 +32,15 @@ export async function deleteOrder(orderId: string) {
   }
 
   // An order in the recycle bin is not a sale, so it should not hold stock.
-  const binnedBalance = await getProductReservationBalance(supabase, businessId, orderId);
-  if (binnedBalance !== null && binnedBalance < 0) {
-    await applyProductStock(
-      supabase,
-      businessId,
-      order?.product_id,
-      orderId,
-      1,
-      "order_reservation_released",
-      `Released — ${order?.order_number ? `Order #${order.order_number}` : "order"} moved to recycle bin`
-    );
+  const { moved } = await reconcileOrderProductStock(
+    supabase,
+    businessId,
+    orderId,
+    order?.order_number ? `Order #${order.order_number}` : "order",
+    false,
+    order?.product_id
+  );
+  if (moved) {
     revalidatePath("/products");
     revalidatePath("/inventory");
   }
@@ -73,28 +71,21 @@ export async function restoreOrder(orderId: string) {
     return { success: false, message: error.message };
   }
 
-  // Re-take the unit the order gave up when it was binned. If stock has since
-  // run out the order is still restored — flagging it is better than refusing
-  // the restore — so the failure is only logged.
-  const restoredBalance = await getProductReservationBalance(supabase, businessId, orderId);
-  if (
-    isConfirmedOrderStatus(order?.status) &&
-    order?.product_id &&
-    restoredBalance === 0
-  ) {
-    const retaken = await applyProductStock(
-      supabase,
-      businessId,
-      order.product_id,
-      orderId,
-      -1,
-      "order_deduction",
-      `Re-deducted — ${order?.order_number ? `Order #${order.order_number}` : "order"} restored`
-    );
-
-    if (!retaken.success) {
-      console.error("Restored order could not re-deduct stock:", retaken.message);
-    }
+  // Re-take whatever this order gave up when it was binned. If stock has
+  // since run out the order is still restored — flagging it is better than
+  // refusing the restore — so a failure here is only logged.
+  const { warning: restoreWarning, moved } = await reconcileOrderProductStock(
+    supabase,
+    businessId,
+    orderId,
+    order?.order_number ? `Order #${order.order_number}` : "order",
+    isConfirmedOrderStatus(order?.status),
+    order?.product_id
+  );
+  if (restoreWarning) {
+    console.error("Restored order could not fully reconcile stock:", restoreWarning);
+  }
+  if (moved) {
     revalidatePath("/products");
     revalidatePath("/inventory");
   }
@@ -189,10 +180,10 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
     }
   }
 
-  // 3. Hold one unit of a finished good for as long as the order is a
-  //    committed sale, and let it go again if the order drops back out of one.
-  //    Both directions are gated on the ledger, so moving on through the
-  //    remaining confirmed stages moves nothing.
+  // 3. Hold stock for every ready-made item on the order for as long as it
+  //    is a committed sale, and let it go again if the order drops back out
+  //    of one. Driven off the ledger vs. order_items, so moving on through
+  //    the remaining confirmed stages moves nothing.
   let stockWarning: string | undefined;
 
   {
@@ -205,47 +196,18 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
     const orderLabel = productOrder?.order_number
       ? `Order #${productOrder.order_number}`
       : "order";
-    const balance = await getProductReservationBalance(supabase, businessId, orderId);
 
-    if (productOrder?.product_id && balance !== null) {
-      if (isConfirmedOrderStatus(status) && balance === 0) {
-        const taken = await applyProductStock(
-          supabase,
-          businessId,
-          productOrder.product_id,
-          orderId,
-          -1,
-          "order_deduction",
-          `Deducted for ${orderLabel} (confirmed)`
-        );
+    const { warning, moved } = await reconcileOrderProductStock(
+      supabase,
+      businessId,
+      orderId,
+      orderLabel,
+      isConfirmedOrderStatus(status),
+      productOrder?.product_id
+    );
 
-        // The status has already moved, so the sale stands — but the stock
-        // shortfall has to reach whoever is on the screen.
-        if (!taken.success) {
-          stockWarning = `Status updated, but stock was not deducted. ${taken.message}`;
-        } else if (taken.applied) {
-          revalidatePath("/products");
-        }
-      } else if (!isConfirmedOrderStatus(status) && balance < 0) {
-        // Back out of a confirmed status: the order is no longer a sale, so
-        // the unit it was holding goes back on the shelf.
-        const released = await applyProductStock(
-          supabase,
-          businessId,
-          productOrder.product_id,
-          orderId,
-          1,
-          "order_reservation_released",
-          `Released — ${orderLabel} returned to ${status}`
-        );
-
-        if (!released.success) {
-          stockWarning = `Status updated, but stock was not released. ${released.message}`;
-        } else if (released.applied) {
-          revalidatePath("/products");
-        }
-      }
-    }
+    if (warning) stockWarning = `Status updated, but stock was not fully updated. ${warning}`;
+    else if (moved) revalidatePath("/products");
   }
 
   // 4. Post the order's material and labour costs to Finance > Expenses, and
@@ -376,20 +338,16 @@ export async function cancelOrder(orderId: string, reason: string) {
     return { success: false, message: updateError.message };
   }
 
-  // Return the finished-goods unit, if this order still holds one.
-  const cancelledBalance = await getProductReservationBalance(supabase, businessId, orderId);
-  if (cancelledBalance !== null && cancelledBalance < 0) {
-    await applyProductStock(
-      supabase,
-      businessId,
-      order.product_id,
-      orderId,
-      1,
-      "cancellation_restore",
-      `Stock restored — ${orderLabel} cancelled`
-    );
-    revalidatePath("/products");
-  }
+  // Return any finished-goods units this order still holds.
+  const { moved } = await reconcileOrderProductStock(
+    supabase,
+    businessId,
+    orderId,
+    orderLabel,
+    false,
+    order.product_id
+  );
+  if (moved) revalidatePath("/products");
 
   revalidatePath("/orders");
   revalidatePath(`/orders/${orderId}`);
@@ -399,33 +357,53 @@ export async function cancelOrder(orderId: string, reason: string) {
   return { success: true };
 }
 
-export async function createOrderAction(orderData: any) {
+export async function createOrderAction(orderData: {
+  customer_id: string;
+  assigned_tailor_id?: string | null;
+  due_date?: string | null;
+  deposit?: number;
+  description?: string | null;
+  notes?: string | null;
+  status?: string;
+  items: OrderItemInput[];
+}) {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
-    // Step 1: Generate order number
-    const orderNumber = `ORD-${format(new Date(), "yyyyMMdd")}-${Math.floor(1000 + Math.random() * 9000)}`;
+    if (!orderData.items || orderData.items.length === 0) {
+      return { success: false, message: "Add at least one item to the order." };
+    }
 
-    // Step 2: Insert order
-    const { materials: materialsData, ...restOrderData } = orderData;
+    const orderNumber = `ORD-${format(new Date(), "yyyyMMdd")}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const status = orderData.status || "enquiry";
+    const aggregates = computeOrderAggregates(orderData.items);
 
     const { data: newOrder, error: orderError } = await (supabase.from("orders") as any)
       .insert([{
-        ...restOrderData,
+        business_id: businessId,
         order_number: orderNumber,
         order_date: new Date().toISOString(),
-        business_id: businessId,
+        customer_id: orderData.customer_id,
+        assigned_tailor_id: orderData.assigned_tailor_id || null,
+        due_date: orderData.due_date || null,
+        deposit: orderData.deposit ?? 0,
+        description: orderData.description || null,
+        notes: orderData.notes || null,
+        status,
+        ...aggregates,
       }])
-      .select("id")
+      .select("id, order_number")
       .single();
 
     if (orderError) throw new Error(orderError.message);
 
     const newOrderId = newOrder.id;
 
-    // Step 2.5: Post the deposit (if any) to Finance > Payments. Non-fatal —
-    // the order itself was created successfully either way.
+    await insertOrderItems(supabase, businessId, newOrderId, orderData.items);
+
+    // Post the deposit (if any) to Finance > Payments. Non-fatal — the order
+    // itself was created successfully either way.
     const { error: depositError } = await (supabase as any).rpc(
       "post_order_deposit_payment",
       { p_order_id: newOrderId, p_business_id: businessId }
@@ -434,22 +412,25 @@ export async function createOrderAction(orderData: any) {
       console.error("Failed to post order deposit payment:", depositError.message);
     }
 
-    // Step 3: Insert order materials if provided
-    if (materialsData && Array.isArray(materialsData) && materialsData.length > 0) {
-      const materialRows = materialsData.map((m: any) => ({
-        order_id: newOrderId,
-        material_id: m.material_id,
-        quantity_used: m.quantity_used,
-        cost: m.cost,
-      }));
-
-      await (supabase.from("order_materials") as any).insert(materialRows);
-    }
+    // Hold stock for any ready-made items, if the order starts out already
+    // confirmed (it normally starts at "enquiry", where this is a no-op).
+    const { warning } = await reconcileOrderProductStock(
+      supabase,
+      businessId,
+      newOrderId,
+      `Order #${newOrder.order_number}`,
+      isConfirmedOrderStatus(status)
+    );
+    if (warning) console.error("createOrderAction stock warning:", warning);
 
     revalidatePath("/orders");
     revalidatePath("/dashboard");
+    if (warning) {
+      revalidatePath("/products");
+      revalidatePath("/inventory");
+    }
 
-    return { success: true, message: "Order created successfully.", orderId: newOrderId };
+    return { success: true, message: "Order created successfully.", orderId: newOrderId, warning };
   } catch (err: any) {
     console.error("createOrderAction error:", err);
     return { success: false, message: err.message || "Failed to create order." };
@@ -465,7 +446,7 @@ export async function updateOrderMaterialsAction(
 
   try {
     let materialCost = 0;
-    const rows: { order_id: string; material_id: string; quantity_used: number; cost: number }[] = [];
+    const rows: { order_id: string; material_id: string; quantity_used: number; unit_cost: number }[] = [];
 
     if (materials.length > 0) {
       const { data: materialRecords, error: matError } = await (supabase.from("materials") as any)
@@ -479,9 +460,8 @@ export async function updateOrderMaterialsAction(
 
       for (const m of materials) {
         const unitCost = (costMap.get(m.material_id) as number) || 0;
-        const cost = unitCost * m.quantity_used;
-        materialCost += cost;
-        rows.push({ order_id: orderId, material_id: m.material_id, quantity_used: m.quantity_used, cost });
+        materialCost += unitCost * m.quantity_used;
+        rows.push({ order_id: orderId, material_id: m.material_id, quantity_used: m.quantity_used, unit_cost: unitCost });
       }
     }
 
@@ -518,50 +498,19 @@ export async function updateOrderAction(orderId: string, orderData: any) {
   try {
     const { materials: materialsData, ...fields } = orderData;
 
-    // The deducted unit follows the product, so work out what this order should
-    // be holding after the edit and reconcile against what it holds.
+    // This path edits a legacy single-item order's own product_id/garment_type_id
+    // directly (orders created through the new items-based createOrderAction are
+    // not yet editable here — their items live in order_items instead). An order
+    // only holds stock while it is a confirmed, live sale, and that doesn't change
+    // on an edit — only which product does.
     const { data: previous } = await (supabase.from("orders") as any)
-      .select("product_id, order_number, status, deleted_at")
+      .select("order_number, status, deleted_at")
       .eq("id", orderId)
       .eq("business_id", businessId)
       .single();
 
-    const previousProductId: string | null = previous?.product_id ?? null;
-    const nextProductId: string | null = fields.product_id ?? null;
     const orderLabel = previous?.order_number ? `Order #${previous.order_number}` : "order";
-
-    // An order only holds stock while it is a confirmed, live sale. An enquiry,
-    // a cancelled order or one sitting in the recycle bin must not quietly take
-    // a unit just because it was edited.
     const isLiveOrder = isConfirmedOrderStatus(previous?.status) && !previous?.deleted_at;
-    const shouldHoldUnit = isLiveOrder && nextProductId !== null;
-    const editBalance = await getProductReservationBalance(supabase, businessId, orderId);
-    const holdsUnit = editBalance !== null && editBalance < 0;
-    const productSwapped = previousProductId !== nextProductId;
-
-    // An unreadable ledger means we cannot tell what this order holds, so the
-    // edit goes through without moving stock rather than guessing.
-    const canMoveStock = editBalance !== null;
-    const needsTake = canMoveStock && shouldHoldUnit && (!holdsUnit || productSwapped);
-    const needsRelease = canMoveStock && holdsUnit && (!shouldHoldUnit || productSwapped);
-    const stockMoved = needsTake || needsRelease;
-
-    // Take the new product's unit before releasing the old one, so a failure
-    // here leaves the original deduction untouched.
-    if (needsTake && nextProductId) {
-      const taken = await applyProductStock(
-        supabase,
-        businessId,
-        nextProductId,
-        orderId,
-        -1,
-        "order_deduction",
-        `Deducted for ${orderLabel}`
-      );
-      if (!taken.success) {
-        return { success: false, message: taken.message };
-      }
-    }
 
     // Update core order fields
     const { error: orderError } = await (supabase.from("orders") as any)
@@ -601,32 +550,32 @@ export async function updateOrderAction(orderId: string, orderData: any) {
           business_id: businessId,
           material_id: m.material_id,
           quantity_used: m.quantity_used,
-          cost: m.cost,
+          unit_cost: m.unit_cost,
         }));
         await (supabase.from("order_materials") as any).insert(rows);
       }
     }
 
-    if (needsRelease && previousProductId) {
-      await applyProductStock(
-        supabase,
-        businessId,
-        previousProductId,
-        orderId,
-        1,
-        "order_reservation_released",
-        `Released from ${orderLabel}`
-      );
+    const { warning, moved } = await reconcileOrderProductStock(
+      supabase,
+      businessId,
+      orderId,
+      orderLabel,
+      isLiveOrder,
+      fields.product_id ?? null
+    );
+    if (warning) {
+      console.error("updateOrderAction stock warning:", warning);
     }
 
     revalidatePath(`/orders/${orderId}`);
     revalidatePath("/orders");
-    if (stockMoved) {
+    if (moved) {
       revalidatePath("/products");
       revalidatePath("/inventory");
     }
 
-    return { success: true, message: "Order updated." };
+    return { success: true, message: "Order updated.", warning };
   } catch (err: any) {
     console.error("updateOrderAction error:", err);
     return { success: false, message: err.message || "Failed to update order." };

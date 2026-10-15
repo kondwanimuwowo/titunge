@@ -170,12 +170,13 @@ export default function OrderEditForm({
         materials: selectedMaterials.map((m) => ({
           material_id: m.material_id,
           quantity_used: m.quantity_used,
-          cost: m.cost,
+          unit_cost: m.unit_cost,
         })),
       });
 
       if (result.success) {
         toast.success("Order updated");
+        if (result.warning) toast.error(result.warning);
         router.push(`/orders/${order.id}`);
       } else {
         toast.error(result.message || "Failed to update order");

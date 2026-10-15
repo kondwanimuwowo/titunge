@@ -91,6 +91,25 @@ function totalsRow(label: string, value: string, opts?: { bold?: boolean; color?
   `;
 }
 
+interface OrderLineItem {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+function itemsListHtml(items: OrderLineItem[]): string {
+  if (items.length === 0) return "";
+  const rows = items
+    .map((item) =>
+      totalsRow(
+        item.quantity > 1 ? `${item.name} × ${item.quantity}` : item.name,
+        formatZmw(item.unitPrice * item.quantity)
+      )
+    )
+    .join("");
+  return `<div style="padding: 4px 0 16px;">${rows}</div>`;
+}
+
 /** Invoice/receipt — same document either way, labelled by whether a balance
  *  is still owed. Mirrors the totals math in components/orders/OrderReceipt.tsx
  *  so the emailed version always agrees with the printed one. */
@@ -99,6 +118,7 @@ export function orderDocumentEmailHtml(params: {
   orderNumber: string;
   orderDate: string;
   customerName: string;
+  items?: OrderLineItem[];
   subtotal: number;
   taxRate: number;
   deposit: number;
@@ -109,6 +129,7 @@ export function orderDocumentEmailHtml(params: {
   const title = balance > 0 ? "Invoice" : "Receipt";
 
   const bodyHtml = `
+    ${itemsListHtml(params.items ?? [])}
     <div style="padding: 16px 0; border-top: 1px solid #eee;">
       ${totalsRow("Subtotal", formatZmw(params.subtotal))}
       ${params.taxRate > 0 ? totalsRow(`Tax (${params.taxRate}%)`, formatZmw(taxAmount)) : ""}
@@ -136,6 +157,7 @@ export function orderQuotationEmailHtml(params: {
   orderDate: string;
   customerName: string;
   description?: string;
+  items?: OrderLineItem[];
   subtotal: number;
   taxRate: number;
   validUntilLabel: string;
@@ -145,6 +167,7 @@ export function orderQuotationEmailHtml(params: {
 
   const bodyHtml = `
     ${params.description ? `<div style="padding: 4px 0 16px;"><div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 4px;">Description</div><div style="font-size: 14px;">${params.description}</div></div>` : ""}
+    ${itemsListHtml(params.items ?? [])}
     <div style="padding: 16px 0; border-top: 1px solid #eee;">
       ${totalsRow("Subtotal", formatZmw(params.subtotal))}
       ${params.taxRate > 0 ? totalsRow(`Tax (${params.taxRate}%)`, formatZmw(taxAmount)) : ""}

@@ -104,7 +104,10 @@ export async function getOrderById(businessId: string, id: string) {
         .eq("business_id", businessId)
         .eq("id", id)
         .single(),
-      (supabase as any).from("order_items").select("*").eq("order_id", id),
+      (supabase.from("order_items") as any)
+        .select("*, products(id, name, images), garment_types(id, name), order_materials(*, materials(id, name, unit, unit_cost))")
+        .eq("order_id", id)
+        .order("created_at", { ascending: true }),
       (supabase.from("order_materials") as any)
         .select(`*, materials(id, name, unit, unit_cost)`)
         .eq("order_id", id),

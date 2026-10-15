@@ -78,33 +78,97 @@ export async function applyProductStock(
 }
 
 /**
- * Net product units currently held by an order, read from the movement ledger.
- * -1 means a unit is held; 0 means none is. Reading the ledger rather than the
- * order's status keeps every path idempotent — cancelling an order that was
- * already cancelled, or deleting one that was, moves nothing.
+ * Reconciles every ready-made product an order holds against what it should
+ * hold, in one pass. Replaces the old single-product ±1 logic now that an
+ * order can carry several different products (and quantities > 1) at once —
+ * there's no single "the" product to swap in and out any more, so this
+ * diffs the ledger against order_items instead.
  *
- * Returns null when the balance could not be read. Callers must treat that as
- * "unknown" and move no stock: a failed read that fell back to 0 would read as
- * "holds nothing" and deduct a second unit, which is the damaging direction.
+ * `shouldHoldStock` is the caller's one judgment call (is this order, right
+ * now, a live confirmed sale?); everything else — which products, how many
+ * of each, what's already held — is read off order_items and the
+ * inventory_transactions ledger, so create, edit, status change, cancel,
+ * delete and restore all funnel through the same reconciliation instead of
+ * each re-deriving it.
  */
-export async function getProductReservationBalance(
+export async function reconcileOrderProductStock(
   supabase: ServerClient,
   businessId: string,
-  orderId: string
-): Promise<number | null> {
-  const { data, error } = await (supabase.from("inventory_transactions") as any)
-    .select("quantity_change")
-    .eq("order_id", orderId)
-    .eq("business_id", businessId)
-    .not("product_id", "is", null);
+  orderId: string,
+  orderLabel: string,
+  shouldHoldStock: boolean,
+  /** orders.product_id, for orders from before multi-item orders (or edited
+   *  through the single-item fallback path) that never got an order_items
+   *  row — read as "1 unit of this product" only when order_items is empty,
+   *  so a real itemized order with zero ready-made items isn't misread as
+   *  holding its legacy product. */
+  legacyProductId?: string | null
+): Promise<{ warning?: string; moved: boolean }> {
+  const [itemsResult, ledgerResult] = await Promise.all([
+    (supabase.from("order_items") as any)
+      .select("product_id, quantity")
+      .eq("order_id", orderId)
+      .not("product_id", "is", null),
+    (supabase.from("inventory_transactions") as any)
+      .select("product_id, quantity_change")
+      .eq("order_id", orderId)
+      .eq("business_id", businessId)
+      .not("product_id", "is", null),
+  ]);
 
-  if (error) {
-    console.error("Could not read product reservation balance:", error.message);
-    return null;
+  // An unreadable ledger means we cannot tell what this order holds, so skip
+  // rather than guess — moving stock on a guess is the damaging direction.
+  if (itemsResult.error || ledgerResult.error) {
+    console.error(
+      "Could not reconcile product stock:",
+      itemsResult.error?.message || ledgerResult.error?.message
+    );
+    return { warning: "Stock could not be reconciled for this order.", moved: false };
   }
 
-  return (data || []).reduce(
-    (sum: number, t: any) => sum + parseFloat(String(t.quantity_change || 0)),
-    0
-  );
+  const desired = new Map<string, number>();
+  if ((itemsResult.data ?? []).length === 0 && legacyProductId) {
+    desired.set(legacyProductId, 1);
+  } else {
+    for (const item of itemsResult.data ?? []) {
+      if (!item.product_id) continue;
+      desired.set(item.product_id, (desired.get(item.product_id) ?? 0) + (item.quantity ?? 1));
+    }
+  }
+
+  const held = new Map<string, number>();
+  for (const row of ledgerResult.data ?? []) {
+    held.set(row.product_id, (held.get(row.product_id) ?? 0) - Number(row.quantity_change ?? 0));
+  }
+
+  const allProductIds = new Set([...desired.keys(), ...held.keys()]);
+  let warning: string | undefined;
+  let moved = false;
+
+  for (const productId of allProductIds) {
+    const desiredQty = shouldHoldStock ? desired.get(productId) ?? 0 : 0;
+    const currentlyHeld = held.get(productId) ?? 0;
+    const quantityChange = currentlyHeld - desiredQty;
+    if (quantityChange === 0) continue;
+
+    const result = await applyProductStock(
+      supabase,
+      businessId,
+      productId,
+      orderId,
+      quantityChange,
+      quantityChange < 0 ? "order_deduction" : "order_reservation_released",
+      quantityChange < 0 ? `Deducted for ${orderLabel}` : `Released — ${orderLabel}`
+    );
+
+    if (!result.success) {
+      warning = warning
+        ? `${warning} Stock was also not fully updated for another item.`
+        : `Stock was not fully updated. ${result.message}`;
+    } else if (result.applied) {
+      moved = true;
+    }
+  }
+
+  return { warning, moved };
 }

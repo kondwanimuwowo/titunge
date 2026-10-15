@@ -55,26 +55,48 @@ export default function OrderReceipt({ order, taxRate, businessName }: OrderRece
         </div>
       </div>
 
-      {/* Description */}
-      {order.description && (
+      {/* Items */}
+      {order.items && order.items.length > 0 ? (
         <div className="py-4 border-t border-border">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">Description</p>
-          <p className="text-sm text-foreground">{order.description}</p>
-        </div>
-      )}
-
-      {/* Materials */}
-      {order.materials && order.materials.length > 0 && (
-        <div className="py-4 border-t border-border">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Materials Used</p>
-          <div className="space-y-1">
-            {order.materials.map((m: any, i: number) => (
-              <p key={i} className="text-sm text-foreground">
-                {m.materials?.name} — {parseFloat(m.quantity_used).toFixed(2)} {m.materials?.unit}
-              </p>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Items</p>
+          <div className="space-y-1.5">
+            {order.items.map((item: any) => (
+              <div key={item.id} className="flex justify-between text-sm">
+                <span className="text-foreground">
+                  {item.description || item.garment_types?.name || item.products?.name || "Item"}
+                  {item.quantity > 1 ? ` × ${item.quantity}` : ""}
+                </span>
+                <span className="text-foreground">
+                  K{(parseFloat(item.unit_price || 0) * (item.quantity || 1)).toFixed(2)}
+                </span>
+              </div>
             ))}
           </div>
         </div>
+      ) : (
+        <>
+          {/* Description */}
+          {order.description && (
+            <div className="py-4 border-t border-border">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">Description</p>
+              <p className="text-sm text-foreground">{order.description}</p>
+            </div>
+          )}
+
+          {/* Materials */}
+          {order.materials && order.materials.length > 0 && (
+            <div className="py-4 border-t border-border">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Materials Used</p>
+              <div className="space-y-1">
+                {order.materials.map((m: any, i: number) => (
+                  <p key={i} className="text-sm text-foreground">
+                    {m.materials?.name} — {parseFloat(m.quantity_used).toFixed(2)} {m.materials?.unit}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Totals */}

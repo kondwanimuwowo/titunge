@@ -178,15 +178,20 @@ CREATE TABLE public.orders (
 );
 
 CREATE TABLE public.order_items (
-  id           uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  business_id  uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
-  order_id     uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
-  item_type    text NOT NULL,
-  description  text,
-  quantity     integer DEFAULT 1,
-  price        numeric NOT NULL DEFAULT 0,
-  measurements jsonb DEFAULT '{}'::jsonb,
-  created_at   timestamptz DEFAULT now()
+  id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id     uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  order_id        uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  item_type       text NOT NULL CHECK (item_type IN ('ready_made', 'custom')),
+  product_id      uuid REFERENCES public.products(id) ON DELETE SET NULL,
+  garment_type_id uuid REFERENCES public.garment_types(id) ON DELETE SET NULL,
+  description     text,
+  quantity        integer DEFAULT 1,
+  unit_price      numeric NOT NULL DEFAULT 0,
+  material_cost   numeric NOT NULL DEFAULT 0,
+  labour_cost     numeric NOT NULL DEFAULT 0,
+  measurements    jsonb DEFAULT '{}'::jsonb,
+  style_notes     text,
+  created_at      timestamptz DEFAULT now()
 );
 
 -- ============================================================
@@ -282,6 +287,7 @@ CREATE TABLE public.order_materials (
   business_id      uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
   order_id         uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
   material_id      uuid NOT NULL REFERENCES public.materials(id),
+  order_item_id    uuid REFERENCES public.order_items(id) ON DELETE CASCADE,
   quantity_used    numeric NOT NULL DEFAULT 0,
   unit_cost        numeric DEFAULT 0,
   created_at       timestamptz DEFAULT now()
@@ -1005,6 +1011,8 @@ CREATE INDEX idx_attendance_business_id ON public.attendance(business_id);
 CREATE INDEX idx_garment_types_business_id ON public.garment_types(business_id);
 CREATE INDEX idx_orders_business_id ON public.orders(business_id);
 CREATE INDEX idx_order_items_business_id ON public.order_items(business_id);
+CREATE INDEX idx_order_items_order_id ON public.order_items(order_id);
+CREATE INDEX idx_order_materials_order_item_id ON public.order_materials(order_item_id);
 CREATE INDEX idx_products_business_id ON public.products(business_id);
 CREATE INDEX idx_materials_business_id ON public.materials(business_id);
 CREATE INDEX idx_inventory_transactions_business_id ON public.inventory_transactions(business_id);

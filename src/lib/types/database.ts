@@ -1298,6 +1298,86 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          business_id: string
+          created_at: string | null
+          description: string | null
+          garment_type_id: string | null
+          id: string
+          item_type: string
+          labour_cost: number
+          material_cost: number
+          measurements: Json | null
+          order_id: string
+          product_id: string | null
+          quantity: number | null
+          style_notes: string | null
+          unit_price: number
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          description?: string | null
+          garment_type_id?: string | null
+          id?: string
+          item_type: string
+          labour_cost?: number
+          material_cost?: number
+          measurements?: Json | null
+          order_id: string
+          product_id?: string | null
+          quantity?: number | null
+          style_notes?: string | null
+          unit_price?: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          description?: string | null
+          garment_type_id?: string | null
+          id?: string
+          item_type?: string
+          labour_cost?: number
+          material_cost?: number
+          measurements?: Json | null
+          order_id?: string
+          product_id?: string | null
+          quantity?: number | null
+          style_notes?: string | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_garment_type_id_fkey"
+            columns: ["garment_type_id"]
+            isOneToOne: false
+            referencedRelation: "garment_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_materials: {
         Row: {
           business_id: string
@@ -1305,6 +1385,7 @@ export type Database = {
           id: string
           material_id: string
           order_id: string
+          order_item_id: string | null
           quantity_used: number
           unit_cost: number | null
         }
@@ -1314,6 +1395,7 @@ export type Database = {
           id?: string
           material_id: string
           order_id: string
+          order_item_id?: string | null
           quantity_used?: number
           unit_cost?: number | null
         }
@@ -1323,6 +1405,7 @@ export type Database = {
           id?: string
           material_id?: string
           order_id?: string
+          order_item_id?: string | null
           quantity_used?: number
           unit_cost?: number | null
         }
@@ -1346,6 +1429,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_materials_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
             referencedColumns: ["id"]
           },
         ]

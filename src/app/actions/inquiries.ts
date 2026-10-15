@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireBusinessContext } from "@/lib/business-context";
 import { format } from "date-fns";
+import { type OrderItemInput, computeOrderAggregates, insertOrderItems } from "@/lib/orderItems";
+import { reconcileOrderProductStock, isConfirmedOrderStatus } from "@/lib/productStock";
 
 export async function markInquiryContactedAction(id: string, notes?: string) {
   const { businessId } = await requireBusinessContext();
@@ -50,19 +52,33 @@ export async function deleteInquiryAction(id: string) {
   return { success: true, message: "Inquiry deleted." };
 }
 
-export async function convertToOrderAction(inquiryId: string, orderData: any) {
+export async function convertToOrderAction(
+  inquiryId: string,
+  orderData: {
+    customer_id?: string | null;
+    assigned_tailor_id?: string | null;
+    due_date?: string | null;
+    deposit?: number;
+    description?: string | null;
+    notes?: string | null;
+    status?: string;
+    items: OrderItemInput[];
+  }
+) {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
-    // Step 1: Generate order number
+    if (!orderData.items || orderData.items.length === 0) {
+      return { success: false, message: "Add at least one item to the order." };
+    }
+
     const orderNumber = `ORD-${format(new Date(), "yyyyMMdd")}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // Step 2: Find or create customer
+    // Find or create the customer
     let customerId = orderData.customer_id;
 
     if (!customerId) {
-      // Fetch the inquiry to get customer details
       const { data: inquiry } = await (supabase.from("customer_inquiries") as any)
         .select("customer_name, customer_phone, customer_email")
         .eq("id", inquiryId)
@@ -79,7 +95,6 @@ export async function convertToOrderAction(inquiryId: string, orderData: any) {
         if (existingCustomer) {
           customerId = existingCustomer.id;
         } else {
-          // Create new customer
           const { data: newCustomer, error: customerError } = await (supabase.from("customers") as any)
             .insert([{
               name: inquiry.customer_name || "Unknown",
@@ -96,37 +111,49 @@ export async function convertToOrderAction(inquiryId: string, orderData: any) {
       }
     }
 
-    // Step 3: Insert order
-    const { materials: materialsData, customer_id: _cid, ...restOrderData } = orderData;
+    const status = orderData.status || "enquiry";
+    const aggregates = computeOrderAggregates(orderData.items);
 
     const { data: newOrder, error: orderError } = await (supabase.from("orders") as any)
       .insert([{
-        ...restOrderData,
-        customer_id: customerId,
+        business_id: businessId,
         order_number: orderNumber,
         order_date: new Date().toISOString(),
-        business_id: businessId,
+        customer_id: customerId,
+        assigned_tailor_id: orderData.assigned_tailor_id || null,
+        due_date: orderData.due_date || null,
+        deposit: orderData.deposit ?? 0,
+        description: orderData.description || null,
+        notes: orderData.notes || null,
+        status,
+        ...aggregates,
       }])
-      .select("id")
+      .select("id, order_number")
       .single();
 
     if (orderError) throw new Error(orderError.message);
 
     const newOrderId = newOrder.id;
 
-    // Step 4: Insert order materials if provided
-    if (materialsData && Array.isArray(materialsData) && materialsData.length > 0) {
-      const materialRows = materialsData.map((m: any) => ({
-        order_id: newOrderId,
-        material_id: m.material_id,
-        quantity_used: m.quantity_used,
-        cost: m.cost,
-      }));
+    await insertOrderItems(supabase, businessId, newOrderId, orderData.items);
 
-      await (supabase.from("order_materials") as any).insert(materialRows);
+    const { error: depositError } = await (supabase as any).rpc(
+      "post_order_deposit_payment",
+      { p_order_id: newOrderId, p_business_id: businessId }
+    );
+    if (depositError) {
+      console.error("Failed to post order deposit payment:", depositError.message);
     }
 
-    // Step 5: Update inquiry status
+    const { warning } = await reconcileOrderProductStock(
+      supabase,
+      businessId,
+      newOrderId,
+      `Order #${newOrder.order_number}`,
+      isConfirmedOrderStatus(status)
+    );
+    if (warning) console.error("convertToOrderAction stock warning:", warning);
+
     await (supabase.from("customer_inquiries") as any)
       .update({ status: "converted", converted_order_id: newOrderId })
       .eq("id", inquiryId)
@@ -134,8 +161,12 @@ export async function convertToOrderAction(inquiryId: string, orderData: any) {
 
     revalidatePath("/inquiries");
     revalidatePath("/orders");
+    if (warning) {
+      revalidatePath("/products");
+      revalidatePath("/inventory");
+    }
 
-    return { success: true, message: "Inquiry converted to order.", orderId: newOrderId };
+    return { success: true, message: "Inquiry converted to order.", orderId: newOrderId, warning };
   } catch (err: any) {
     console.error("convertToOrderAction error:", err);
     return { success: false, message: err.message || "Failed to convert inquiry." };

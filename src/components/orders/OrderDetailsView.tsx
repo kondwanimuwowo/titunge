@@ -323,18 +323,68 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
             </Card>
           </div>
 
-          {/* Bill of Materials (editable) */}
-          <BillOfMaterialsEditor
-            orderId={order.id}
-            orderStatus={order.status}
-            initialMaterials={order.materials || []}
-            availableMaterials={availableMaterials.map((m: any) => ({
-              id: m.id,
-              name: m.name,
-              unit: m.unit,
-              unit_cost: parseFloat(String(m.unit_cost || 0)),
-            }))}
-          />
+          {/* Order items (orders created as a multi-item basket) */}
+          {order.items && order.items.length > 0 ? (
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/30 border-b border-border/40 pb-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Package className="h-5 w-5 text-primary" />
+                  Items ({order.items.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 divide-y divide-border/50">
+                {order.items.map((item: any) => (
+                  <div key={item.id} className="py-3 first:pt-0 last:pb-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        {item.item_type === "custom" ? (
+                          <Scissors size={14} className="text-muted-foreground shrink-0" />
+                        ) : (
+                          <Package size={14} className="text-muted-foreground shrink-0" />
+                        )}
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {item.description || item.garment_types?.name || item.products?.name || "Item"}
+                          </p>
+                          {item.quantity > 1 && (
+                            <p className="text-xs text-muted-foreground">Qty {item.quantity}</p>
+                          )}
+                        </div>
+                      </div>
+                      <p className="font-semibold text-foreground whitespace-nowrap">
+                        K{(parseFloat(item.unit_price || 0) * (item.quantity || 1)).toFixed(2)}
+                      </p>
+                    </div>
+                    {item.style_notes && (
+                      <p className="text-xs text-muted-foreground italic mt-1 ml-6">{item.style_notes}</p>
+                    )}
+                    {item.order_materials && item.order_materials.length > 0 && (
+                      <div className="ml-6 mt-1.5 space-y-0.5">
+                        {item.order_materials.map((m: any) => (
+                          <p key={m.id} className="text-xs text-muted-foreground">
+                            {m.materials?.name} — {parseFloat(m.quantity_used || 0).toFixed(2)} {m.materials?.unit}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ) : (
+            /* Bill of Materials (editable) — legacy single-item orders only */
+            <BillOfMaterialsEditor
+              orderId={order.id}
+              orderStatus={order.status}
+              initialMaterials={order.materials || []}
+              availableMaterials={availableMaterials.map((m: any) => ({
+                id: m.id,
+                name: m.name,
+                unit: m.unit,
+                unit_cost: parseFloat(String(m.unit_cost || 0)),
+              }))}
+            />
+          )}
 
           {/* Pricing & Profitability */}
           <Card className="overflow-hidden">

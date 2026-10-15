@@ -45,6 +45,11 @@ export async function sendOrderReceiptEmail(
     orderNumber: order.order_number,
     orderDate: format(new Date(order.order_date || order.created_at), "d MMMM yyyy"),
     customerName: order.customers?.name || "Customer",
+    items: (order.items ?? []).map((item: any) => ({
+      name: item.description || item.garment_types?.name || item.products?.name || "Item",
+      quantity: item.quantity || 1,
+      unitPrice: parseFloat(String(item.unit_price || 0)),
+    })),
     subtotal: parseFloat(String(order.total_cost || 0)),
     taxRate,
     deposit: parseFloat(String(order.deposit || 0)),
@@ -87,6 +92,11 @@ export async function sendOrderQuotationEmail(
     orderDate: format(new Date(), "d MMMM yyyy"),
     customerName: order.customers?.name || "Customer",
     description: order.description || undefined,
+    items: (order.items ?? []).map((item: any) => ({
+      name: item.description || item.garment_types?.name || item.products?.name || "Item",
+      quantity: item.quantity || 1,
+      unitPrice: parseFloat(String(item.unit_price || 0)),
+    })),
     subtotal: parseFloat(String(order.total_cost || 0)),
     taxRate,
     validUntilLabel: format(addDays(new Date(), 14), "d MMMM yyyy"),
