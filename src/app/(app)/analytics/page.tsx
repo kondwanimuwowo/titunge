@@ -10,7 +10,7 @@ export default async function AnalyticsPage({
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
-  const { businessId } = await getBusinessContext();
+  const { businessId, business } = await getBusinessContext();
   const supabase = await createClient();
   const { tab } = await searchParams;
 
@@ -24,11 +24,20 @@ export default async function AnalyticsPage({
       getMarketplaceSalesStats(businessId),
     ]);
 
+  // Marketplace-only businesses have no workshop analytics at all — the
+  // Business tab is hidden rather than defaulted away from, so the page is
+  // just their marketplace sales panel.
+  const showBusinessTab = business.focus !== "marketplace_only";
+
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <PageHeader
         title="Analytics"
-        description="Business performance and marketplace sales, in one place."
+        description={
+          showBusinessTab
+            ? "Business performance and marketplace sales, in one place."
+            : "How your storefront is selling on the Titunge marketplace."
+        }
       />
 
       <AnalyticsHub
@@ -39,6 +48,7 @@ export default async function AnalyticsPage({
         marketplaceTopProducts={marketplaceTopProducts}
         marketplaceStats={marketplaceStats}
         initialTab={tab === "marketplace" ? "marketplace" : "business"}
+        showBusinessTab={showBusinessTab}
       />
     </div>
   );

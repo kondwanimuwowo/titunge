@@ -14,10 +14,17 @@ interface OrdersHubProps {
   stats: any;
   marketplaceOrders: any[];
   initialTab: "workshop" | "marketplace";
+  /** Marketplace-only businesses don't take workshop orders — the Workshop
+   *  tab (and its "New Order" button) is just hidden rather than shown empty. */
+  showWorkshopTab: boolean;
 }
 
-export default function OrdersHub({ orders, stats, marketplaceOrders, initialTab }: OrdersHubProps) {
+export default function OrdersHub({ orders, stats, marketplaceOrders, initialTab, showWorkshopTab }: OrdersHubProps) {
   const [tab, setTab] = useState(initialTab);
+
+  if (!showWorkshopTab) {
+    return <MarketplaceOrdersList orders={marketplaceOrders} />;
+  }
 
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as "workshop" | "marketplace")} className="space-y-6">

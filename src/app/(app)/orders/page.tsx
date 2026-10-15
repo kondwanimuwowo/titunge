@@ -9,7 +9,7 @@ export default async function OrdersPage({
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
-  const { businessId } = await getBusinessContext();
+  const { businessId, business } = await getBusinessContext();
   const { tab } = await searchParams;
 
   const [orders, stats, marketplaceOrders] = await Promise.all([
@@ -18,11 +18,20 @@ export default async function OrdersPage({
     getSellerMarketplaceOrders(businessId),
   ]);
 
+  // Marketplace-only businesses don't take workshop orders at all — the
+  // Workshop tab is hidden rather than defaulted away from, so the page is
+  // just their marketplace order list.
+  const showWorkshopTab = business.focus !== "marketplace_only";
+
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <PageHeader
         title="Orders"
-        description="Workshop orders and marketplace orders, in one place."
+        description={
+          showWorkshopTab
+            ? "Workshop orders and marketplace orders, in one place."
+            : "Orders placed through your Titunge marketplace storefront."
+        }
       />
 
       <OrdersHub
@@ -30,6 +39,7 @@ export default async function OrdersPage({
         stats={stats}
         marketplaceOrders={marketplaceOrders}
         initialTab={tab === "marketplace" ? "marketplace" : "workshop"}
+        showWorkshopTab={showWorkshopTab}
       />
     </div>
   );

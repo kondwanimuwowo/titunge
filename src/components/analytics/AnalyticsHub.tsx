@@ -14,6 +14,9 @@ interface AnalyticsHubProps {
   marketplaceTopProducts: any[];
   marketplaceStats: { totalRevenue: number; orderCount: number };
   initialTab: "business" | "marketplace";
+  /** Marketplace-only businesses have no workshop analytics to show — the
+   *  Business tab is just hidden rather than shown empty. */
+  showBusinessTab: boolean;
 }
 
 export default function AnalyticsHub({
@@ -24,8 +27,19 @@ export default function AnalyticsHub({
   marketplaceTopProducts,
   marketplaceStats,
   initialTab,
+  showBusinessTab,
 }: AnalyticsHubProps) {
   const [tab, setTab] = useState(initialTab);
+
+  if (!showBusinessTab) {
+    return (
+      <MarketplaceSalesPanel
+        salesData={marketplaceSalesData}
+        topProducts={marketplaceTopProducts}
+        stats={marketplaceStats}
+      />
+    );
+  }
 
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as "business" | "marketplace")} className="space-y-6">
