@@ -7,6 +7,7 @@ import { getInquiryStats } from "@/lib/data/inquiries";
 import Sidebar from "@/components/layout/Sidebar";
 import AppShell from "@/components/layout/AppShell";
 import NotificationBellServer from "@/components/layout/NotificationBellServer";
+import ProductTour from "@/components/onboarding/ProductTour";
 import { createClient } from "@/lib/supabase/server";
 
 function BellPlaceholder() {
@@ -25,12 +26,13 @@ export default async function AppLayout({
   const { business, businessId, role, userId } = await getBusinessContext();
 
   const supabase = await createClient();
-  const [{ data: { user } }, profileResult, inquiryStats, myBusinesses, isAdmin] = await Promise.all([
+  const [{ data: { user } }, profileResult, inquiryStats, myBusinesses, isAdmin, membershipResult] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from("user_profiles").select("*").eq("id", userId).maybeSingle(),
     getInquiryStats(businessId),
     getMyBusinesses(userId),
     isPlatformAdmin(),
+    supabase.from("business_users").select("has_seen_tour").eq("business_id", businessId).eq("user_id", userId).maybeSingle(),
   ]);
 
   const themeVars = buildThemeVars(business.theme_key);
@@ -39,6 +41,8 @@ export default async function AppLayout({
     <>
       {/* Inject per-tenant theme vars — overrides globals.css defaults */}
       <style>{themeVars}</style>
+
+      <ProductTour hasSeenTour={membershipResult.data?.has_seen_tour ?? true} role={role} />
 
       <AppShell
         sidebar={

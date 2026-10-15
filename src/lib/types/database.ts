@@ -215,6 +215,7 @@ export type Database = {
         Row: {
           active: boolean | null
           business_id: string
+          has_seen_tour: boolean
           id: string
           joined_at: string | null
           role: string
@@ -223,6 +224,7 @@ export type Database = {
         Insert: {
           active?: boolean | null
           business_id: string
+          has_seen_tour?: boolean
           id?: string
           joined_at?: string | null
           role?: string
@@ -231,6 +233,7 @@ export type Database = {
         Update: {
           active?: boolean | null
           business_id?: string
+          has_seen_tour?: boolean
           id?: string
           joined_at?: string | null
           role?: string

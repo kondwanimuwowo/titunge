@@ -52,6 +52,7 @@ CREATE TABLE public.business_users (
   user_id          uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   role             text NOT NULL DEFAULT 'employee', -- admin | manager | employee
   active           boolean DEFAULT true,
+  has_seen_tour    boolean NOT NULL DEFAULT false,
   joined_at        timestamptz DEFAULT now(),
   UNIQUE(business_id, user_id)
 );

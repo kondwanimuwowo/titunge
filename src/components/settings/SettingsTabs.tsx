@@ -13,6 +13,7 @@ import PayoutProfileForm from "./PayoutProfileForm";
 import SizingStandardToggle from "./SizingStandardToggle";
 import BillingTab from "./BillingTab";
 import WorkspaceFocusToggle from "./WorkspaceFocusToggle";
+import ReplayTourButton from "./ReplayTourButton";
 import GarmentTypesManager from "@/components/finance/GarmentTypesManager";
 
 interface SettingsTabsProps {
@@ -126,6 +127,8 @@ export default function SettingsTabs({
         </Card>
 
         <WorkspaceFocusToggle focus={business.focus} />
+
+        <ReplayTourButton />
 
         <Card>
           <CardHeader>
