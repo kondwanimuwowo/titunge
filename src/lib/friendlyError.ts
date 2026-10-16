@@ -12,11 +12,11 @@ export function toFriendlyErrorMessage(rawMessage: string | null | undefined): s
   // but the API's schema cache hasn't reloaded, or wasn't applied at all).
   // Not something the person using the app can fix themselves.
   if (/column .* (of|in) .* schema cache/i.test(message) || /could not find the .* column/i.test(message)) {
-    return "This feature just had an update roll out and needs a moment to finish syncing. Please try again in a minute — if it keeps happening, let support know.";
+    return "This feature just had an update roll out and needs a moment to finish syncing. Please try again in a minute, and let support know if it keeps happening.";
   }
 
   if (/violates foreign key constraint/i.test(message)) {
-    return "One of the things you selected no longer exists — someone may have removed it. Please refresh the page and try again.";
+    return "One of the things you selected no longer exists, possibly removed by someone else. Please refresh the page and try again.";
   }
 
   if (/duplicate key|violates unique constraint/i.test(message)) {

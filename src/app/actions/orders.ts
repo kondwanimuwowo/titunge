@@ -29,7 +29,7 @@ export async function deleteOrder(orderId: string) {
 
   if (error) {
     console.error("Order delete error:", error);
-    return { success: false, message: error.message };
+    return { success: false, message: toFriendlyErrorMessage(error.message) };
   }
 
   // An order in the recycle bin is not a sale, so it should not hold stock.
@@ -69,7 +69,7 @@ export async function restoreOrder(orderId: string) {
     .eq("business_id", businessId);
 
   if (error) {
-    return { success: false, message: error.message };
+    return { success: false, message: toFriendlyErrorMessage(error.message) };
   }
 
   // Re-take whatever this order gave up when it was binned. If stock has
@@ -114,10 +114,10 @@ export async function hardDeleteOrder(orderId: string) {
     if (error.code === "23503") {
       return {
         success: false,
-        message: "Can't permanently delete — this order has linked payments, materials, or other records.",
+        message: "Can't permanently delete this order, it has linked payments, materials, or other records.",
       };
     }
-    return { success: false, message: error.message };
+    return { success: false, message: toFriendlyErrorMessage(error.message) };
   }
 
   revalidatePath("/orders");
@@ -136,7 +136,7 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
     .eq("business_id", businessId);
 
   if (updateError) {
-    return { success: false, message: updateError.message };
+    return { success: false, message: toFriendlyErrorMessage(updateError.message) };
   }
 
   // 2. Deduct materials if moving to production (MVP exact copy of legacy behavior)
@@ -267,7 +267,7 @@ export async function cancelOrder(orderId: string, reason: string) {
     .single();
 
   if (fetchError || !order) {
-    return { success: false, message: fetchError?.message || "Order not found" };
+    return { success: false, message: fetchError ? toFriendlyErrorMessage(fetchError.message) : "Order not found." };
   }
 
   if (order.status === "cancelled") {
@@ -336,7 +336,7 @@ export async function cancelOrder(orderId: string, reason: string) {
     .eq("business_id", businessId);
 
   if (updateError) {
-    return { success: false, message: updateError.message };
+    return { success: false, message: toFriendlyErrorMessage(updateError.message) };
   }
 
   // Return any finished-goods units this order still holds.

@@ -28,7 +28,7 @@ export async function markInquiryContactedAction(id: string, notes?: string) {
 
   if (error) {
     console.error("Error marking inquiry contacted:", error);
-    return { success: false, message: error.message };
+    return { success: false, message: toFriendlyErrorMessage(error.message) };
   }
 
   revalidatePath("/inquiries");
@@ -46,7 +46,7 @@ export async function deleteInquiryAction(id: string) {
 
   if (error) {
     console.error("Error deleting inquiry:", error);
-    return { success: false, message: error.message };
+    return { success: false, message: toFriendlyErrorMessage(error.message) };
   }
 
   revalidatePath("/inquiries");
