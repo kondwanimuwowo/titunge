@@ -23,6 +23,7 @@ import {
   CreditCard,
   ListOrdered,
   Building2,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/lib/types/database";
@@ -58,6 +59,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { path: "/orders", icon: ShoppingCart, label: "Orders", roles: ["admin", "manager", "employee"] },
       { path: "/inquiries", icon: MessageSquare, label: "Inquiries", roles: ["admin", "manager"] },
+      { path: "/documents", icon: FileText, label: "Documents", roles: ["admin", "manager"] },
     ],
   },
   {

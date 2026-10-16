@@ -186,6 +186,128 @@ export function orderQuotationEmailHtml(params: {
   });
 }
 
+/** Shell for the standalone documents feature (quotations/invoices that
+ *  aren't tied to an order and can go to anyone) — same look as
+ *  orderDocumentShell but without the "Tailoring & Garments" subtitle,
+ *  since these aren't necessarily workshop orders. */
+function documentShell(params: {
+  title: string;
+  businessName: string;
+  documentNumber: string;
+  dateLabel: string;
+  recipientName: string;
+  bodyHtml: string;
+  footerHtml?: string;
+}): string {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+        <div style="font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;">${params.businessName}</div>
+        <div style="text-align: right;">
+          <div style="font-size: 14px; font-weight: 600;">${params.title}</div>
+          <div style="font-size: 12px; color: #888;">${params.documentNumber}</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; padding: 20px 0;">
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 4px;">To</div>
+          <div style="font-size: 14px;">${params.recipientName}</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 4px;">Date</div>
+          <div style="font-size: 14px;">${params.dateLabel}</div>
+        </div>
+      </div>
+
+      ${params.bodyHtml}
+
+      ${params.footerHtml ?? `<p style="text-align: center; font-size: 12px; color: #888; padding-top: 24px; border-top: 1px solid #eee; margin-top: 16px;">Thank you for your business.</p>`}
+    </div>
+  `;
+}
+
+/** Standalone quotation — not tied to an order, can go to anyone. */
+export function quotationDocumentEmailHtml(params: {
+  businessName: string;
+  documentNumber: string;
+  issueDateLabel: string;
+  recipientName: string;
+  description?: string;
+  items: OrderLineItem[];
+  subtotal: number;
+  taxRate: number;
+  validUntilLabel?: string;
+}): string {
+  const taxAmount = params.subtotal * (params.taxRate / 100);
+  const grandTotal = params.subtotal + taxAmount;
+
+  const bodyHtml = `
+    ${params.description ? `<div style="padding: 4px 0 16px;"><div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 4px;">Description</div><div style="font-size: 14px;">${params.description}</div></div>` : ""}
+    ${itemsListHtml(params.items)}
+    <div style="padding: 16px 0; border-top: 1px solid #eee;">
+      ${totalsRow("Subtotal", formatZmw(params.subtotal))}
+      ${params.taxRate > 0 ? totalsRow(`Tax (${params.taxRate}%)`, formatZmw(taxAmount)) : ""}
+      ${totalsRow("Estimated total", formatZmw(grandTotal), { bold: true })}
+    </div>
+  `;
+
+  return documentShell({
+    title: "Quotation",
+    businessName: params.businessName,
+    documentNumber: params.documentNumber,
+    dateLabel: params.issueDateLabel,
+    recipientName: params.recipientName,
+    bodyHtml,
+    footerHtml: params.validUntilLabel
+      ? `<p style="text-align: center; font-size: 12px; color: #888; padding-top: 24px; border-top: 1px solid #eee; margin-top: 16px;">This quotation is valid until ${params.validUntilLabel}. Prices may change after that date.</p>`
+      : undefined,
+  });
+}
+
+/** Standalone invoice — not tied to an order, can go to anyone. Shows a
+ *  balance due whenever amountPaid is less than the total. */
+export function invoiceDocumentEmailHtml(params: {
+  businessName: string;
+  documentNumber: string;
+  issueDateLabel: string;
+  dueDateLabel?: string;
+  recipientName: string;
+  description?: string;
+  items: OrderLineItem[];
+  subtotal: number;
+  taxRate: number;
+  amountPaid: number;
+}): string {
+  const taxAmount = params.subtotal * (params.taxRate / 100);
+  const grandTotal = params.subtotal + taxAmount;
+  const balance = grandTotal - params.amountPaid;
+
+  const bodyHtml = `
+    ${params.description ? `<div style="padding: 4px 0 16px;"><div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 4px;">Description</div><div style="font-size: 14px;">${params.description}</div></div>` : ""}
+    ${itemsListHtml(params.items)}
+    <div style="padding: 16px 0; border-top: 1px solid #eee;">
+      ${totalsRow("Subtotal", formatZmw(params.subtotal))}
+      ${params.taxRate > 0 ? totalsRow(`Tax (${params.taxRate}%)`, formatZmw(taxAmount)) : ""}
+      ${totalsRow("Total", formatZmw(grandTotal), { bold: true })}
+      ${params.amountPaid > 0 ? totalsRow("Paid", formatZmw(params.amountPaid)) : ""}
+      ${totalsRow("Balance due", formatZmw(balance), { bold: true, color: balance > 0 ? "#dc2626" : "#059669" })}
+    </div>
+  `;
+
+  return documentShell({
+    title: balance > 0 ? "Invoice" : "Receipt",
+    businessName: params.businessName,
+    documentNumber: params.documentNumber,
+    dateLabel: params.issueDateLabel,
+    recipientName: params.recipientName,
+    bodyHtml,
+    footerHtml: params.dueDateLabel && balance > 0
+      ? `<p style="text-align: center; font-size: 12px; color: #888; padding-top: 24px; border-top: 1px solid #eee; margin-top: 16px;">Payment due by ${params.dueDateLabel}.</p>`
+      : undefined,
+  });
+}
+
 export function inviteEmailHtml(params: {
   businessName: string;
   role: string;

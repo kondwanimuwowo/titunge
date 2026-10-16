@@ -196,6 +196,60 @@ CREATE TABLE public.order_items (
 );
 
 -- ============================================================
+-- DOCUMENTS (standalone quotations/invoices — not order-bound, can go to
+-- anyone, not just a registered customer; see customer_id below being
+-- optional in favour of recipient_name/recipient_email)
+-- ============================================================
+
+CREATE TABLE public.documents (
+  id                          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id                 uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  type                        text NOT NULL CHECK (type IN ('quotation', 'invoice')),
+  document_number             text NOT NULL,
+  customer_id                 uuid REFERENCES public.customers(id) ON DELETE SET NULL,
+  recipient_name              text NOT NULL,
+  recipient_email             text,
+  status                      text NOT NULL DEFAULT 'draft'
+                                CHECK (status IN ('draft', 'sent', 'accepted', 'declined', 'expired', 'paid', 'partially_paid', 'overdue', 'void')),
+  issue_date                  date NOT NULL DEFAULT CURRENT_DATE,
+  valid_until                 date,
+  due_date                    date,
+  description                 text,
+  notes                       text,
+  subtotal                    numeric NOT NULL DEFAULT 0,
+  tax_rate                    numeric NOT NULL DEFAULT 0,
+  tax_amount                  numeric NOT NULL DEFAULT 0,
+  total                       numeric NOT NULL DEFAULT 0,
+  amount_paid                 numeric NOT NULL DEFAULT 0,
+  order_id                    uuid REFERENCES public.orders(id) ON DELETE SET NULL,
+  converted_from_document_id  uuid REFERENCES public.documents(id) ON DELETE SET NULL,
+  created_by                  uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at                  timestamptz NOT NULL DEFAULT now(),
+  updated_at                  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.document_items (
+  id            uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id   uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  document_id   uuid NOT NULL REFERENCES public.documents(id) ON DELETE CASCADE,
+  description   text NOT NULL,
+  quantity      numeric NOT NULL DEFAULT 1,
+  unit_price    numeric NOT NULL DEFAULT 0,
+  created_at    timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.document_payments (
+  id            uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id   uuid NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  document_id   uuid NOT NULL REFERENCES public.documents(id) ON DELETE CASCADE,
+  amount        numeric NOT NULL,
+  method        text,
+  notes         text,
+  paid_at       timestamptz NOT NULL DEFAULT now(),
+  created_at    timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
 -- PRODUCTS (finished goods catalog per tenant)
 -- ============================================================
 
@@ -545,6 +599,9 @@ ALTER TABLE public.financial_settings    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalog_purchases     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customer_inquiries    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.document_items        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.document_payments     ENABLE ROW LEVEL SECURITY;
 
 -- Helper: returns all business_ids the current user belongs to
 CREATE OR REPLACE FUNCTION public.my_business_ids()
@@ -695,7 +752,8 @@ BEGIN
     'business_storefront',
     'production_batches','production_batch_orders',
     'expenses','payments','overhead_costs','financial_settings',
-    'catalog_purchases','customer_inquiries','notifications'
+    'catalog_purchases','customer_inquiries','notifications',
+    'documents','document_items','document_payments'
   ]
   LOOP
     EXECUTE format(
@@ -1028,6 +1086,11 @@ CREATE INDEX idx_customer_inquiries_business_id ON public.customer_inquiries(bus
 CREATE INDEX idx_marketplace_order_items_business_id ON public.marketplace_order_items(business_id);
 CREATE INDEX idx_notifications_business_id ON public.notifications(business_id);
 CREATE INDEX idx_marketplace_order_payouts_business_id ON public.marketplace_order_payouts(business_id);
+CREATE INDEX idx_documents_business_id ON public.documents(business_id);
+CREATE INDEX idx_documents_customer_id ON public.documents(customer_id);
+CREATE INDEX idx_documents_type ON public.documents(type);
+CREATE INDEX idx_document_items_document_id ON public.document_items(document_id);
+CREATE INDEX idx_document_payments_document_id ON public.document_payments(document_id);
 
 -- ============================================================
 -- STORAGE: Public bucket for business assets (logos, etc.)

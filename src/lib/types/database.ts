@@ -495,6 +495,206 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          amount_paid: number
+          business_id: string
+          converted_from_document_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          description: string | null
+          document_number: string
+          due_date: string | null
+          id: string
+          issue_date: string
+          notes: string | null
+          order_id: string | null
+          recipient_email: string | null
+          recipient_name: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          type: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          amount_paid?: number
+          business_id: string
+          converted_from_document_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string | null
+          document_number: string
+          due_date?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          order_id?: string | null
+          recipient_email?: string | null
+          recipient_name: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          type: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          business_id?: string
+          converted_from_document_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string | null
+          document_number?: string
+          due_date?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          order_id?: string | null
+          recipient_email?: string | null
+          recipient_name?: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          type?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_converted_from_document_id_fkey"
+            columns: ["converted_from_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_items: {
+        Row: {
+          business_id: string
+          created_at: string
+          description: string
+          document_id: string
+          id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          description: string
+          document_id: string
+          id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          description?: string
+          document_id?: string
+          id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_items_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_payments: {
+        Row: {
+          amount: number
+          business_id: string
+          created_at: string
+          document_id: string
+          id: string
+          method: string | null
+          notes: string | null
+          paid_at: string
+        }
+        Insert: {
+          amount: number
+          business_id: string
+          created_at?: string
+          document_id: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_payments_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_payments_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           active: boolean | null
@@ -2041,6 +2241,19 @@ export type OrderStatus =
   | "contacted"
   | "measurements"
   | "fitting";
+
+export type DocumentType = "quotation" | "invoice"
+
+export type DocumentStatus =
+  | "draft"
+  | "sent"
+  | "accepted"
+  | "declined"
+  | "expired"
+  | "paid"
+  | "partially_paid"
+  | "overdue"
+  | "void"
 
 export type UserRole = "admin" | "manager" | "employee";
 
