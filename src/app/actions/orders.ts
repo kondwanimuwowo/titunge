@@ -10,6 +10,7 @@ import {
 } from "@/lib/productStock";
 import { sendOrderReceiptEmail } from "@/app/actions/order-documents";
 import { type OrderItemInput, computeOrderAggregates, insertOrderItems } from "@/lib/orderItems";
+import { toFriendlyErrorMessage } from "@/lib/friendlyError";
 
 export async function deleteOrder(orderId: string) {
   const { businessId } = await requireBusinessContext();
@@ -433,7 +434,7 @@ export async function createOrderAction(orderData: {
     return { success: true, message: "Order created successfully.", orderId: newOrderId, warning };
   } catch (err: any) {
     console.error("createOrderAction error:", err);
-    return { success: false, message: err.message || "Failed to create order." };
+    return { success: false, message: toFriendlyErrorMessage(err.message) };
   }
 }
 
@@ -487,7 +488,7 @@ export async function updateOrderMaterialsAction(
     return { success: true, materialCost: Math.round(materialCost * 100) / 100 };
   } catch (err: any) {
     console.error("updateOrderMaterialsAction error:", err);
-    return { success: false, message: err.message || "Failed to update materials." };
+    return { success: false, message: toFriendlyErrorMessage(err.message) };
   }
 }
 
@@ -578,6 +579,6 @@ export async function updateOrderAction(orderId: string, orderData: any) {
     return { success: true, message: "Order updated.", warning };
   } catch (err: any) {
     console.error("updateOrderAction error:", err);
-    return { success: false, message: err.message || "Failed to update order." };
+    return { success: false, message: toFriendlyErrorMessage(err.message) };
   }
 }

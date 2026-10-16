@@ -6,6 +6,7 @@ import { requireBusinessContext } from "@/lib/business-context";
 import { format } from "date-fns";
 import { type OrderItemInput, computeOrderAggregates, insertOrderItems } from "@/lib/orderItems";
 import { reconcileOrderProductStock, isConfirmedOrderStatus } from "@/lib/productStock";
+import { toFriendlyErrorMessage } from "@/lib/friendlyError";
 
 export async function markInquiryContactedAction(id: string, notes?: string) {
   const { businessId } = await requireBusinessContext();
@@ -169,6 +170,6 @@ export async function convertToOrderAction(
     return { success: true, message: "Inquiry converted to order.", orderId: newOrderId, warning };
   } catch (err: any) {
     console.error("convertToOrderAction error:", err);
-    return { success: false, message: err.message || "Failed to convert inquiry." };
+    return { success: false, message: toFriendlyErrorMessage(err.message) };
   }
 }
