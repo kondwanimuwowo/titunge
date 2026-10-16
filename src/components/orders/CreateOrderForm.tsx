@@ -348,6 +348,7 @@ export default function CreateOrderForm({
   };
 
   return (
+    <TooltipProvider delayDuration={150}>
     <div className="space-y-6">
       {/* Step indicator */}
       <div className="flex items-center gap-0">
@@ -786,7 +787,6 @@ export default function CreateOrderForm({
 
         {/* STEP 3: Review */}
         {step === 3 && (
-          <TooltipProvider delayDuration={150}>
             <div className="space-y-4">
               <div>
                 <h2 className="text-base font-semibold flex items-center gap-2">
@@ -868,7 +868,6 @@ export default function CreateOrderForm({
                 </div>
               )}
             </div>
-          </TooltipProvider>
         )}
       </div>
 
@@ -923,5 +922,6 @@ export default function CreateOrderForm({
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 }
