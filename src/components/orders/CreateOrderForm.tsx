@@ -165,13 +165,13 @@ export default function CreateOrderForm({
     setMaterialSearch("");
   };
 
-  const filteredMaterials = materialSearch.length >= 1
-    ? materials.filter(
-        (m: any) =>
-          m.name.toLowerCase().includes(materialSearch.toLowerCase()) &&
-          !builderMaterials.find((s) => s.material_id === m.id)
-      ).slice(0, 8)
-    : [];
+  const filteredMaterials = materials
+    .filter(
+      (m: any) =>
+        m.name.toLowerCase().includes(materialSearch.toLowerCase()) &&
+        !builderMaterials.find((s) => s.material_id === m.id)
+    )
+    .slice(0, 8);
 
   const handleAddMaterial = (m: any) => {
     setBuilderMaterials((prev) => [
@@ -581,14 +581,15 @@ export default function CreateOrderForm({
                       <Search size={14} className="text-muted-foreground shrink-0" />
                       <input
                         type="text"
-                        placeholder="Search materials to add..."
+                        placeholder="Search or browse materials to add..."
                         value={materialSearch}
-                        onChange={(e) => { setMaterialSearch(e.target.value); setShowMaterialDropdown(e.target.value.length > 0); }}
+                        onChange={(e) => setMaterialSearch(e.target.value)}
+                        onFocus={() => setShowMaterialDropdown(true)}
                         onBlur={() => setTimeout(() => setShowMaterialDropdown(false), 150)}
                         className="flex-1 text-sm bg-transparent outline-none"
                       />
                       {materialSearch && (
-                        <button type="button" onClick={() => { setMaterialSearch(""); setShowMaterialDropdown(false); }}>
+                        <button type="button" onClick={() => setMaterialSearch("")}>
                           <X size={13} className="text-muted-foreground hover:text-foreground" />
                         </button>
                       )}
