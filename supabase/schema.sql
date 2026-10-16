@@ -723,6 +723,13 @@ CREATE POLICY "members_read_own_business" ON public.businesses
 CREATE POLICY "members_read_business_users" ON public.business_users
   FOR SELECT USING (business_id IN (SELECT public.my_business_ids()));
 
+-- business_users: members can update rows in their own business (role
+-- changes, active toggle, has_seen_tour) — authorization for who's allowed
+-- to change what is enforced in the calling actions, not here.
+CREATE POLICY "members_update_business_users" ON public.business_users
+  FOR UPDATE USING (business_id IN (SELECT public.my_business_ids()))
+  WITH CHECK (business_id IN (SELECT public.my_business_ids()));
+
 -- business_invites: members can see/manage invites for their own business.
 -- The invite-acceptance page looks a row up by token via the service-role
 -- client (the token itself is the auth), deliberately bypassing this policy.

@@ -22,7 +22,6 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
     <div className="p-6 md:p-8 space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4">
         <Link href="/documents">
-          {/* @ts-expect-error - shadcn button.jsx type inference failure */}
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-muted/50 hover:bg-muted">
             <ArrowLeft className="h-4 w-4" />
           </Button>

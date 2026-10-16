@@ -73,6 +73,10 @@ export default function ProductTour({ hasSeenTour, role }: ProductTourProps) {
         primaryColor: "hsl(174, 28%, 52%)",
         showProgress: true,
         buttons: ["back", "close", "primary", "skip"],
+        // Without this, the X button just advances to the next step instead
+        // of ending the tour — status never reaches SKIPPED, so it never
+        // gets marked seen and reruns on every refresh.
+        closeButtonAction: "skip",
         zIndex: 10000,
       }}
     />
