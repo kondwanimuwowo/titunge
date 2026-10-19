@@ -40,6 +40,15 @@ export async function signUpAction(
 
   if (error) return { success: false, message: error.message };
 
+  // Supabase hides existing accounts: signing up with a confirmed email
+  // returns a placeholder user with no identities and sends no email.
+  if (data.user && data.user.identities?.length === 0) {
+    return {
+      success: false,
+      message: "An account with this email already exists. Log in instead, or use \"Forgot password\" if you don't remember your password.",
+    };
+  }
+
   // With "Confirm email" enabled, signUp() returns a user but no session
   // until they click the confirmation link — the caller must not try to
   // sign in immediately in that case.
