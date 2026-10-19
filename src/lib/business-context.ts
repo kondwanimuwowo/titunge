@@ -23,7 +23,8 @@ export interface BusinessContext {
  * Resolves the current tenant context for a server component or action.
  * Reads the slug from the x-business-slug header (set by middleware),
  * then fetches the business + verifies the user is a member.
- * Redirects to /onboarding if no valid business context exists.
+ * Redirects to /onboarding on the root domain, or /no-access when the user
+ * isn't a member of the requested business.
  */
 export const getBusinessContext = cache(async function getBusinessContext(): Promise<BusinessContext> {
   const supabase = await createClient();
@@ -45,7 +46,9 @@ export const getBusinessContext = cache(async function getBusinessContext(): Pro
     .eq("slug", slug)
     .single();
 
-  if (bizError || !business) redirect("/onboarding");
+  // RLS hides businesses the user isn't a member of, so "not found" and
+  // "no access" look the same here.
+  if (bizError || !business) redirect("/no-access");
   if (business.status === "suspended") redirect("/suspended");
 
   const { data: membership } = await supabase
@@ -56,7 +59,7 @@ export const getBusinessContext = cache(async function getBusinessContext(): Pro
     .eq("active", true)
     .single();
 
-  if (!membership) redirect("/onboarding");
+  if (!membership) redirect("/no-access");
 
   return {
     business,

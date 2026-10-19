@@ -50,10 +50,55 @@ const PUBLIC_PREFIXES = [
   "/terms",
 ];
 
+// Marketing, marketplace and signup pages live on the root domain only. A
+// business subdomain serves just the workspace and its auth pages, so clients
+// who open their workspace URL never land in the signup funnel.
+const ROOT_DOMAIN_ONLY = [
+  "/onboarding",
+  "/business",
+  "/browse",
+  "/sell",
+  "/cart",
+  "/checkout",
+  "/order-confirmation",
+  "/my-orders",
+  "/account",
+  "/shop",
+  "/product",
+  "/privacy",
+  "/terms",
+  "/pricing",
+  "/features",
+  "/about",
+  "/contact",
+];
+
+// Segment match, so "/product" does not also catch the workspace's "/products".
+function matchesRoute(pathname: string, route: string): boolean {
+  return pathname === route || pathname.startsWith(`${route}/`);
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") ?? "";
   const cookieDomain = getSessionCookieDomain(host);
+
+  const isBusinessSubdomain = host.endsWith(`.${APP_DOMAIN}`) && host !== `www.${APP_DOMAIN}`;
+  if (isBusinessSubdomain) {
+    if (pathname === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+    // RSC fetches can't follow cross-origin redirects; let those fall through.
+    const isRSCFetch = request.headers.get("RSC") === "1";
+    if (!isRSCFetch && ROOT_DOMAIN_ONLY.some((r) => matchesRoute(pathname, r))) {
+      const url = request.nextUrl.clone();
+      url.hostname = APP_DOMAIN;
+      url.port = "";
+      return NextResponse.redirect(url);
+    }
+  }
 
   // Pass business slug to server components via request header
   const businessSlug = resolveBusinessSlug(request);

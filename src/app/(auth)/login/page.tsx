@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,12 +12,16 @@ import { cn } from "@/lib/utils";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
+const noopSubscribe = () => () => {};
+const isOnSubdomain = () => window.location.hostname.endsWith(`.${APP_DOMAIN}`);
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const onSubdomain = useSyncExternalStore(noopSubscribe, isOnSubdomain, () => false);
   const router = useRouter();
 
   // If already authenticated, redirect to the correct workspace immediately.
@@ -151,12 +155,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          Don&apos;t have an account?{" "}
-          <Link href="/onboarding" className="text-primary hover:underline">
-            Get started
-          </Link>
-        </p>
+        {!onSubdomain && (
+          <p className="text-center text-xs text-muted-foreground mt-6">
+            Don&apos;t have an account?{" "}
+            <Link href="/onboarding" className="text-primary hover:underline">
+              Get started
+            </Link>
+          </p>
+        )}
       </div>
     </motion.div>
   );
