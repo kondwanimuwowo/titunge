@@ -94,8 +94,11 @@ export default function ProductList({ initialProducts }: ProductListProps) {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                     <Package className="h-8 w-8 text-muted-foreground" />
+                    {product.product_type !== "custom_design" && (
+                      <span className="text-[11px] text-muted-foreground">No photo, not on marketplace</span>
+                    )}
                   </div>
                 )}
 

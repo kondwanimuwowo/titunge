@@ -69,8 +69,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               // eslint-disable-next-line @next/next/no-img-element
               <img src={gallery[0]} alt={product.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
                 <Package className="h-16 w-16 text-muted-foreground/40" />
+                {product.product_type !== "custom_design" && (
+                  <p className="text-sm text-muted-foreground">
+                    No photo yet. This product won&apos;t appear on the marketplace until you add one.
+                  </p>
+                )}
               </div>
             )}
           </div>

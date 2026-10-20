@@ -130,14 +130,27 @@ const PRODUCT_SELECT = `
   product_storefront_extra(category_slug, care_instructions, shipping_lead_time, featured)
 `;
 
+// Products without a photo are never listed, so the marketplace stays visual.
+// The product form and Settings > Storefront tell sellers this.
+interface PhotoFilterable<Q> {
+  not(column: string, operator: string, value: unknown): Q;
+  neq(column: string, value: unknown): Q;
+}
+
+function withPhoto<Q extends PhotoFilterable<Q>>(query: Q): Q {
+  return query.not("images", "is", null).neq("images", "[]");
+}
+
 function activeProductsQuery(admin: ReturnType<typeof createAdminClient>) {
-  return admin
-    .from("products")
-    .select(PRODUCT_SELECT)
-    .eq("active", true)
-    .is("deleted_at", null)
-    .eq("product_type", "finished_good")
-    .eq("businesses.status", "active");
+  return withPhoto(
+    admin
+      .from("products")
+      .select(PRODUCT_SELECT)
+      .eq("active", true)
+      .is("deleted_at", null)
+      .eq("product_type", "finished_good")
+      .eq("businesses.status", "active")
+  );
 }
 
 export async function getMarketplaceProducts(): Promise<MarketplaceProduct[]> {
@@ -197,12 +210,14 @@ export async function getMarketplaceSellers(): Promise<MarketplaceSeller[]> {
 
   if (error || !businesses) return [];
 
-  const { data: products } = await admin
-    .from("products")
-    .select("business_id")
-    .eq("active", true)
-    .is("deleted_at", null)
-    .eq("product_type", "finished_good");
+  const { data: products } = await withPhoto(
+    admin
+      .from("products")
+      .select("business_id")
+      .eq("active", true)
+      .is("deleted_at", null)
+      .eq("product_type", "finished_good")
+  );
 
   const counts = new Map<string, number>();
   for (const p of products ?? []) {
@@ -226,11 +241,13 @@ export async function getMarketplaceStats(): Promise<MarketplaceStats> {
 
   const [{ count: makerCount }, { count: productCount }, { count: orderCount }] = await Promise.all([
     admin.from("businesses").select("id", { count: "exact", head: true }).eq("status", "active"),
-    (admin.from("products") as any)
-      .select("id", { count: "exact", head: true })
-      .eq("active", true)
-      .is("deleted_at", null)
-      .eq("product_type", "finished_good"),
+    withPhoto(
+      (admin.from("products") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("active", true)
+        .is("deleted_at", null)
+        .eq("product_type", "finished_good")
+    ),
     (admin.from("orders") as any)
       .select("id", { count: "exact", head: true })
       .in("status", ["completed", "delivered"])

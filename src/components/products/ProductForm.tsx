@@ -22,7 +22,7 @@ import {
   uploadProductImageAction,
   deleteProductImageAction,
 } from "@/app/actions/products";
-import { Upload, X } from "lucide-react";
+import { Upload, X, ImageOff } from "lucide-react";
 
 interface ProductFormProps {
   product?: Tables<"products"> | null;
@@ -66,7 +66,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     };
   }, [pendingImages]);
 
-  const { register, handleSubmit, control, formState: { errors } } = useForm<any>({
+  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<any>({
     defaultValues: product
       ? {
           name: product.name,
@@ -295,6 +295,13 @@ export default function ProductForm({ product }: ProductFormProps) {
 
       <div className="border-t pt-4 space-y-3">
         <Label>Product Images</Label>
+
+        {!watch("customizable") && imageGallery.length === 0 && pendingImages.length === 0 && (
+          <p className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+            <ImageOff className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            Add at least one photo. Products without a photo are not shown on the marketplace.
+          </p>
+        )}
 
         {(imageGallery.length > 0 || pendingImages.length > 0) && (
           <div className="grid grid-cols-4 gap-2">

@@ -157,7 +157,7 @@ export default function StorefrontProductsList({ products }: { products: Storefr
       <CardHeader>
         <CardTitle>Marketplace products</CardTitle>
         <CardDescription>
-          Every active finished-good product is automatically listed on the public marketplace. Edit how each one appears here.
+          Every active finished-good product with at least one photo is automatically listed on the public marketplace. Edit how each one appears here.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -187,6 +187,11 @@ export default function StorefrontProductsList({ products }: { products: Storefr
                       {!product.active && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-200 bg-amber-50 text-amber-700">
                           Inactive — hidden from marketplace
+                        </Badge>
+                      )}
+                      {!product.image && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-200 bg-amber-50 text-amber-700">
+                          No photo, hidden from marketplace
                         </Badge>
                       )}
                       {category ? (
