@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HelpCircle } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
+import { SidebarFooterNav } from "./SidebarFooterNav";
 import BusinessSwitcher from "./BusinessSwitcher";
 import type { BusinessRole } from "@/lib/business-context";
 
@@ -71,6 +72,8 @@ export default function Sidebar({
         className="flex-shrink-0 p-2 border-t"
         style={{ borderColor: "hsl(200 12% 16%)" }}
       >
+        <SidebarFooterNav role={role} focus={focus} />
+
         <Link
           href="/manual"
           className="sidebar-help-link flex items-center gap-1.5 px-2.5 py-1.5 rounded-md mb-2 transition-all text-[10px] font-semibold border"

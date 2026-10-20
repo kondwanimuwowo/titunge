@@ -15,9 +15,7 @@ import {
   DollarSign,
   BarChart3,
   Shirt,
-  Settings,
   MessageSquare,
-  Trash2,
   ShieldCheck,
   Wallet,
   CreditCard,
@@ -88,14 +86,6 @@ const NAV_GROUPS: NavGroup[] = [
       { path: "/finance", icon: DollarSign, label: "Finance", roles: ["admin", "manager"] },
     ],
   },
-  {
-    id: "settings",
-    label: "Settings",
-    items: [
-      { path: "/settings", icon: Settings, label: "Settings", roles: ["admin", "manager"] },
-      { path: "/recycle-bin", icon: Trash2, label: "Recycle Bin", roles: ["admin", "manager"] },
-    ],
-  },
 ];
 
 const PLATFORM_ADMIN_ITEMS = [
@@ -113,7 +103,7 @@ const PLATFORM_ADMIN_ITEMS = [
 // marketplace-only businesses — a small bit of friction (one extra tab
 // click to reach the Marketplace tab) traded for not needing two nav-item
 // shapes depending on focus.
-const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/orders", "/analytics", "/settings"]);
+export const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/orders", "/analytics", "/settings"]);
 
 interface SidebarNavProps {
   role: UserRole;
@@ -283,6 +273,6 @@ export function SidebarNav({ role, badges = {}, isPlatformAdmin = false, focus =
   );
 }
 
-function isPathActive(pathname: string, path: string): boolean {
+export function isPathActive(pathname: string, path: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
