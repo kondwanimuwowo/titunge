@@ -26,7 +26,7 @@ export default async function AdminOrdersPage() {
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <PageHeader
         title="Marketplace orders"
-        description="All orders across every business — cancel one to stop it from paying out any seller"
+        description="All orders across every business. Cancel one to stop it from paying out any seller"
       />
 
       <div className="bg-card border rounded-lg overflow-hidden">

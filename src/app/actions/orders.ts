@@ -321,7 +321,7 @@ export async function cancelOrder(orderId: string, reason: string) {
       order_id: orderId,
       operation_type: "cancellation_restore",
       quantity_change: quantity,
-      notes: `Stock restored — ${orderLabel} cancelled`,
+      notes: `Stock restored: ${orderLabel} cancelled`,
       business_id: businessId,
     }]);
   }

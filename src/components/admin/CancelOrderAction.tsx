@@ -14,7 +14,7 @@ export default function CancelOrderAction({ orderId }: { orderId: string }) {
     startTransition(async () => {
       const result = await cancelMarketplaceOrderAction(orderId, reason);
       if (result.success) {
-        toast.success("Order cancelled — payouts stopped");
+        toast.success("Order cancelled. Payouts stopped.");
         setOpen(false);
         setReason("");
       } else {

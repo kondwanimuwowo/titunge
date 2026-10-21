@@ -2,7 +2,7 @@ import { Mail, MapPin, MessageSquare } from "lucide-react";
 import { FadeIn } from "@/components/marketing/FadeIn";
 
 export const metadata = {
-  title: "Contact — Titunge",
+  title: "Contact | Titunge",
   description: "Get in touch with the Titunge team.",
 };
 
@@ -20,7 +20,7 @@ export default function ContactPage() {
               Get in touch
             </h1>
             <p className="mt-4 text-lg text-gray-500 max-w-lg">
-              Questions about Enterprise pricing, a partnership, or anything else — we read every message.
+              Questions about Enterprise pricing, a partnership, or anything else? We read every message.
             </p>
           </FadeIn>
         </div>

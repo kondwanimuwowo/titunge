@@ -61,7 +61,7 @@ export async function sendOrderReceiptEmail(
 
   return sendEmail({
     to: customerEmail,
-    subject: `${title} for order #${order.order_number} — ${businessName}`,
+    subject: `${title} for order #${order.order_number} from ${businessName}`,
     html,
   });
 }
@@ -104,7 +104,7 @@ export async function sendOrderQuotationEmail(
 
   return sendEmail({
     to: customerEmail,
-    subject: `Quotation for order #${order.order_number} — ${businessName}`,
+    subject: `Quotation for order #${order.order_number} from ${businessName}`,
     html,
   });
 }

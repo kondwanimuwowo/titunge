@@ -181,7 +181,7 @@ export default function StorefrontProfileForm({ storefront, businessName, busine
                 id="custom_orders_policy"
                 rows={2}
                 {...register("custom_orders_policy")}
-                placeholder="Custom sizing and colour requests are welcome — message the shop before ordering."
+                placeholder="Custom sizing and colour requests are welcome. Message the shop before ordering."
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
               />
             </div>

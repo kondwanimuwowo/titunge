@@ -157,7 +157,7 @@ export async function signUpForInviteAction(
 
   const { data: existing } = await svc.auth.admin.listUsers({ perPage: 1000 });
   if (existing?.users.some((u) => u.email?.toLowerCase() === invite.email.toLowerCase())) {
-    return { success: false, message: "An account already exists for this email — use the log in option instead." };
+    return { success: false, message: "An account already exists for this email. Use the log in option instead." };
   }
 
   const { error } = await svc.auth.admin.createUser({

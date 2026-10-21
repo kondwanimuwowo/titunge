@@ -153,7 +153,7 @@ export default function NotificationsList({ initialNotifications }: Notification
             </div>
             <h3 className="text-sm font-semibold text-foreground">No notifications</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              {filter === "unread" ? "You're all caught up — no unread messages." : "No notifications yet."}
+              {filter === "unread" ? "You're all caught up. There are no unread messages." : "No notifications yet."}
             </p>
           </div>
         ) : (

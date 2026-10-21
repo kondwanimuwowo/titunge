@@ -28,7 +28,7 @@ const BODY_FIELDS = [
   { name: "full_length",     label: "Full Length" },
   { name: "shoulder",        label: "Shoulder" },
   { name: "around_shoulder", label: "Around Shoulder" },
-  { name: "shoulder_waist",  label: "Shoulder–Waist" },
+  { name: "shoulder_waist",  label: "Shoulder to Waist" },
   { name: "natural_waist",   label: "Natural Waist" },
   { name: "waist",           label: "Waist" },
   { name: "lower_waist",     label: "Lower Waist" },
@@ -37,8 +37,8 @@ const BODY_FIELDS = [
   { name: "bust_point",      label: "Bust Point" },
   { name: "cup",             label: "Cup" },
   { name: "hip",             label: "Hip" },
-  { name: "nw_knee",         label: "NW – Knee" },
-  { name: "nw_floor",        label: "NW – Floor" },
+  { name: "nw_knee",         label: "NW to Knee" },
+  { name: "nw_floor",        label: "NW to Floor" },
   { name: "sleeve_length",   label: "Sleeve Length" },
   { name: "arm",             label: "Arm" },
   { name: "cuff",            label: "Cuff" },
@@ -120,7 +120,7 @@ function MeasurementsWidget({
       {!hasData && !readOnly && (
         <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-          No measurements on file — enter them now to proceed to production.
+          No measurements on file. Enter them now to proceed to production.
         </div>
       )}
 

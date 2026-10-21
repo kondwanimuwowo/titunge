@@ -59,7 +59,7 @@ export default function LowStockAlert({ materials }: LowStockAlertProps) {
                   className="flex items-center justify-between text-sm text-amber-800"
                 >
                   <span>
-                    <strong>{item.name}</strong> — {stock.toFixed(2)} {item.unit} ({percentage}% of minimum)
+                    <strong>{item.name}</strong> · {stock.toFixed(2)} {item.unit} ({percentage}% of minimum)
                   </span>
                 </motion.li>
               );

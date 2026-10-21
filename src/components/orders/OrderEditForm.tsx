@@ -256,7 +256,7 @@ export default function OrderEditForm({
                   <SelectContent>
                     {garmentTypes.map((g: any) => (
                       <SelectItem key={g.id} value={g.id}>
-                        {g.name} — K{parseFloat(g.base_labour_cost || "0").toFixed(0)} labour
+                        {g.name} · K{parseFloat(g.base_labour_cost || "0").toFixed(0)} labour
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -284,8 +284,8 @@ export default function OrderEditForm({
                           {p.name}
                           {tracksStock &&
                             (p.stock_quantity <= 0
-                              ? " — out of stock"
-                              : ` — ${p.stock_quantity} in stock`)}
+                              ? " · out of stock"
+                              : ` · ${p.stock_quantity} in stock`)}
                         </SelectItem>
                       );
                     })}

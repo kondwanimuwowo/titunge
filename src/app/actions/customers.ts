@@ -57,7 +57,7 @@ export async function hardDeleteCustomerAction(id: string) {
     if (error.code === "23503") {
       return {
         success: false,
-        message: "Can't permanently delete — this customer has existing orders on record.",
+        message: "Can't permanently delete this customer because they have orders on record.",
       };
     }
     return { success: false, message: error.message };

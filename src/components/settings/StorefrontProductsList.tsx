@@ -186,7 +186,7 @@ export default function StorefrontProductsList({ products }: { products: Storefr
                     <div className="flex items-center gap-2 mt-0.5">
                       {!product.active && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-200 bg-amber-50 text-amber-700">
-                          Inactive — hidden from marketplace
+                          Inactive, hidden from marketplace
                         </Badge>
                       )}
                       {!product.image && (

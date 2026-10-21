@@ -654,7 +654,7 @@ BEGIN
     (business_id, order_id, payment_date, amount, payment_method, source, notes)
   VALUES
     (p_business_id, p_order_id, CURRENT_DATE, v_order.deposit, 'deposit', 'deposit',
-     format('Deposit — Order #%s', v_order.order_number));
+     format('Deposit for Order #%s', v_order.order_number));
 
   RETURN 1;
 END;
@@ -709,7 +709,7 @@ BEGIN
     (business_id, order_id, payment_date, amount, payment_method, source, notes)
   VALUES
     (p_business_id, p_order_id, CURRENT_DATE, v_amount, 'balance', 'balance',
-     format('Balance — Order #%s', v_order.order_number));
+     format('Balance for Order #%s', v_order.order_number));
 
   RETURN 1;
 END;

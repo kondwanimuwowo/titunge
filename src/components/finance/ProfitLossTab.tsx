@@ -38,7 +38,7 @@ export default function ProfitLossTab({ orders, periodLabel, onExport }: ProfitL
         <div>
           <p className="font-semibold text-foreground">Profit &amp; Loss Statement</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Completed orders — {periodLabel}
+            Completed orders · {periodLabel}
           </p>
         </div>
         <Button variant="outline" size="sm" className="gap-2" onClick={onExport}>

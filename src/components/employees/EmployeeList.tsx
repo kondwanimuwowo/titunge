@@ -177,7 +177,7 @@ export default function EmployeeList({ initialEmployees, initialAttendance }: Em
               {record?.clock_in && (
                 <p className="text-[11px] text-muted-foreground">
                   {new Date(record.clock_in).toLocaleTimeString("en-ZM", { hour: "2-digit", minute: "2-digit" })}
-                  {record.clock_out && ` — ${new Date(record.clock_out).toLocaleTimeString("en-ZM", { hour: "2-digit", minute: "2-digit" })}`}
+                  {record.clock_out && ` to ${new Date(record.clock_out).toLocaleTimeString("en-ZM", { hour: "2-digit", minute: "2-digit" })}`}
                 </p>
               )}
             </div>

@@ -500,8 +500,8 @@ export default function CreateOrderForm({
                 <ShoppingCart size={16} className="text-primary" /> Items
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Add each garment or product to this order one at a time — ready-made items pull straight from
-                stock, custom ones go through measurements and materials.
+                Add each garment or product to this order one at a time. Ready-made items pull straight from
+                stock, and custom ones go through measurements and materials.
               </p>
             </div>
 
@@ -567,7 +567,7 @@ export default function CreateOrderForm({
                       <SelectContent>
                         {garmentTypes.map((g: any) => (
                           <SelectItem key={g.id} value={g.id}>
-                            {g.name} — K{parseFloat(g.base_labour_cost || "0").toFixed(0)} labour
+                            {g.name} · K{parseFloat(g.base_labour_cost || "0").toFixed(0)} labour
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -667,8 +667,8 @@ export default function CreateOrderForm({
                           const tracksStock = p.product_type === "finished_good" && p.stock_quantity != null;
                           return (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.name} — K{parseFloat(p.price || "0").toFixed(0)}
-                              {tracksStock && (p.stock_quantity <= 0 ? " — out of stock" : ` — ${p.stock_quantity} in stock`)}
+                              {p.name} · K{parseFloat(p.price || "0").toFixed(0)}
+                              {tracksStock && (p.stock_quantity <= 0 ? " · out of stock" : ` · ${p.stock_quantity} in stock`)}
                             </SelectItem>
                           );
                         })}
@@ -860,7 +860,7 @@ export default function CreateOrderForm({
                     Balance Due
                     <Tooltip>
                       <TooltipTrigger asChild><Info size={12} className="cursor-help text-muted-foreground" /></TooltipTrigger>
-                      <TooltipContent className="max-w-xs">Order Total minus Deposit — what&apos;s still owed on completion.</TooltipContent>
+                      <TooltipContent className="max-w-xs">Order Total minus Deposit: what&apos;s still owed on completion.</TooltipContent>
                     </Tooltip>
                   </span>
                   <span className={cn("font-bold text-base", balance < 0 ? "text-destructive" : "text-primary")}>
@@ -910,7 +910,7 @@ export default function CreateOrderForm({
           <DialogHeader>
             <DialogTitle>
               {effectiveMeasurements ? "Update Measurements" : "Add Measurements"}
-              {selectedCustomer ? ` — ${selectedCustomer.name}` : ""}
+              {selectedCustomer ? `: ${selectedCustomer.name}` : ""}
             </DialogTitle>
           </DialogHeader>
           {selectedCustomer && (

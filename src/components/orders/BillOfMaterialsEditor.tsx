@@ -154,7 +154,7 @@ export default function BillOfMaterialsEditor({
         {editMode && stockAlreadyDeducted && (
           <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-            Stock was already deducted for this order. Changes here update the cost record only — adjust inventory manually if quantities change.
+            Stock was already deducted for this order. Changes here update the cost record only, so adjust inventory manually if quantities change.
           </div>
         )}
 

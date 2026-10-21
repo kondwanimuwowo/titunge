@@ -85,7 +85,7 @@ function InviteUserDialog({
     startUpgrading(async () => {
       const result = await upgradeToTeamPlanAction();
       if (result.success) {
-        toast.success("Upgraded to Team — sending your invite...");
+        toast.success("Upgraded to Team. Sending your invite...");
         submitInvite(getValues());
       } else {
         toast.error(result.message || "Failed to upgrade");
@@ -120,7 +120,7 @@ function InviteUserDialog({
           <DialogDescription>
             {needsUpgrade
               ? "Your Free plan is limited to 1 user."
-              : "They'll set up their own login — you never see or set their password."}
+              : "They'll set up their own login, so you never see or set their password."}
           </DialogDescription>
         </DialogHeader>
 
@@ -165,8 +165,8 @@ function InviteUserDialog({
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {emailSent
-                    ? "They'll get an email with a link to join — it expires in 14 days. You can also share the link directly:"
-                    : "The invite email couldn't be sent — share this link with them directly instead:"}
+                    ? "They'll get an email with a link to join. It expires in 14 days. You can also share the link directly:"
+                    : "The invite email couldn't be sent. Share this link with them directly instead:"}
                 </p>
               </div>
             </div>

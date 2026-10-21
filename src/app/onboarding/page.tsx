@@ -409,7 +409,7 @@ export default function OnboardingPage() {
                     What brings you to Titunge?
                   </h1>
                   <p className="text-sm text-gray-500 mb-6">
-                    This just shapes your dashboard&apos;s default menu — you can change it anytime in Settings.
+                    This just shapes your dashboard&apos;s default menu. You can change it anytime in Settings.
                   </p>
 
                   <div className="space-y-3">
@@ -425,7 +425,7 @@ export default function OnboardingPage() {
                       <div>
                         <p className="text-sm font-semibold text-gray-900">Run my business</p>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          Orders, production, customers, inventory, and finance — the full workshop ERP.
+                          The full workshop ERP: orders, production, customers, inventory, and finance.
                         </p>
                       </div>
                     </button>
@@ -442,7 +442,7 @@ export default function OnboardingPage() {
                       <div>
                         <p className="text-sm font-semibold text-gray-900">Just sell on the marketplace</p>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          List products and manage marketplace orders — a simpler dashboard, nothing else.
+                          List products and manage marketplace orders from a simpler dashboard.
                         </p>
                       </div>
                     </button>

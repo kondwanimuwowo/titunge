@@ -8,7 +8,7 @@ import type { UserRole } from "@/lib/types/database";
 const BASE_STEPS: Step[] = [
   {
     target: '[data-tour="nav-dashboard"]',
-    content: "This is your dashboard — a quick overview of what's happening in your business.",
+    content: "This is your dashboard, a quick overview of what's happening in your business.",
     skipBeacon: true,
     placement: "right",
   },
@@ -19,7 +19,7 @@ const BASE_STEPS: Step[] = [
   },
   {
     target: '[data-tour="nav-group-catalog"]',
-    content: "Products, Inventory and Production — everything about what you make and sell.",
+    content: "Products, Inventory and Production cover everything you make and sell.",
     placement: "right",
   },
   {

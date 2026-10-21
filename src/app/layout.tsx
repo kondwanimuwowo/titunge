@@ -32,7 +32,7 @@ const canter = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Titunge — ERP for tailoring businesses",
+  title: "Titunge | ERP for tailoring businesses",
   description:
     "Track orders, measurements, inventory, and payments for your tailoring or garment business.",
   icons: {

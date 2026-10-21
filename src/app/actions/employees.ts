@@ -119,7 +119,7 @@ export async function hardDeleteEmployeeAction(
     if (error.code === "23503") {
       return {
         success: false,
-        message: "Can't permanently delete — this employee is referenced by existing orders, attendance, or production records.",
+        message: "Can't permanently delete this employee. They appear in existing orders, attendance, or production records.",
       };
     }
     return { success: false, message: error.message };

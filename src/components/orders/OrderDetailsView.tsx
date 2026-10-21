@@ -176,7 +176,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
               <div key="overdue" className="flex items-center gap-3 px-4 py-3 rounded-xl border border-red-300 bg-red-50 text-red-800 text-sm">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
                 <span>
-                  <strong>Overdue</strong> — was due {format(dueDate, "d MMM yyyy")} ({Math.abs(daysLeft)} day{Math.abs(daysLeft) !== 1 ? "s" : ""} ago)
+                  <strong>Overdue:</strong> was due {format(dueDate, "d MMM yyyy")} ({Math.abs(daysLeft)} day{Math.abs(daysLeft) !== 1 ? "s" : ""} ago)
                 </span>
               </div>
             );
@@ -185,7 +185,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
               <div key="due-soon" className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 text-sm">
                 <Clock className="h-4 w-4 shrink-0" />
                 <span>
-                  <strong>Due soon</strong> — {daysLeft === 0 ? "today" : `in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`} ({format(dueDate, "d MMM yyyy")})
+                  <strong>Due soon:</strong> {daysLeft === 0 ? "today" : `in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`} ({format(dueDate, "d MMM yyyy")})
                 </span>
               </div>
             );
@@ -197,7 +197,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
             <div key="no-measurements" className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 text-sm">
               <Ruler className="h-4 w-4 shrink-0" />
               <span>
-                <strong>Measurements needed</strong> — enter {order.customers?.name ? `${order.customers.name}'s` : "customer"} measurements before moving to production.
+                <strong>Measurements needed:</strong> enter {order.customers?.name ? `${order.customers.name}'s` : "customer"} measurements before moving to production.
               </span>
             </div>
           );
@@ -362,7 +362,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                       <div className="ml-6 mt-1.5 space-y-0.5">
                         {item.order_materials.map((m: any) => (
                           <p key={m.id} className="text-xs text-muted-foreground">
-                            {m.materials?.name} — {parseFloat(m.quantity_used || 0).toFixed(2)} {m.materials?.unit}
+                            {m.materials?.name} · {parseFloat(m.quantity_used || 0).toFixed(2)} {m.materials?.unit}
                           </p>
                         ))}
                       </div>

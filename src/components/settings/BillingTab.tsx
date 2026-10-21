@@ -73,7 +73,7 @@ export default function BillingTab({
   const handleUpgrade = () => {
     startUpgrading(async () => {
       const result = await upgradeToTeamPlanAction();
-      if (result.success) toast.success("Upgraded to Team plan — add a billing payment method below.");
+      if (result.success) toast.success("Upgraded to Team plan. Add a billing payment method below.");
       else toast.error(result.message || "Failed to upgrade");
     });
   };
@@ -118,7 +118,7 @@ export default function BillingTab({
               <p className="text-xs text-muted-foreground">
                 {plan === "free"
                   ? "Free plan is limited to 1 user. Upgrade to Team to add staff."
-                  : `Team plan — K${seatPriceKwacha}/additional user/month, billed monthly.`}
+                  : `Team plan: K${seatPriceKwacha}/additional user/month, billed monthly.`}
               </p>
             </div>
           </div>
@@ -206,8 +206,8 @@ export default function BillingTab({
             </button>
           </div>
           <p className="text-xs text-muted-foreground pt-2 border-t">
-            Either way, Lenco also charges its own transfer fee on top (roughly K8.50–K35, depending on the payout
-            amount) — that comes out of every payout regardless of this setting. See the breakdown for each payout
+            Either way, Lenco also charges its own transfer fee on top (roughly K8.50 to K35, depending on the payout
+            amount). That fee comes out of every payout regardless of this setting. See the breakdown for each payout
             below.
           </p>
         </CardContent>

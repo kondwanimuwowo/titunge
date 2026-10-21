@@ -50,7 +50,7 @@ export default function SizingStandardToggle({ sizingStandard }: { sizingStandar
         </div>
         <CardDescription>
           Which convention your Small/Medium/Large (and similar) product labels follow. UK, US and Australian sizes
-          don&apos;t match — this just tells customers which one you&apos;re using, it doesn&apos;t convert anything.
+          don&apos;t match. This just tells customers which one you&apos;re using; it doesn&apos;t convert anything.
         </CardDescription>
       </CardHeader>
       <CardContent>

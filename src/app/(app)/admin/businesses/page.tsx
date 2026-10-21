@@ -28,7 +28,7 @@ export default async function AdminBusinessesPage() {
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <PageHeader
         title="Businesses"
-        description="Every tenant on Titunge — change plans, suspend a business, or fix its details"
+        description="Every tenant on Titunge. Change plans, suspend a business, or fix its details"
       />
 
       <AdminBusinessesTable businesses={withSeats} />

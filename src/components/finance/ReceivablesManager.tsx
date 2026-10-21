@@ -39,7 +39,7 @@ export default function ReceivablesManager({ receivables, onExport }: Receivable
       <div className="border border-border rounded-xl overflow-hidden">
         {receivables.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground text-sm">
-            Nothing owed right now — every order is paid in full.
+            Nothing owed right now. Every order is paid in full.
           </div>
         ) : (
           <div className="overflow-x-auto">

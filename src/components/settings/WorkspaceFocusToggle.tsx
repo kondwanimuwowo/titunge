@@ -28,7 +28,7 @@ export default function WorkspaceFocusToggle({ focus }: { focus: "full_erp" | "m
     <Card>
       <CardHeader>
         <CardTitle>Dashboard focus</CardTitle>
-        <CardDescription>Controls which sidebar sections show by default — nothing is ever blocked.</CardDescription>
+        <CardDescription>Controls which sidebar sections show by default. Nothing is ever blocked.</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <button
@@ -43,7 +43,7 @@ export default function WorkspaceFocusToggle({ focus }: { focus: "full_erp" | "m
           <Briefcase size={18} className="text-primary shrink-0 mt-0.5" strokeWidth={1.75} />
           <div>
             <p className="text-sm font-semibold text-foreground">Run my business</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Full workshop ERP — orders, production, inventory, finance.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Full workshop ERP: orders, production, inventory, finance.</p>
           </div>
         </button>
 
@@ -59,7 +59,7 @@ export default function WorkspaceFocusToggle({ focus }: { focus: "full_erp" | "m
           <Store size={18} className="text-primary shrink-0 mt-0.5" strokeWidth={1.75} />
           <div>
             <p className="text-sm font-semibold text-foreground">Just the marketplace</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Simpler menu — Products, Marketplace Orders, and Settings.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Simpler menu: Products, Marketplace Orders, and Settings.</p>
           </div>
         </button>
       </CardContent>

@@ -14,7 +14,7 @@ const PLANS = [
       "Orders, production, and customer measurements",
       "Inventory, finance, and analytics",
       "Business profile and Titunge marketplace listing",
-      "Your own online storefront — receive orders online",
+      "Your own online storefront for receiving orders",
       "No monthly subscription",
     ],
     cta: "Start free",
@@ -25,7 +25,7 @@ const PLANS = [
     name: "Team",
     price: "K250",
     period: "/additional user/month",
-    description: "For growing businesses with employees and teams. Your first user is always free — pay only as you add staff.",
+    description: "For growing businesses with employees and teams. Your first user is always free. Pay only as you add staff.",
     features: [
       "Everything in Free",
       "Additional staff accounts with role-based permissions",
@@ -269,7 +269,7 @@ export default function BusinessPage() {
               Straightforward pricing
             </h2>
             <p className="mt-4 text-gray-500 max-w-md">
-              Start free. Add your team as you grow — pay a transaction fee only when you sell through the marketplace.
+              Start free and add your team as you grow. You only pay a transaction fee when you sell through the marketplace.
             </p>
           </FadeIn>
 
@@ -330,7 +330,7 @@ export default function BusinessPage() {
 
           <FadeIn className="mt-8 text-center">
             <p className="text-sm text-gray-500">
-              Selling on the Titunge marketplace carries a 10% transaction fee on both plans — no listing fees, ever.
+              Selling on the Titunge marketplace carries a 10% transaction fee on both plans. There are no listing fees.
             </p>
             <Link href="/pricing" className="mt-2 inline-block text-sm text-gray-400 hover:text-gray-700 transition-colors underline underline-offset-4">
               See full pricing details
@@ -350,7 +350,7 @@ export default function BusinessPage() {
               Start running a tighter workshop
             </h2>
             <p className="text-white/80 max-w-md mx-auto mb-10">
-              Free to start. No credit card required — add your team only when you're ready.
+              Free to start. No credit card required. Add your team only when you&apos;re ready.
             </p>
             <Link
               href="/onboarding"

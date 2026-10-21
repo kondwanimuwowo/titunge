@@ -102,7 +102,7 @@ export async function hardDeleteMaterialAction(
     if (error.code === "23503") {
       return {
         success: false,
-        message: "Can't permanently delete — this material is referenced by existing orders or production batches.",
+        message: "Can't permanently delete this material. It's used in existing orders or production batches.",
       };
     }
     return { success: false, message: error.message };

@@ -158,7 +158,7 @@ export async function reconcileOrderProductStock(
       orderId,
       quantityChange,
       quantityChange < 0 ? "order_deduction" : "order_reservation_released",
-      quantityChange < 0 ? `Deducted for ${orderLabel}` : `Released — ${orderLabel}`
+      quantityChange < 0 ? `Deducted for ${orderLabel}` : `Released from ${orderLabel}`
     );
 
     if (!result.success) {

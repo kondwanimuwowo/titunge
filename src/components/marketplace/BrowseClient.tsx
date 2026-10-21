@@ -96,7 +96,7 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
             <h3 className="text-sm font-bold mb-3">Price range</h3>
             <div className="flex items-center gap-2">
               <input type="number" placeholder="Min" className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5" />
-              <span className="text-gray-400">–</span>
+              <span className="text-gray-400">to</span>
               <input type="number" placeholder="Max" className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5" />
             </div>
           </div>

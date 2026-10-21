@@ -90,7 +90,7 @@ export default function OrderReceipt({ order, taxRate, businessName }: OrderRece
               <div className="space-y-1">
                 {order.materials.map((m: any, i: number) => (
                   <p key={i} className="text-sm text-foreground">
-                    {m.materials?.name} — {parseFloat(m.quantity_used).toFixed(2)} {m.materials?.unit}
+                    {m.materials?.name} · {parseFloat(m.quantity_used).toFixed(2)} {m.materials?.unit}
                   </p>
                 ))}
               </div>

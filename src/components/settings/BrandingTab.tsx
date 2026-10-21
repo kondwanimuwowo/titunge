@@ -31,7 +31,7 @@ export default function BrandingTab({ currentThemeKey, logoUrl, businessName }: 
     startThemeTransition(async () => {
       const result = await updateTheme(key);
       if (result.success) {
-        toast.success("Theme updated — refresh to see the full effect");
+        toast.success("Theme updated. Refresh to see the full effect");
       } else {
         toast.error(result.message ?? "Failed to update theme");
         setActiveTheme(currentThemeKey);
