@@ -25,6 +25,15 @@ new project only needs `schema.sql`.
 - Add the production domain and any preview/workers.dev domains to the
   **Redirect URLs** allow-list, since `/auth/confirm` and invite-acceptance
   links redirect back into the app.
+- Set **Site URL** to `https://titunge.com` with no trailing slash, or email
+  links come out as `https://titunge.com//auth/confirm`.
+- Point the email templates at `/auth/confirm` with a `token_hash`:
+  - Confirm signup: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}`
+  - Reset password: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next={{ .RedirectTo }}`
+  - Change email address: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change&next={{ .RedirectTo }}`
+
+  The app's `redirectTo` is itself an `/auth/confirm?next=...` URL, so `next`
+  arrives nested; the route unwraps it and only redirects to Titunge domains.
 
 ## 3. Storage bucket policy
 

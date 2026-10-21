@@ -14,6 +14,7 @@ const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
 const noopSubscribe = () => () => {};
 const isOnSubdomain = () => window.location.hostname.endsWith(`.${APP_DOMAIN}`);
+const hasLinkError = () => new URLSearchParams(window.location.search).get("error") === "invalid_link";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,6 +23,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const onSubdomain = useSyncExternalStore(noopSubscribe, isOnSubdomain, () => false);
+  const linkError = useSyncExternalStore(noopSubscribe, hasLinkError, () => false);
+  const shownError = error ?? (linkError ? "That link is invalid or has expired. Sign in below, or request a new one." : null);
   const router = useRouter();
 
   // If already authenticated, redirect to the correct workspace immediately.
@@ -130,9 +133,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {error && (
+          {shownError && (
             <p className="text-xs text-destructive font-medium bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2">
-              {error}
+              {shownError}
             </p>
           )}
 

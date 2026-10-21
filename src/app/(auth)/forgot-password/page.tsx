@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -10,11 +10,16 @@ import { cn } from "@/lib/utils";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
+const noopSubscribe = () => () => {};
+const hasLinkError = () => new URLSearchParams(window.location.search).get("error") === "invalid_link";
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const linkError = useSyncExternalStore(noopSubscribe, hasLinkError, () => false);
+  const shownError = error ?? (linkError ? "That reset link is invalid or has expired. Enter your email to get a new one." : null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,9 +108,9 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
 
-              {error && (
+              {shownError && (
                 <p className="text-xs text-destructive font-medium bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2">
-                  {error}
+                  {shownError}
                 </p>
               )}
 
