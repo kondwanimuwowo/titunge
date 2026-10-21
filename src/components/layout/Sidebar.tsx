@@ -1,6 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
-import { HelpCircle } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarFooterNav } from "./SidebarFooterNav";
 import BusinessSwitcher from "./BusinessSwitcher";
@@ -73,35 +71,6 @@ export default function Sidebar({
         style={{ borderColor: "hsl(200 12% 16%)" }}
       >
         <SidebarFooterNav role={role} focus={focus} />
-
-        <Link
-          href="/manual"
-          className="sidebar-help-link flex items-center gap-1.5 px-2.5 py-1.5 rounded-md mb-2 transition-all text-[10px] font-semibold border"
-        >
-          <HelpCircle size={12} />
-          <span>HELP &amp; MANUAL</span>
-        </Link>
-
-        <div
-          className="rounded-md p-2 border"
-          style={{
-            background: "hsl(200 18% 8%)",
-            borderColor: "hsl(200 12% 16%)",
-          }}
-        >
-          <p
-            className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
-            style={{ color: "hsl(200 8% 40%)" }}
-          >
-            Access Level
-          </p>
-          <p
-            className="text-xs font-semibold capitalize"
-            style={{ color: "hsl(var(--primary) / 0.8)" }}
-          >
-            {role}
-          </p>
-        </div>
       </div>
     </aside>
   );

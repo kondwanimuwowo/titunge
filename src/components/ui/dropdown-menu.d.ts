@@ -21,6 +21,7 @@ export const DropdownMenuContent: React.ForwardRefExoticComponent<
     React.RefAttributes<HTMLDivElement> & {
       children?: React.ReactNode;
       sideOffset?: number;
+      side?: "top" | "right" | "bottom" | "left";
       align?: "start" | "center" | "end";
     }
 >;
