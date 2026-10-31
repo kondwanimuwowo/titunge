@@ -422,6 +422,7 @@ CREATE TABLE public.overhead_costs (
   amount           numeric NOT NULL DEFAULT 0,
   is_recurring     boolean DEFAULT false,
   notes            text,
+  recurrence_source_id uuid REFERENCES public.overhead_costs(id) ON DELETE SET NULL,
   created_at       timestamptz DEFAULT now(),
   updated_at       timestamptz DEFAULT now()
 );

@@ -1777,6 +1777,7 @@ export type Database = {
           is_recurring: boolean | null
           month: string
           notes: string | null
+          recurrence_source_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1789,6 +1790,7 @@ export type Database = {
           is_recurring?: boolean | null
           month: string
           notes?: string | null
+          recurrence_source_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1801,9 +1803,17 @@ export type Database = {
           is_recurring?: boolean | null
           month?: string
           notes?: string | null
+          recurrence_source_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "overhead_costs_recurrence_source_id_fkey"
+            columns: ["recurrence_source_id"]
+            isOneToOne: false
+            referencedRelation: "overhead_costs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "overhead_costs_business_id_fkey"
             columns: ["business_id"]

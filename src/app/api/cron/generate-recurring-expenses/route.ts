@@ -5,11 +5,11 @@ export const dynamic = "force-dynamic";
 
 /**
  * Scheduled via cron-jobs.org (see CRONS.md), same pattern as every other
- * cron route in this codebase. Rolls each recurring expense forward one
- * month at a time: is_recurring is true on exactly one row per series, so
- * finding candidates is a plain filter, not a chain walk. Claims a row
- * (flips is_recurring off) before inserting its successor, so two
- * overlapping runs can't both roll the same expense forward.
+ * cron route in this codebase. Rolls each recurring expense and overhead
+ * forward one month at a time: is_recurring is true on exactly one row per
+ * series, so finding candidates is a plain filter, not a chain walk. Claims a
+ * row (flips is_recurring off) before inserting its successor, so two
+ * overlapping runs can't both roll the same cost forward.
  */
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -25,21 +25,23 @@ function currentPeriod(): string {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().slice(0, 10);
 }
 
-export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+type Admin = ReturnType<typeof createAdminClient>;
 
-  const admin = createAdminClient();
-  const period = currentPeriod();
-
-  const { data: candidates, error } = await (admin.from("expenses") as any)
-    .select("id, business_id, category, description, amount, payment_method, notes, expense_date")
+async function rollForward(
+  admin: Admin,
+  table: "expenses" | "overhead_costs",
+  dateColumn: "expense_date" | "month",
+  columns: string,
+  period: string,
+  successor: (source: Record<string, unknown>) => Record<string, unknown>
+): Promise<{ candidates: number; generated: number; error?: string }> {
+  const { data: candidates, error } = await (admin.from(table) as any)
+    .select(`id, ${columns}`)
     .eq("is_recurring", true)
-    .lt("expense_date", period);
+    .lt(dateColumn, period);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return { candidates: 0, generated: 0, error: error.message };
   }
 
   let generated = 0;
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
   for (const source of candidates ?? []) {
     // Atomic claim: only the run that actually flips this row moves on to
     // generate its successor.
-    const { data: claimed } = await (admin.from("expenses") as any)
+    const { data: claimed } = await (admin.from(table) as any)
       .update({ is_recurring: false })
       .eq("id", source.id)
       .eq("is_recurring", true)
@@ -56,28 +58,77 @@ export async function GET(request: NextRequest) {
 
     if (!claimed) continue;
 
-    const { error: insertError } = await (admin.from("expenses") as any).insert({
+    const { error: insertError } = await (admin.from(table) as any).insert({
+      ...successor(source),
       business_id: source.business_id,
-      expense_date: period,
-      category: source.category,
-      description: source.description,
-      amount: source.amount,
-      payment_method: source.payment_method,
-      notes: source.notes,
       is_recurring: true,
       recurrence_source_id: source.id,
     });
 
     if (insertError) {
-      console.error("Failed to roll forward recurring expense:", source.id, insertError.message);
+      console.error(`Failed to roll forward recurring ${table} row:`, source.id, insertError.message);
       // Revert the claim so the next run retries it instead of the series
       // silently stopping.
-      await (admin.from("expenses") as any).update({ is_recurring: true }).eq("id", source.id);
+      await (admin.from(table) as any).update({ is_recurring: true }).eq("id", source.id);
       continue;
     }
 
     generated++;
   }
 
-  return NextResponse.json({ candidates: (candidates ?? []).length, generated });
+  return { candidates: (candidates ?? []).length, generated };
+}
+
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const admin = createAdminClient();
+  const period = currentPeriod();
+
+  const expenses = await rollForward(
+    admin,
+    "expenses",
+    "expense_date",
+    "business_id, category, description, amount, payment_method, notes, expense_date",
+    period,
+    (source) => ({
+      expense_date: period,
+      category: source.category,
+      description: source.description,
+      amount: source.amount,
+      payment_method: source.payment_method,
+      notes: source.notes,
+    })
+  );
+
+  const overheads = await rollForward(
+    admin,
+    "overhead_costs",
+    "month",
+    "business_id, category, description, amount, notes, month",
+    period,
+    (source) => ({
+      month: period,
+      category: source.category,
+      description: source.description,
+      amount: source.amount,
+      notes: source.notes,
+    })
+  );
+
+  if (expenses.error || overheads.error) {
+    return NextResponse.json(
+      { error: expenses.error ?? overheads.error, expenses, overheads },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({
+    // Kept at the top level so existing cron-jobs.org monitoring keeps reading them.
+    candidates: expenses.candidates,
+    generated: expenses.generated,
+    overheads,
+  });
 }

@@ -95,9 +95,11 @@ retries failed charges on a fixed backoff (+1, +3, +7 days).
 
 ## 5. Generate recurring expenses
 
-Rolls each expense marked "Recurring monthly expense" in Finance > Expenses
+Rolls each expense marked "Recurring monthly expense" in Finance > Expenses,
+and each overhead marked "Recurring monthly cost" in Finance > Overhead,
 forward into the current month, so rent and other fixed costs don't need
-re-entering by hand every month.
+re-entering by hand every month. Overheads also feed per-order overhead on
+new orders, so a missed run leaves new orders under-costed until it runs.
 
 | Setting | Value |
 |---|---|

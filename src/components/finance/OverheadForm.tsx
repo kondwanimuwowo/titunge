@@ -55,15 +55,15 @@ export default function OverheadForm({ overhead }: OverheadFormProps) {
 
   const onSubmit = (data: FormData) => {
     startTransition(async () => {
-      const payload = {
-        ...data,
-        amount: parseFloat(String(data.amount)),
-        month: format(startOfMonth(new Date()), "yyyy-MM-dd"),
-      };
+      const payload = { ...data, amount: parseFloat(String(data.amount)) };
 
+      // An edit keeps the row in the month it belongs to.
       const result = overhead
         ? await updateOverheadCost(overhead.id, payload)
-        : await addOverheadCost(payload);
+        : await addOverheadCost({
+            ...payload,
+            month: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+          });
 
       if (result.success) {
         toast.success(overhead ? "Overhead updated" : "Overhead cost added");
