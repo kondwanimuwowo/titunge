@@ -24,7 +24,7 @@ CREATE TABLE public.businesses (
   timezone         text NOT NULL DEFAULT 'Africa/Lusaka',
   plan             text NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'team')), -- free = 1 seat, team = pay-per-additional-seat
   focus            text NOT NULL DEFAULT 'full_erp' CHECK (focus IN ('full_erp', 'marketplace_only')), -- UI preference only, editable in Settings
-  status           text NOT NULL DEFAULT 'active',  -- active | suspended | trial
+  status           text NOT NULL DEFAULT 'active',  -- active | suspended
   marketplace_fee_mode text NOT NULL DEFAULT 'absorb' CHECK (marketplace_fee_mode IN ('absorb', 'pass_to_customer')),
   sizing_standard  text NOT NULL DEFAULT 'not_specified' CHECK (sizing_standard IN ('not_specified', 'uk', 'us', 'aus')),
   created_at       timestamptz DEFAULT now(),
@@ -281,8 +281,13 @@ CREATE TABLE public.business_storefront (
   business_id          uuid NOT NULL UNIQUE REFERENCES public.businesses(id) ON DELETE CASCADE,
   bio                  text,
   banner_url           text,
-  location             text,
+  location             text,                -- free-text town/area, e.g. "Kabulonga"
+  province             text CHECK (province IS NULL OR province IN (
+                         'Central', 'Copperbelt', 'Eastern', 'Luapula', 'Lusaka',
+                         'Muchinga', 'Northern', 'North-Western', 'Southern', 'Western'
+                       )),
   founded_year         integer,
+  contact_phone        text,                -- phone/WhatsApp shown to buyers after they pay
   delivery_policy      text,
   returns_policy       text,
   custom_orders_policy text,
@@ -562,6 +567,7 @@ CREATE TABLE public.notifications (
   type             text NOT NULL,
   title            text NOT NULL,
   message          text,
+  link             text,                    -- in-app path to open on click, e.g. "/orders?tab=marketplace"
   read             boolean DEFAULT false,
   data             jsonb DEFAULT '{}'::jsonb,
   created_at       timestamptz DEFAULT now()

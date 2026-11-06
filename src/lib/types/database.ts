@@ -165,6 +165,7 @@ export type Database = {
         Row: {
           banner_url: string | null
           bio: string | null
+          contact_phone: string | null
           business_id: string
           created_at: string | null
           custom_orders_policy: string | null
@@ -172,12 +173,14 @@ export type Database = {
           founded_year: number | null
           id: string
           location: string | null
+          province: string | null
           returns_policy: string | null
           updated_at: string | null
         }
         Insert: {
           banner_url?: string | null
           bio?: string | null
+          contact_phone?: string | null
           business_id: string
           created_at?: string | null
           custom_orders_policy?: string | null
@@ -185,12 +188,14 @@ export type Database = {
           founded_year?: number | null
           id?: string
           location?: string | null
+          province?: string | null
           returns_policy?: string | null
           updated_at?: string | null
         }
         Update: {
           banner_url?: string | null
           bio?: string | null
+          contact_phone?: string | null
           business_id?: string
           created_at?: string | null
           custom_orders_policy?: string | null
@@ -198,6 +203,7 @@ export type Database = {
           founded_year?: number | null
           id?: string
           location?: string | null
+          province?: string | null
           returns_policy?: string | null
           updated_at?: string | null
         }
@@ -1463,6 +1469,7 @@ export type Database = {
           created_at: string | null
           data: Json | null
           id: string
+          link: string | null
           message: string | null
           read: boolean | null
           title: string
@@ -1474,6 +1481,7 @@ export type Database = {
           created_at?: string | null
           data?: Json | null
           id?: string
+          link?: string | null
           message?: string | null
           read?: boolean | null
           title: string
@@ -1485,6 +1493,7 @@ export type Database = {
           created_at?: string | null
           data?: Json | null
           id?: string
+          link?: string | null
           message?: string | null
           read?: boolean | null
           title?: string
