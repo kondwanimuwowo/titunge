@@ -19,7 +19,37 @@ import {
   Clock,
   Scissors,
   Zap,
+  Store,
+  MessageCircle,
+  UserPlus,
 } from "lucide-react";
+
+const SELLING_STEPS = [
+  {
+    title: "Set up your shop",
+    text: "In Settings > Marketplace, add your shop bio, banner, province and town. Buyers filter by province, so set it.",
+  },
+  {
+    title: "Add a payout account",
+    text: "In the same tab, add the mobile money or bank account you want to be paid into. Until you do, a banner reminds you on every page.",
+  },
+  {
+    title: "List products",
+    text: "Any active finished product with at least one photo is listed automatically. Pick a Marketplace category on the product form so buyers can find it.",
+  },
+  {
+    title: "Get paid orders",
+    text: "When a buyer pays, you get a notification and an email. Open Orders > Marketplace to see what they bought and their phone number.",
+  },
+  {
+    title: "Arrange delivery",
+    text: "Delivery isn't handled by Titunge. Call or WhatsApp the buyer to agree delivery or collection, and take measurements if the order needs them.",
+  },
+  {
+    title: "Mark shipped, then delivered",
+    text: "Update the order as it moves. You're paid automatically after you mark it delivered and the short dispute window has passed.",
+  },
+];
 
 export interface ManualSection {
   id: string;
@@ -379,6 +409,17 @@ export const MANUAL_SECTIONS: ManualSection[] = [
                 Manage your Garment Types and Labour Rates.
               </p>
             </div>
+            <div className="p-5 bg-card rounded-xl shadow-sm space-y-2 md:col-span-2">
+              <h4 className="font-bold text-sm flex items-center gap-2">
+                <UserPlus size={16} className="text-primary" />
+                Team & Billing
+              </h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                The Free plan is for one user. To add staff, go to Users and send an invite; you&apos;ll be asked to switch to the
+                Team plan and enter the mobile money number to bill. Your first user stays free and each extra active user is
+                charged monthly. See or change the billing number in Settings &gt; Billing.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -391,6 +432,58 @@ export const MANUAL_SECTIONS: ManualSection[] = [
             </p>
           </div>
         </div>
+      </div>
+    ),
+  },
+  {
+    id: "marketplace",
+    title: "Selling on Titunge",
+    subtitle: "Your marketplace shop, orders and payouts",
+    icon: <Store size={20} />,
+    color: "text-primary",
+    bg: "bg-primary/10",
+    content: (
+      <div className="space-y-8">
+        <section>
+          <h3 className="text-lg font-bold mb-6 flex items-center gap-3">
+            <div className="h-6 w-1 bg-primary rounded-full" />
+            From listing to payout
+          </h3>
+          <ol className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {SELLING_STEPS.map((step, i) => (
+              <li key={step.title} className="p-5 bg-card rounded-xl shadow-sm space-y-2">
+                <h4 className="font-bold text-sm flex items-center gap-2">
+                  <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center">{i + 1}</span>
+                  {step.title}
+                </h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-5 bg-card rounded-xl shadow-sm space-y-2">
+            <h4 className="font-bold text-sm flex items-center gap-2">
+              <MessageCircle size={16} className="text-primary" />
+              Questions from buyers
+            </h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Buyers can tap &quot;Ask&quot; on your shop or product pages. Their question arrives in Inquiries with their phone
+              number. Reply by WhatsApp, then mark it contacted or convert it into an order.
+            </p>
+          </div>
+          <div className="p-5 bg-card rounded-xl shadow-sm space-y-2">
+            <h4 className="font-bold text-sm flex items-center gap-2">
+              <DollarSign size={16} className="text-primary" />
+              Marketplace fee
+            </h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Titunge takes a small percentage of each sale. In Settings &gt; Billing, choose whether you absorb it or pass it
+              on to the buyer. There are no listing fees.
+            </p>
+          </div>
+        </section>
       </div>
     ),
   },
@@ -420,11 +513,11 @@ export const MANUAL_SECTIONS: ManualSection[] = [
 
         <div className="p-8 bg-primary rounded-xl text-primary-foreground text-center">
           <h4 className="text-xl font-bold mb-2">Still Need Help?</h4>
-          <p className="text-sm opacity-90 mb-6">Contact support via WhatsApp or email.</p>
+          <p className="text-sm opacity-90 mb-6">Email us at hello@titunge.com and we&apos;ll get back to you.</p>
           <div className="flex flex-col gap-3">
-            <button className="bg-white/10 hover:bg-white/20 py-3 rounded-lg font-bold text-sm transition-all">
+            <a href="mailto:hello@titunge.com" className="bg-white/10 hover:bg-white/20 py-3 rounded-lg font-bold text-sm transition-all">
               Email Support
-            </button>
+            </a>
           </div>
         </div>
       </div>

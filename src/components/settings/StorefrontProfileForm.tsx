@@ -10,11 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateStorefrontProfileAction, uploadStorefrontBannerAction } from "@/app/actions/storefront";
+import { ZAMBIA_PROVINCES } from "@/data/zambia-provinces";
 
 interface StorefrontProfileFormProps {
   storefront: {
     bio: string | null;
     location: string | null;
+    province: string | null;
+    contact_phone: string | null;
     founded_year: number | null;
     delivery_policy: string | null;
     returns_policy: string | null;
@@ -28,6 +31,8 @@ interface StorefrontProfileFormProps {
 type FormValues = {
   bio: string;
   location: string;
+  province: string;
+  contact_phone: string;
   founded_year: string;
   delivery_policy: string;
   returns_policy: string;
@@ -44,6 +49,8 @@ export default function StorefrontProfileForm({ storefront, businessName, busine
     defaultValues: {
       bio: storefront?.bio ?? "",
       location: storefront?.location ?? "",
+      province: storefront?.province ?? "",
+      contact_phone: storefront?.contact_phone ?? "",
       founded_year: storefront?.founded_year ? String(storefront.founded_year) : "",
       delivery_policy: storefront?.delivery_policy ?? "",
       returns_policy: storefront?.returns_policy ?? "",
@@ -56,6 +63,8 @@ export default function StorefrontProfileForm({ storefront, businessName, busine
       const result = await updateStorefrontProfileAction({
         bio: data.bio,
         location: data.location,
+        province: data.province || null,
+        contact_phone: data.contact_phone.trim() || null,
         founded_year: data.founded_year ? parseInt(data.founded_year, 10) : null,
         delivery_policy: data.delivery_policy,
         returns_policy: data.returns_policy,
@@ -137,10 +146,28 @@ export default function StorefrontProfileForm({ storefront, businessName, busine
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
+                <Label htmlFor="province">Province</Label>
+                <select
+                  id="province"
+                  {...register("province")}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">Select a province</option>
+                  {ZAMBIA_PROVINCES.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
                 {/* @ts-ignore */}
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">Town or area</Label>
                 {/* @ts-ignore */}
-                <Input id="location" {...register("location")} placeholder="Lusaka, Zambia" />
+                <Input id="location" {...register("location")} placeholder="Kabulonga, Lusaka" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="contact_phone">Phone or WhatsApp for buyers</Label>
+                <Input id="contact_phone" type="tel" inputMode="tel" {...register("contact_phone")} placeholder="0977123456" />
+                <p className="text-xs text-muted-foreground">Shown to buyers only after they pay.</p>
               </div>
               <div className="space-y-1.5">
                 {/* @ts-ignore */}

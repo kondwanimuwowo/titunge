@@ -8,6 +8,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import AppShell from "@/components/layout/AppShell";
 import NotificationBellServer from "@/components/layout/NotificationBellServer";
 import ProductTour from "@/components/onboarding/ProductTour";
+import PayoutSetupBanner from "@/components/layout/PayoutSetupBanner";
 import { createClient } from "@/lib/supabase/server";
 
 function BellPlaceholder() {
@@ -35,6 +36,24 @@ export default async function AppLayout({
     supabase.from("business_users").select("has_seen_tour").eq("business_id", businessId).eq("user_id", userId).maybeSingle(),
   ]);
 
+  // Mirrors the marketplace listing rule in lib/marketplace-db.ts (active,
+  // finished good, at least one photo).
+  let listedWithoutPayout = 0;
+  if (role === "admin" || role === "manager") {
+    const [{ count: listedCount }, { data: payoutProfile }] = await Promise.all([
+      (supabase.from("products") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", businessId)
+        .eq("active", true)
+        .is("deleted_at", null)
+        .eq("product_type", "finished_good")
+        .not("images", "is", null)
+        .neq("images", "[]"),
+      (supabase.from("business_payout_profiles") as any).select("payout_method").eq("business_id", businessId).maybeSingle(),
+    ]);
+    if (!payoutProfile?.payout_method) listedWithoutPayout = listedCount ?? 0;
+  }
+
   const themeVars = buildThemeVars(business.theme_key);
 
   return (
@@ -42,7 +61,11 @@ export default async function AppLayout({
       {/* Inject per-tenant theme vars — overrides globals.css defaults */}
       <style>{themeVars}</style>
 
-      <ProductTour hasSeenTour={membershipResult.data?.has_seen_tour ?? true} role={role} />
+      <ProductTour
+        hasSeenTour={membershipResult.data?.has_seen_tour ?? true}
+        role={role}
+        focus={business.focus as "full_erp" | "marketplace_only"}
+      />
 
       <AppShell
         sidebar={
@@ -66,6 +89,7 @@ export default async function AppLayout({
         profile={profileResult.data}
         role={role}
       >
+        {listedWithoutPayout > 0 && <PayoutSetupBanner listedCount={listedWithoutPayout} />}
         {children}
       </AppShell>
     </>

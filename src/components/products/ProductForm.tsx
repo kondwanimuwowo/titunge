@@ -22,11 +22,17 @@ import {
   uploadProductImageAction,
   deleteProductImageAction,
 } from "@/app/actions/products";
+import { setProductMarketplaceCategoryAction } from "@/app/actions/storefront";
+import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
 import { Upload, X, ImageOff } from "lucide-react";
 
 interface ProductFormProps {
   product?: Tables<"products"> | null;
+  /** Current product_storefront_extra.category_slug, edit mode only. */
+  marketplaceCategory?: string | null;
 }
+
+const NO_MARKETPLACE_CATEGORY = "__none";
 
 const CATEGORIES = [
   "Dresses",
@@ -44,7 +50,7 @@ interface PendingImage {
   preview: string;
 }
 
-export default function ProductForm({ product }: ProductFormProps) {
+export default function ProductForm({ product, marketplaceCategory = null }: ProductFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
@@ -76,19 +82,28 @@ export default function ProductForm({ product }: ProductFormProps) {
           stock_quantity: product.stock_quantity,
           active: product.active,
           customizable: product.product_type === "custom_design",
+          marketplace_category: marketplaceCategory ?? NO_MARKETPLACE_CATEGORY,
         }
       : {
           active: true,
           stock_quantity: 0,
           customizable: false,
+          marketplace_category: NO_MARKETPLACE_CATEGORY,
         },
   });
 
   const onSubmit = (data: any) => {
     startTransition(async () => {
-      // `customizable` is a form-only field; the DB stores it as product_type.
-      const { customizable, ...fields } = data;
+      // `customizable` and `marketplace_category` are form-only fields: the DB
+      // stores the first as product_type and the second in product_storefront_extra.
+      const { customizable, marketplace_category, ...fields } = data;
       const productType = customizable ? "custom_design" : "finished_good";
+      const categorySlug = marketplace_category === NO_MARKETPLACE_CATEGORY ? null : marketplace_category;
+      const saveCategory = async (productId: string) => {
+        if (categorySlug === (marketplaceCategory ?? null)) return;
+        const result = await setProductMarketplaceCategoryAction(productId, categorySlug);
+        if (!result.success) toast.error(result.message || "Failed to save marketplace category");
+      };
 
       if (product) {
         // Edit mode — images are already uploaded; just save the form + current gallery.
@@ -98,6 +113,7 @@ export default function ProductForm({ product }: ProductFormProps) {
           images: imageGallery,
         };
         const result = await updateProductAction(product.id, payload);
+        if (result.success) await saveCategory(product.id);
         if (result.success) {
           toast.success("Product updated");
           router.push("/products");
@@ -120,6 +136,7 @@ export default function ProductForm({ product }: ProductFormProps) {
       }
 
       const newProductId = createResult.productId;
+      await saveCategory(newProductId);
       const uploadedUrls: string[] = [];
 
       for (const pending of pendingImages) {
@@ -243,6 +260,28 @@ export default function ProductForm({ product }: ProductFormProps) {
       </div>
 
       <div>
+        <Label htmlFor="marketplace_category">Marketplace category</Label>
+        <Controller
+          name="marketplace_category"
+          control={control}
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange} disabled={isPending}>
+              <SelectTrigger id="marketplace_category" className="w-full">
+                <SelectValue placeholder="Not set" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_MARKETPLACE_CATEGORY}>Not set</SelectItem>
+                {MARKETPLACE_CATEGORIES.map((c) => (
+                  <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        <p className="text-xs text-muted-foreground mt-1">Where buyers find this product when browsing the marketplace.</p>
+      </div>
+
+      <div>
         <Label htmlFor="description">Description</Label>
         <textarea
           id="description"
@@ -284,7 +323,7 @@ export default function ProductForm({ product }: ProductFormProps) {
           <span className="text-sm font-medium">Customizable Design</span>
         </label>
         <p className="text-xs text-muted-foreground -mt-2 ml-6">
-          Checked = custom design (always shown in catalog). Unchecked = ready-to-wear finished good (shown while in stock).
+          Checked = made-to-order design, kept in your workspace only. Unchecked = finished product, listed on the marketplace once it has a photo.
         </p>
 
         <label className="flex items-center gap-2 cursor-pointer">

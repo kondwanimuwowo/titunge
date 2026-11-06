@@ -103,7 +103,7 @@ const PLATFORM_ADMIN_ITEMS = [
 // marketplace-only businesses — a small bit of friction (one extra tab
 // click to reach the Marketplace tab) traded for not needing two nav-item
 // shapes depending on focus.
-export const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/orders", "/analytics", "/settings"]);
+export const MARKETPLACE_ONLY_PATHS = new Set(["/dashboard", "/products", "/orders", "/inquiries", "/analytics", "/settings"]);
 
 interface SidebarNavProps {
   role: UserRole;

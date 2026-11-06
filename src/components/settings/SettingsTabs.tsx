@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,8 @@ interface SettingsTabsProps {
   storefront: {
     bio: string | null;
     location: string | null;
+    province: string | null;
+    contact_phone: string | null;
     founded_year: number | null;
     delivery_policy: string | null;
     returns_policy: string | null;
@@ -59,6 +62,8 @@ interface SettingsTabsProps {
   banks: { id: string; name: string; country: string }[];
 }
 
+const SETTINGS_TABS = ["general", "branding", "financial", "workshop", "marketplace", "billing"];
+
 export default function SettingsTabs({
   financialSettings,
   garmentTypes,
@@ -74,7 +79,11 @@ export default function SettingsTabs({
   payouts,
   banks,
 }: SettingsTabsProps) {
-  const [activeTab, setActiveTab] = useState("general");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    requestedTab && SETTINGS_TABS.includes(requestedTab) ? requestedTab : "general"
+  );
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">

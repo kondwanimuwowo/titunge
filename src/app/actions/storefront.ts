@@ -3,10 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireBusinessContext } from "@/lib/business-context";
+import { isZambiaProvince } from "@/data/zambia-provinces";
+import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
 
 export async function updateStorefrontProfileAction(data: {
   bio: string;
   location: string;
+  province: string | null;
+  contact_phone: string | null;
   founded_year: number | null;
   delivery_policy: string;
   returns_policy: string;
@@ -14,6 +18,10 @@ export async function updateStorefrontProfileAction(data: {
 }): Promise<{ success: boolean; message?: string }> {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
+
+  if (data.province !== null && !isZambiaProvince(data.province)) {
+    return { success: false, message: "Choose a province from the list." };
+  }
 
   const { error } = await (supabase.from("business_storefront") as any).upsert(
     {
@@ -104,6 +112,37 @@ export async function updateProductStorefrontExtraAction(
     return { success: false, message: error.message };
   }
 
+  revalidatePath("/settings");
+  return { success: true };
+}
+
+/** Sets only the marketplace category (from the product form), leaving the
+ *  rest of the product's storefront listing untouched. */
+export async function setProductMarketplaceCategoryAction(
+  productId: string,
+  categorySlug: string | null
+): Promise<{ success: boolean; message?: string }> {
+  const { businessId } = await requireBusinessContext();
+  const supabase = await createClient();
+
+  if (categorySlug !== null && !MARKETPLACE_CATEGORIES.some((c) => c.slug === categorySlug)) {
+    return { success: false, message: "Unknown marketplace category." };
+  }
+
+  const { data: product } = await (supabase.from("products") as any)
+    .select("id")
+    .eq("id", productId)
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (!product) return { success: false, message: "Product not found." };
+
+  const { error } = await (supabase.from("product_storefront_extra") as any).upsert(
+    { product_id: productId, category_slug: categorySlug, updated_at: new Date().toISOString() },
+    { onConflict: "product_id" }
+  );
+  if (error) return { success: false, message: error.message };
+
+  revalidatePath("/products");
   revalidatePath("/settings");
   return { success: true };
 }
