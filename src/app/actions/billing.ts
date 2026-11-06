@@ -4,13 +4,32 @@ import { revalidatePath } from "next/cache";
 import { requireBusinessContext } from "@/lib/business-context";
 import { createAdminClient } from "@/lib/supabase/server";
 
-export async function upgradeToTeamPlanAction(): Promise<{ success: boolean; message?: string }> {
+/** Team is billed monthly by mobile money, so the number is saved in the same
+ *  step: a Team business with no payment method can't be charged at all. */
+export async function upgradeToTeamPlanAction(billing: {
+  phone: string;
+  operator: "airtel" | "mtn" | "zamtel";
+}): Promise<{ success: boolean; message?: string }> {
   const { businessId, role } = await requireBusinessContext();
   if (role !== "admin") {
     return { success: false, message: "Only admins can change the plan." };
   }
+  if (billing.phone.replace(/[^\d]/g, "").length < 10) {
+    return { success: false, message: "Enter the mobile money number to bill, e.g. 0977123456." };
+  }
 
   const supabase = createAdminClient();
+  const { error: profileError } = await supabase.from("business_billing_profiles").upsert(
+    {
+      business_id: businessId,
+      payment_method: "mobile-money",
+      account_details: billing,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "business_id" }
+  );
+  if (profileError) return { success: false, message: profileError.message };
+
   const { error } = await supabase
     .from("businesses")
     .update({ plan: "team", updated_at: new Date().toISOString() })

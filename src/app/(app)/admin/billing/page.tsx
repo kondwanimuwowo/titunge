@@ -16,7 +16,7 @@ export default async function AdminBillingPage() {
   const supabase = createAdminClient();
 
   const { data: charges } = await (supabase.from("business_billing_charges") as any)
-    .select("id, period, seat_count, amount, status, retry_count, businesses(name)")
+    .select("id, period, seat_count, amount, status, retry_count, lenco_reference, businesses(name)")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -47,6 +47,12 @@ export default async function AdminBillingPage() {
                   <StatusDot label={c.status} tone={STATUS_TONES[c.status]} />
                   {c.retry_count > 0 && c.retry_count < 999 && (
                     <span className="text-xs text-muted-foreground ml-1.5">({c.retry_count} retries)</span>
+                  )}
+                  {c.status === "failed" && c.retry_count >= 3 && c.retry_count < 999 && (
+                    <span className="block text-xs font-medium text-red-600">Retries exhausted, follow up</span>
+                  )}
+                  {c.status === "pending" && !c.lenco_reference && (
+                    <span className="block text-xs font-medium text-amber-600">No payment method on file</span>
                   )}
                 </td>
                 <td className="px-4 py-2.5 text-right">

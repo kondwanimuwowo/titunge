@@ -72,8 +72,8 @@ export default function BillingTab({
 
   const handleUpgrade = () => {
     startUpgrading(async () => {
-      const result = await upgradeToTeamPlanAction();
-      if (result.success) toast.success("Upgraded to Team plan. Add a billing payment method below.");
+      const result = await upgradeToTeamPlanAction({ phone, operator });
+      if (result.success) toast.success("You're on the Team plan. You can now invite staff.");
       else toast.error(result.message || "Failed to upgrade");
     });
   };
@@ -127,8 +127,27 @@ export default function BillingTab({
             <div className="border border-dashed rounded-md p-4 text-sm text-muted-foreground space-y-3">
               <div>
                 <p className="font-medium text-foreground mb-1">Upgrade to Team</p>
-                <p>Add staff accounts, role-based permissions, advanced analytics and finance, and full inventory
-                  and production management. Your first seat stays free.</p>
+                <p>Add staff accounts with admin, manager, or employee roles. Your first user stays free; each
+                  additional active user is K{seatPriceKwacha}/month, charged monthly to the mobile money number below.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 max-w-sm">
+                <div className="space-y-1.5">
+                  <Label htmlFor="upgrade-operator">Network</Label>
+                  <select
+                    id="upgrade-operator"
+                    value={operator}
+                    onChange={(e) => setOperator(e.target.value as typeof operator)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="airtel">Airtel Money</option>
+                    <option value="mtn">MTN Mobile Money</option>
+                    <option value="zamtel">Zamtel Kwacha</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="upgrade-phone">Mobile money number</Label>
+                  <Input id="upgrade-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0977123456" />
+                </div>
               </div>
               <Button type="button" onClick={handleUpgrade} loading={isUpgrading}>
                 {isUpgrading ? "Upgrading..." : "Upgrade to Team"}
@@ -188,7 +207,7 @@ export default function BillingTab({
             >
               <p className="text-sm font-medium text-foreground">I absorb it</p>
               <p className="text-xs text-muted-foreground">
-                {commissionPct}% is deducted from your payout, same as today. The customer pays the listed price.
+                {commissionPct}% is deducted from your payout. The customer pays the listed price.
               </p>
             </button>
             <button

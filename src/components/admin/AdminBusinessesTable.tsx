@@ -31,7 +31,6 @@ interface AdminBusiness {
 const STATUS_TONES: Record<string, StatusTone> = {
   active: "emerald",
   suspended: "red",
-  trial: "amber",
 };
 
 function EditBusinessDialog({ business }: { business: AdminBusiness }) {

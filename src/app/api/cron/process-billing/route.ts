@@ -63,27 +63,33 @@ export async function GET(request: NextRequest) {
     if (billableSeats === 0) continue;
 
     const { data: existing } = await (admin.from("business_billing_charges") as any)
-      .select("id")
+      .select("id, status, lenco_reference")
       .eq("business_id", business.id)
       .eq("period", period)
       .maybeSingle();
 
-    if (existing) continue; // already charged (or attempted) this period
+    // A pending row with no Lenco reference was never sent (no payment method
+    // on file at the time), so try it again; anything else for this period
+    // has already been attempted and is handled by the webhook or retries.
+    if (existing && (existing.status !== "pending" || existing.lenco_reference)) continue;
 
     const { data: billingProfile } = await (admin.from("business_billing_profiles") as any)
       .select("payment_method, account_details")
       .eq("business_id", business.id)
       .maybeSingle();
 
-    const { data: charge } = await (admin.from("business_billing_charges") as any)
-      .insert({ business_id: business.id, period, seat_count: billableSeats, amount, status: "pending" })
-      .select("id")
-      .single();
+    const { data: charge } = existing
+      ? { data: { id: existing.id as string } }
+      : await (admin.from("business_billing_charges") as any)
+          .insert({ business_id: business.id, period, seat_count: billableSeats, amount, status: "pending" })
+          .select("id")
+          .single();
 
     if (!charge) continue;
 
     if (!billingProfile?.payment_method || billingProfile.payment_method !== "mobile-money") {
-      // No usable payment method on file yet — leave pending for a future run.
+      // No usable payment method on file yet. Left pending with no reference,
+      // so the next run picks it up again once one is added.
       continue;
     }
 
@@ -183,5 +189,32 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ businesses: (teamBusinesses ?? []).length, charged, retried });
+  // Retries exhausted: tell the business once, in-app. Platform admins see
+  // these on /admin/billing. No automatic suspension.
+  const { data: exhaustedCharges } = await (admin.from("business_billing_charges") as any)
+    .select("id, business_id, period, amount")
+    .eq("status", "failed")
+    .gte("retry_count", RETRY_OFFSETS_DAYS.length);
+
+  let alerted = 0;
+  for (const charge of exhaustedCharges ?? []) {
+    const { count: alreadyAlerted } = await (admin.from("notifications") as any)
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", charge.business_id)
+      .contains("data", { billing_charge_id: charge.id });
+    if ((alreadyAlerted ?? 0) > 0) continue;
+
+    await (admin.from("notifications") as any).insert({
+      business_id: charge.business_id,
+      type: "system",
+      title: "Team plan payment failed",
+      message: `We couldn't collect K${Number(charge.amount).toLocaleString()} for your Team plan seats. Check the mobile money number in Settings > Billing, or contact hello@titunge.com.`,
+      link: "/settings?tab=billing",
+      data: { billing_charge_id: charge.id },
+      read: false,
+    });
+    alerted++;
+  }
+
+  return NextResponse.json({ businesses: (teamBusinesses ?? []).length, charged, retried, alerted });
 }

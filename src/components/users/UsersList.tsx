@@ -56,6 +56,8 @@ function InviteUserDialog({
   const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(false);
   const [needsUpgrade, setNeedsUpgrade] = useState(false);
+  const [billingPhone, setBillingPhone] = useState("");
+  const [billingOperator, setBillingOperator] = useState<"airtel" | "mtn" | "zamtel">("airtel");
 
   const { register, handleSubmit, watch, setValue, reset, getValues, formState: { errors } } = useForm({
     defaultValues: { email: "", role: "employee" },
@@ -83,7 +85,7 @@ function InviteUserDialog({
 
   const handleUpgrade = () => {
     startUpgrading(async () => {
-      const result = await upgradeToTeamPlanAction();
+      const result = await upgradeToTeamPlanAction({ phone: billingPhone, operator: billingOperator });
       if (result.success) {
         toast.success("Upgraded to Team. Sending your invite...");
         submitInvite(getValues());
@@ -133,9 +135,28 @@ function InviteUserDialog({
               <div>
                 <p className="font-semibold text-foreground">Upgrade to Team</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Your first seat stays free. Every seat after that is K{seatPriceKwacha}/month, billed monthly via
-                  mobile money. You can add a payment method afterward in Settings &gt; Billing.
+                  Your first seat stays free. Every seat after that is K{seatPriceKwacha}/month, charged monthly to
+                  the mobile money number below.
                 </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-billing-operator">Network</Label>
+                <select
+                  id="invite-billing-operator"
+                  value={billingOperator}
+                  onChange={(e) => setBillingOperator(e.target.value as typeof billingOperator)}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="airtel">Airtel Money</option>
+                  <option value="mtn">MTN Mobile Money</option>
+                  <option value="zamtel">Zamtel Kwacha</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-billing-phone">Mobile money number</Label>
+                <Input id="invite-billing-phone" value={billingPhone} onChange={(e) => setBillingPhone(e.target.value)} placeholder="0977123456" />
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
