@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy policy | Titunge",
+  description: "How Titunge collects, uses, and protects your information.",
+};
+
 const SECTIONS = [
   {
     title: "Information we collect",
@@ -9,7 +16,7 @@ const SECTIONS = [
   },
   {
     title: "Sharing with sellers and service providers",
-    body: "When you place an order, we share the information necessary to fulfil it (such as your name and delivery address) with the relevant seller. We also work with payment and delivery partners who process data on our behalf, under agreements that limit their use of it.",
+    body: "When you pay for an order, we share the information the seller needs to fulfil it (your name, phone number, email, and any note you leave) with that seller, so they can contact you to arrange delivery or collection. We also work with our payment partner, Lenco, which processes payment data on our behalf.",
   },
   {
     title: "Cookies",
@@ -35,7 +42,7 @@ export default function PrivacyPage() {
       <h1 className="text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-canter)" }}>
         Privacy policy
       </h1>
-      <p className="text-sm text-gray-400 mb-12">Last updated August 2026 &middot; This is placeholder content and has not been reviewed by legal counsel.</p>
+      <p className="text-sm text-gray-400 mb-12">Last updated August 2026</p>
 
       <div className="flex flex-col gap-10">
         {SECTIONS.map((section) => (

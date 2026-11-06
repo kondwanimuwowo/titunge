@@ -5,7 +5,8 @@ const LINKS = {
   Product: [
     { label: "Features", href: "/features" },
     { label: "Pricing", href: "/pricing" },
-    { label: "Changelog", href: "#" },
+    { label: "Marketplace", href: "/" },
+    { label: "Sell on Titunge", href: "/sell" },
   ],
   Company: [
     { label: "About", href: "/about" },

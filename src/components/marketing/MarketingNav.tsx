@@ -11,6 +11,7 @@ import { getMyBusinessSlug } from "@/app/actions/onboarding";
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
 const NAV_LINKS = [
+  { href: "/", label: "Marketplace" },
   { href: "/features", label: "Features" },
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
@@ -97,7 +98,7 @@ export function MarketingNav() {
                   className="text-sm font-medium text-white rounded-full px-5 py-2 transition-opacity hover:opacity-90"
                   style={{ backgroundColor: "#5fa8a0" }}
                 >
-                  Start free trial
+                  Start free
                 </Link>
               </>
             )}
@@ -148,7 +149,7 @@ export function MarketingNav() {
                   style={{ backgroundColor: "#5fa8a0" }}
                   onClick={() => setMobileOpen(false)}
                 >
-                  Start free trial
+                  Start free
                 </Link>
               </>
             )}

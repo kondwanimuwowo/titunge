@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { getMarketplaceProducts, getMarketplaceSellers } from "@/lib/marketplace-db";
 
+// Lists live products and shops; never prerender at build time.
+export const dynamic = "force-dynamic";
+
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 const BASE_URL = `https://${APP_DOMAIN}`;
 

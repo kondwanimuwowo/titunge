@@ -8,10 +8,10 @@ export default function RootNotFound() {
         The page you're looking for doesn't exist or may have been moved.
       </p>
       <Link
-        href="/dashboard"
+        href="/"
         className="mt-6 inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
       >
-        Back to Dashboard
+        Go to homepage
       </Link>
     </div>
   );

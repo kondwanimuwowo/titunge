@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of service | Titunge",
+  description: "The terms for using Titunge as a buyer, seller, or business.",
+};
+
 const SECTIONS = [
   {
     title: "Using Titunge",
@@ -13,7 +20,7 @@ const SECTIONS = [
   },
   {
     title: "Payments",
-    body: "Payments are processed by Titunge or its payment partners and released to sellers once an order has shipped, in line with our payout schedule.",
+    body: "Payments are processed by Titunge through its payment partner, Lenco. Seller payouts are released automatically once an order has been marked delivered and a short dispute window has passed.",
   },
   {
     title: "Prohibited items and conduct",
@@ -39,7 +46,7 @@ export default function TermsPage() {
       <h1 className="text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-canter)" }}>
         Terms of service
       </h1>
-      <p className="text-sm text-gray-400 mb-12">Last updated August 2026 &middot; This is placeholder content and has not been reviewed by legal counsel.</p>
+      <p className="text-sm text-gray-400 mb-12">Last updated August 2026</p>
 
       <div className="flex flex-col gap-10">
         {SECTIONS.map((section) => (

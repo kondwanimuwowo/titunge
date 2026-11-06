@@ -1,44 +1,28 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { BarChart3, Box, Users, Scissors, Wallet, ClipboardList, ArrowRight, Check } from "lucide-react";
 import { FadeIn } from "@/components/marketing/FadeIn";
+import { getPublicPricing } from "@/lib/marketplace-db";
+import { getPlans } from "@/data/plans";
 
-const PLANS = [
-  {
-    name: "Free",
-    price: "K0",
-    period: "/month",
-    description: "For individual tailors, designers, and small fashion businesses. Run your whole workshop online, from day one, at no cost.",
-    features: [
-      "1 user",
-      "Orders, production, and customer measurements",
-      "Inventory, finance, and analytics",
-      "Business profile and Titunge marketplace listing",
-      "Your own online storefront for receiving orders",
-      "No monthly subscription",
-    ],
-    cta: "Start free",
-    href: "/onboarding",
-    featured: false,
-  },
-  {
-    name: "Team",
-    price: "K250",
-    period: "/additional user/month",
-    description: "For growing businesses with employees and teams. Your first user is always free. Pay only as you add staff.",
-    features: [
-      "Everything in Free",
-      "Additional staff accounts with role-based permissions",
-      "Multiple staff working simultaneously",
-      "Advanced analytics and finance",
-      "Full inventory and production management",
-      "Sales, order, and business performance reporting",
-    ],
-    cta: "Upgrade anytime in Settings",
-    href: "/onboarding",
-    featured: true,
-  },
-];
+// Plan and fee figures come live from platform_settings.
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Titunge for Business | Software for tailoring workshops",
+  description: "Orders, measurements, production, inventory, and payments for tailoring and garment businesses. Free for one user.",
+};
+
+interface Testimonial {
+  quote: string;
+  name: string;
+  role: string;
+  image: string;
+}
+
+// Hidden until there's a real customer quote with permission to use it.
+const TESTIMONIAL = null as Testimonial | null;
 
 const FEATURES = [
   {
@@ -91,7 +75,15 @@ const STEPS = [
   },
 ];
 
-export default function BusinessPage() {
+export default async function BusinessPage() {
+  const pricing = await getPublicPricing();
+  const PLANS = getPlans(pricing);
+  const HERO_FACTS = [
+    { value: "K0", label: "for one user, with every module included" },
+    { value: `K${pricing.seatPriceKwacha.toLocaleString()}`, label: "per extra staff member, per month" },
+    { value: "Mobile money", label: "built in for marketplace payments and payouts" },
+  ];
+
   return (
     <>
       {/* Hero */}
@@ -128,13 +120,8 @@ export default function BusinessPage() {
             </Link>
           </FadeIn>
 
-          {/* Quantified stat, real and based on the product's actual scope, not a customer metric */}
           <FadeIn delay={0.26} className="mt-14 flex flex-wrap gap-x-10 gap-y-4">
-            {[
-              { value: "6", label: "connected modules, orders to finance" },
-              { value: "27", label: "measurement fields, built for tailoring" },
-              { value: "1", label: "dashboard for the whole workshop" },
-            ].map((stat) => (
+            {HERO_FACTS.map((stat) => (
               <div key={stat.label}>
                 <p
                   className="text-3xl font-bold leading-none"
@@ -224,39 +211,35 @@ export default function BusinessPage() {
         </div>
       </section>
 
-      {/*
-        TODO(social-proof): placeholder testimonial, NOT a real customer quote.
-        Replace name/role/quote with a real one (e.g. from Gloria'z Daughter)
-        before this page is shown to any prospect.
-      */}
-      <section className="py-24 lg:py-32 bg-white">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8">
-          <FadeIn>
-            <div
-              className="rounded-2xl p-10 lg:p-14 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 items-center"
-              style={{ backgroundColor: "#f5f1ee" }}
-            >
-              <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full overflow-hidden shrink-0 mx-auto lg:mx-0">
-                <Image
-                  src="/images/Satisfied client testimonial.jpg"
-                  alt="Placeholder client testimonial"
-                  width={96}
-                  height={96}
-                  className="object-cover w-full h-full"
-                />
+      {TESTIMONIAL && (
+        <section className="py-24 lg:py-32 bg-white">
+          <div className="max-w-5xl mx-auto px-6 lg:px-8">
+            <FadeIn>
+              <div
+                className="rounded-2xl p-10 lg:p-14 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 items-center"
+                style={{ backgroundColor: "#f5f1ee" }}
+              >
+                <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full overflow-hidden shrink-0 mx-auto lg:mx-0">
+                  <Image
+                    src={TESTIMONIAL.image}
+                    alt={TESTIMONIAL.name}
+                    width={96}
+                    height={96}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+                <div>
+                  <p className="text-lg lg:text-xl text-gray-800 leading-relaxed" style={{ fontFamily: "var(--font-canter)" }}>
+                    &ldquo;{TESTIMONIAL.quote}&rdquo;
+                  </p>
+                  <p className="mt-4 text-sm font-semibold text-gray-900">{TESTIMONIAL.name}</p>
+                  <p className="text-sm text-gray-500">{TESTIMONIAL.role}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-lg lg:text-xl text-gray-800 leading-relaxed" style={{ fontFamily: "var(--font-canter)" }}>
-                  &ldquo;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-                  incididunt ut labore et dolore magna aliqua.&rdquo;
-                </p>
-                <p className="mt-4 text-sm font-semibold text-gray-900">John Doe</p>
-                <p className="text-sm text-gray-500">Placeholder Role, Placeholder Business</p>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
+            </FadeIn>
+          </div>
+        </section>
+      )}
 
       {/* Pricing preview */}
       <section className="py-24 lg:py-32 bg-white">
@@ -330,7 +313,7 @@ export default function BusinessPage() {
 
           <FadeIn className="mt-8 text-center">
             <p className="text-sm text-gray-500">
-              Selling on the Titunge marketplace carries a 10% transaction fee on both plans. There are no listing fees.
+              Selling on the Titunge marketplace carries a {pricing.commissionPercent}% transaction fee on both plans. There are no listing fees.
             </p>
             <Link href="/pricing" className="mt-2 inline-block text-sm text-gray-400 hover:text-gray-700 transition-colors underline underline-offset-4">
               See full pricing details

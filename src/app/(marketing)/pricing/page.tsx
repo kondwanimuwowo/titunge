@@ -1,73 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { FadeIn } from "@/components/marketing/FadeIn";
+import { getPublicPricing } from "@/lib/marketplace-db";
+import { getPlans, getPricingFaq } from "@/data/plans";
 
-const PLANS = [
-  {
-    name: "Free",
-    price: "K0",
-    period: "/month",
-    description: "For individual tailors, designers, and small fashion businesses. Run your whole workshop online, from day one, at no cost.",
-    features: [
-      "1 user",
-      "Business dashboard, orders, and production management",
-      "Customer management and measurements",
-      "Inventory, finance, and analytics",
-      "Business profile and Titunge marketplace listing",
-      "Your own online storefront for receiving orders",
-      "No monthly subscription",
-    ],
-    cta: "Start free",
-    href: "/onboarding",
-    featured: false,
-  },
-  {
-    name: "Team",
-    price: "K250",
-    period: "/additional user/month",
-    description: "For growing businesses with employees and teams. Your first user is always free. Pay only as you add staff.",
-    features: [
-      "Everything in Free",
-      "Additional staff accounts with role-based permissions",
-      "Team management, multiple staff working simultaneously",
-      "Advanced analytics and finance",
-      "Full inventory and production management",
-      "Sales, order, and business performance reporting",
-    ],
-    cta: "Upgrade anytime in Settings",
-    href: "/onboarding",
-    featured: true,
-  },
-];
+// Plan and fee figures come live from platform_settings.
+export const dynamic = "force-dynamic";
 
-const FAQ = [
-  {
-    q: "Is the Free plan really free?",
-    a: "Yes. There's no monthly subscription, no trial period, and no card required. It's the full ERP for a single user, indefinitely. You only pay once you add a second user, or when you sell through the marketplace.",
-  },
-  {
-    q: "How does Team-plan billing work?",
-    a: "Your first user always stays free. Each additional staff account is K250/month, billed monthly based on how many active users your business has that month.",
-  },
-  {
-    q: "Can I upgrade or add staff later?",
-    a: "Yes. Upgrade to Team anytime from Settings > Billing. There's no downgrade path needed since Free never expires; you simply add users as you grow.",
-  },
-  {
-    q: "What's the marketplace transaction fee?",
-    a: "Titunge takes a 10% fee on sales made through the marketplace, on both Free and Team plans. There are no separate listing fees, so you only pay when an item actually sells.",
-  },
-  {
-    q: "Are prices in Zambian Kwacha?",
-    a: "Yes. All plan and marketplace prices are in ZMW.",
-  },
-  {
-    q: "Is my data secure?",
-    a: "Yes. Each business's data is fully isolated using row-level security. No other tenant can access your records.",
-  },
-];
+export const metadata: Metadata = {
+  title: "Pricing | Titunge",
+  description: "Free for one user. Add staff as you grow, and pay a small fee only when you sell on the marketplace.",
+};
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const pricing = await getPublicPricing();
+  const PLANS = getPlans(pricing);
+  const FAQ = getPricingFaq(pricing);
+
   return (
     <>
       {/* Header */}

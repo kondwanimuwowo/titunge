@@ -35,6 +35,16 @@ export const metadata: Metadata = {
   title: "Titunge | ERP for tailoring businesses",
   description:
     "Track orders, measurements, inventory, and payments for your tailoring or garment business.",
+  metadataBase: new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com"}`),
+  openGraph: {
+    siteName: "Titunge",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Titunge: Craft. Connect. Create." }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og-image.png"],
+  },
   icons: {
     icon: "/titunge-logo-mark.png",
     apple: "/titunge-logo-mark.png",

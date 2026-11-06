@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ClipboardList, Box, Users, Scissors, Wallet, BarChart3,
-  MessageSquare, Bell, Package, ArrowRight,
+  FileText, UserCog, Store, ArrowRight,
 } from "lucide-react";
 import { FadeIn } from "@/components/marketing/FadeIn";
+
+export const metadata: Metadata = {
+  title: "Features | Titunge",
+  description: "Orders, measurements, production, inventory, finance, and a marketplace shop, built for tailoring and garment businesses.",
+};
 
 const MODULES = [
   {
@@ -11,11 +17,22 @@ const MODULES = [
     name: "Orders",
     tagline: "Track every order from first contact to pickup",
     details: [
-      "Create orders from walk-ins or convert inquiries",
-      "Set due dates and monitor status through your production queue",
+      "Create orders for walk-in customers or convert a customer's question into an order",
+      "Set due dates and move orders through each stage of production",
       "Record measurements and special instructions per order",
-      "Print or share order receipts with customers",
-      "Cancel or archive orders with a full audit trail",
+      "Suggested pricing from your material costs, overheads, and margin",
+      "Email receipts and quotations to customers",
+    ],
+  },
+  {
+    icon: Users,
+    name: "Customers",
+    tagline: "Every client's measurements and history in one place",
+    details: [
+      "28 tailoring measurements per customer, from shoulder to calf",
+      "Full order history for every client",
+      "Internal notes visible only to your team",
+      "Find any customer by name and export your list to CSV",
     ],
   },
   {
@@ -23,22 +40,10 @@ const MODULES = [
     name: "Inventory",
     tagline: "Know exactly what you have before you make a promise",
     details: [
-      "Track fabrics, threads, buttons, and any other materials by quantity",
-      "Set low-stock alerts so you reorder before you run out",
-      "Record purchase costs and calculate material value in stock",
-      "Log manual stock adjustments with notes",
-      "View full transaction history per material",
-    ],
-  },
-  {
-    icon: Users,
-    name: "Customers",
-    tagline: "Every client's history in one place",
-    details: [
-      "Store contact details and body measurements per customer",
-      "See a complete order history for any client in seconds",
-      "Add internal notes visible only to your team",
-      "Search customers by name, phone, or email",
+      "Track fabric, thread, buttons, and any other material by quantity",
+      "Set a minimum stock level and get an alert when you fall below it",
+      "Record purchase costs and see the value of the stock you hold",
+      "Full stock history and audit for every material",
     ],
   },
   {
@@ -46,10 +51,10 @@ const MODULES = [
     name: "Production",
     tagline: "Manage how work moves through your workshop",
     details: [
-      "Create production batches and assign orders to them",
-      "Track material consumption per batch",
-      "Mark batches complete and automatically update inventory",
-      "Log production events with notes",
+      "Create production batches for ready-made stock",
+      "Materials are deducted from inventory automatically",
+      "Finished pieces are added to stock when a batch is completed",
+      "Staff are notified when a batch is done",
     ],
   },
   {
@@ -58,9 +63,9 @@ const MODULES = [
     tagline: "A clear picture of money in and money out",
     details: [
       "Record full and partial payments against orders",
-      "Log overhead costs: rent, utilities, salaries",
-      "Track expenses by category",
-      "See revenue, expenses, and outstanding balances by date range",
+      "See who still owes you with receivables tracking",
+      "Log expenses and recurring overheads like rent and salaries",
+      "Profit per order and garment-type costing",
       "Export financial data to CSV",
     ],
   },
@@ -69,32 +74,41 @@ const MODULES = [
     name: "Analytics",
     tagline: "Understand what is driving your business",
     details: [
-      "Revenue and order volume over time",
-      "Top-selling products and garment types",
-      "Busiest months and seasonal patterns",
-      "Customer retention and repeat-order rate",
+      "Revenue and profitability over time",
+      "Order status breakdown and top customers",
+      "Material usage and inventory turnover",
+      "Employee productivity, plus marketplace sales in the same place",
     ],
   },
   {
-    icon: MessageSquare,
-    name: "Inquiries",
-    tagline: "Capture interest before it becomes an order",
+    icon: FileText,
+    name: "Quotes and invoices",
+    tagline: "Professional documents in a couple of clicks",
     details: [
-      "Receive inquiries from your public catalog page",
-      "Convert inquiries to orders with one click",
-      "Track which inquiries are still open",
-      "See inquiry volume by product",
+      "Create quotations and invoices for any customer",
+      "Email them directly from Titunge",
+      "Track which documents are drafts, sent, or paid",
     ],
   },
   {
-    icon: Package,
-    name: "Product catalog",
-    tagline: "A public page showing what you make",
+    icon: UserCog,
+    name: "Team",
+    tagline: "Bring your staff in when you're ready",
     details: [
-      "Each business gets a public catalog at their own subdomain",
-      "Customers can browse products and submit inquiries",
-      "Inquiries flow directly into the ERP",
-      "Customize with your business logo and brand colors",
+      "Invite staff by email with admin, manager, or employee roles",
+      "Each role only sees what it needs to",
+      "Employee records and daily clock-in and clock-out",
+    ],
+  },
+  {
+    icon: Store,
+    name: "Marketplace shop",
+    tagline: "Sell to customers across Zambia",
+    details: [
+      "Your own shop page on the Titunge marketplace",
+      "Products with a photo are listed automatically",
+      "Buyers pay by mobile money; you're paid automatically after delivery",
+      "Customers can ask you questions, which arrive as inquiries in your workspace",
     ],
   },
 ];
