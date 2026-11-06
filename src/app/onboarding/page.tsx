@@ -14,6 +14,7 @@ import {
   createBusinessAction,
   getMyBusinessSlug,
   resendConfirmationAction,
+  verifyMobileMoneyNumberAction,
 } from "@/app/actions/onboarding";
 
 type Step = "account" | "verify" | "intent" | "business" | "done";
@@ -21,18 +22,8 @@ type Focus = "full_erp" | "marketplace_only";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
-const TIMEZONES = [
-  { value: "Africa/Lusaka", label: "Africa/Lusaka (CAT)" },
-  { value: "Africa/Nairobi", label: "Africa/Nairobi (EAT)" },
-  { value: "Africa/Lagos", label: "Africa/Lagos (WAT)" },
-  { value: "Africa/Accra", label: "Africa/Accra (GMT)" },
-  { value: "Africa/Johannesburg", label: "Africa/Johannesburg (SAST)" },
-  { value: "Africa/Cairo", label: "Africa/Cairo (EET)" },
-  { value: "Europe/London", label: "Europe/London (GMT/BST)" },
-  { value: "America/New_York", label: "America/New_York (EST/EDT)" },
-  { value: "America/Chicago", label: "America/Chicago (CST/CDT)" },
-  { value: "America/Los_Angeles", label: "America/Los_Angeles (PST/PDT)" },
-];
+// Zambia-only at launch. Add a timezone picker back when other countries open up.
+const DEFAULT_TIMEZONE = "Africa/Lusaka";
 
 function slugify(name: string) {
   return name
@@ -73,8 +64,12 @@ export default function OnboardingPage() {
   const [businessName, setBusinessName] = useState("");
   const [slug, setSlug] = useState("");
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "taken" | "available">("idle");
-  const [timezone, setTimezone] = useState("Africa/Lusaka");
   const [businessError, setBusinessError] = useState<string | null>(null);
+  const [contactPhone, setContactPhone] = useState("");
+  const [operator, setOperator] = useState<"airtel" | "mtn" | "zamtel">("airtel");
+  const [useForPayout, setUseForPayout] = useState(true);
+  const [verifyState, setVerifyState] = useState<{ status: "idle" | "checking" | "ok" | "error"; text?: string }>({ status: "idle" });
+  const [payoutWarning, setPayoutWarning] = useState<string | null>(null);
   const [workspaceUrl, setWorkspaceUrl] = useState("");
   const [isDev, setIsDev] = useState(false);
 
@@ -159,6 +154,16 @@ export default function OnboardingPage() {
     resendConfirmationAction(email).finally(() => setResending(false));
   };
 
+  const handleVerifyNumber = async () => {
+    setVerifyState({ status: "checking" });
+    const result = await verifyMobileMoneyNumberAction(contactPhone, operator);
+    setVerifyState(
+      result.success
+        ? { status: "ok", text: `Registered to ${result.accountName}` }
+        : { status: "error", text: result.message ?? "We couldn't verify that number." }
+    );
+  };
+
   const handleBusinessSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setBusinessError(null);
@@ -167,12 +172,21 @@ export default function OnboardingPage() {
       return;
     }
     startTransition(async () => {
-      const result = await createBusinessAction({ name: businessName, slug, timezone, focus: focus ?? "full_erp" });
+      const result = await createBusinessAction({
+        name: businessName,
+        slug,
+        timezone: DEFAULT_TIMEZONE,
+        focus: focus ?? "full_erp",
+        contactPhone,
+        operator,
+        useForPayout,
+      });
       if (!result.success) {
         setBusinessError(result.message ?? "Failed to create workspace");
         return;
       }
       setIsDev(!!result.isDev);
+      setPayoutWarning(result.payoutWarning ?? null);
       setWorkspaceUrl(
         result.isDev
           ? "http://localhost:3000/dashboard"
@@ -479,7 +493,7 @@ export default function OnboardingPage() {
                     Set up your workspace
                   </h1>
                   <p className="text-sm text-gray-500 mb-6">
-                    This is your business&apos;s private ERP environment. You can invite team members later.
+                    This is your business&apos;s private workspace. You can invite team members later.
                   </p>
 
                   <form onSubmit={handleBusinessSubmit} className="space-y-5">
@@ -524,16 +538,67 @@ export default function OnboardingPage() {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1.5">Timezone</label>
-                      <select
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
-                        className="w-full px-3 py-2.5 text-sm rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5fa8a0]/30 focus:bg-white transition-all appearance-none"
-                      >
-                        {TIMEZONES.map((t) => (
-                          <option key={t.value} value={t.value}>{t.label}</option>
-                        ))}
-                      </select>
+                      <label className="text-sm font-medium text-gray-700 block mb-1.5">Phone or WhatsApp for buyers</label>
+                      <div className="flex gap-2">
+                        <select
+                          value={operator}
+                          onChange={(e) => {
+                            setOperator(e.target.value as typeof operator);
+                            setVerifyState({ status: "idle" });
+                          }}
+                          aria-label="Mobile network"
+                          className="px-3 py-2.5 text-sm rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5fa8a0]/30"
+                        >
+                          <option value="airtel">Airtel</option>
+                          <option value="mtn">MTN</option>
+                          <option value="zamtel">Zamtel</option>
+                        </select>
+                        <input
+                          type="tel"
+                          inputMode="tel"
+                          required
+                          value={contactPhone}
+                          onChange={(e) => {
+                            setContactPhone(e.target.value);
+                            setVerifyState({ status: "idle" });
+                          }}
+                          placeholder="0977123456"
+                          className="w-full px-4 py-2.5 text-sm rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#5fa8a0]/30 focus:bg-white transition-all flex-1 min-w-0"
+                        />
+                      </div>
+                      <p className="mt-1.5 text-xs text-gray-400">Buyers see this only after they&apos;ve paid, to arrange delivery with you.</p>
+
+                      <label className="mt-3 flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={useForPayout}
+                          onChange={(e) => setUseForPayout(e.target.checked)}
+                          className="mt-0.5 accent-[#5fa8a0]"
+                        />
+                        <span>Pay my marketplace sales to this mobile money number</span>
+                      </label>
+
+                      {useForPayout && (
+                        <div className="mt-2 ml-6 flex flex-wrap items-center gap-2 text-xs">
+                          <button
+                            type="button"
+                            onClick={handleVerifyNumber}
+                            disabled={contactPhone.replace(/[^\d]/g, "").length < 10 || verifyState.status === "checking"}
+                            className="font-semibold text-[#0e1a18] underline underline-offset-4 disabled:text-gray-300 disabled:no-underline"
+                          >
+                            {verifyState.status === "checking" ? "Checking..." : "Verify number"}
+                          </button>
+                          {verifyState.status === "ok" && (
+                            <span className="flex items-center gap-1 text-emerald-600">
+                              <Check size={11} strokeWidth={3} /> {verifyState.text}
+                            </span>
+                          )}
+                          {verifyState.status === "error" && <span className="text-red-600">{verifyState.text}</span>}
+                          {verifyState.status === "idle" && (
+                            <span className="text-gray-400">Check the name on the account before you continue.</span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {businessError && (
@@ -584,8 +649,14 @@ export default function OnboardingPage() {
                     Workspace created
                   </h1>
                   <p className="text-sm text-gray-500 mb-8 max-w-xs mx-auto">
-                    Your workspace is ready. Open it to start adding orders, customers, and inventory.
+                    {focus === "marketplace_only"
+                      ? "Your workspace is ready. Open it to add your first products and set up your shop."
+                      : "Your workspace is ready. Open it to start adding orders, customers, and inventory."}
                   </p>
+
+                  {payoutWarning && (
+                    <p className="text-xs text-amber-800 bg-amber-50 rounded-lg px-3 py-2.5 mb-6 max-w-xs mx-auto">{payoutWarning}</p>
+                  )}
 
                   <a
                     href={workspaceUrl}

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { resolveMobileMoneyAccount, createMobileMoneyTransferRecipient, type LencoOperator } from "@/lib/lenco";
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? "titunge.com";
 
@@ -22,6 +23,35 @@ interface CreateBusinessInput {
   slug: string;
   timezone: string;
   focus: "full_erp" | "marketplace_only";
+  /** Shown to buyers after they pay, so they can arrange delivery. */
+  contactPhone: string;
+  operator: LencoOperator;
+  /** Also use contactPhone as the mobile money payout account. */
+  useForPayout: boolean;
+}
+
+function phoneDigits(phone: string): string {
+  return phone.replace(/[^\d]/g, "");
+}
+
+/** Looks up the name Lenco has registered for a mobile money number, so the
+ *  owner can confirm it's theirs before it's saved as their payout account.
+ *  Runs before the business exists, so it only needs a signed-in user. */
+export async function verifyMobileMoneyNumberAction(
+  phone: string,
+  operator: LencoOperator
+): Promise<{ success: boolean; accountName?: string; message?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: "Please sign in again." };
+  if (phoneDigits(phone).length < 10) return { success: false, message: "Enter a 10-digit number, e.g. 0977123456." };
+
+  try {
+    const resolved = await resolveMobileMoneyAccount(phone, operator);
+    return { success: true, accountName: resolved.accountName };
+  } catch (err) {
+    return { success: false, message: err instanceof Error ? err.message : "We couldn't verify that number." };
+  }
 }
 
 export async function signUpAction(
@@ -114,6 +144,8 @@ export async function createBusinessAction(input: CreateBusinessInput): Promise<
   slug?: string;
   isDev?: boolean;
   message?: string;
+  /** Set when the business was created but the payout account couldn't be. */
+  payoutWarning?: string;
 }> {
   try {
     const supabase = await createClient();
@@ -121,6 +153,10 @@ export async function createBusinessAction(input: CreateBusinessInput): Promise<
 
     if (authError) return { success: false, message: `Auth error: ${authError.message}` };
     if (!user) return { success: false, message: "Not authenticated" };
+
+    if (phoneDigits(input.contactPhone).length < 10) {
+      return { success: false, message: "Enter a 10-digit phone number buyers can reach you on, e.g. 0977123456." };
+    }
 
     if (!/^[a-z0-9-]{3,40}$/.test(input.slug)) {
       return { success: false, message: "Slug must be 3-40 characters: lowercase letters, numbers, and hyphens only." };
@@ -184,7 +220,37 @@ export async function createBusinessAction(input: CreateBusinessInput): Promise<
       { onConflict: "id" }
     );
 
-    return { success: true, slug: business.slug, isDev: process.env.NODE_ENV === "development" };
+    await (admin.from("business_storefront") as any).upsert(
+      { business_id: business.id, contact_phone: input.contactPhone.trim() },
+      { onConflict: "business_id" }
+    );
+
+    // Best-effort: the workspace is usable without it, and the dashboard and
+    // payout banner keep prompting until a payout account exists.
+    let payoutWarning: string | undefined;
+    if (input.useForPayout) {
+      try {
+        const recipient = await createMobileMoneyTransferRecipient(input.contactPhone, input.operator);
+        const now = new Date().toISOString();
+        const { error: payoutError } = await admin.from("business_payout_profiles").upsert(
+          {
+            business_id: business.id,
+            payout_method: "mobile-money",
+            account_details: { method: "mobile-money", phone: input.contactPhone.trim(), operator: input.operator },
+            lenco_recipient_id: recipient.id,
+            verified_at: now,
+            updated_at: now,
+          },
+          { onConflict: "business_id" }
+        );
+        if (payoutError) throw new Error(payoutError.message);
+      } catch (err) {
+        console.error("Onboarding payout profile failed:", err);
+        payoutWarning = "Your workspace is ready, but we couldn't set up payouts to that number. Add a payout account in Settings > Marketplace.";
+      }
+    }
+
+    return { success: true, slug: business.slug, isDev: process.env.NODE_ENV === "development", payoutWarning };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return { success: false, message: `Unexpected error: ${message}` };

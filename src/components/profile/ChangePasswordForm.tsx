@@ -61,11 +61,11 @@ export default function ChangePasswordForm() {
           <Input
             id="password"
             type="password"
-            placeholder="At least 6 characters"
+            placeholder="At least 8 characters"
             disabled={isPending}
             {...register("password", {
               required: "Password is required",
-              minLength: { value: 6, message: "Must be at least 6 characters" },
+              minLength: { value: 8, message: "Must be at least 8 characters" },
             })}
           />
           {errors.password && (
