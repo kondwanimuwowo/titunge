@@ -6,12 +6,13 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { Breadcrumb } from "./Breadcrumb";
 import { ProductCard } from "./ProductCard";
 import type { MarketplaceProduct } from "@/lib/marketplace-db";
-import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
+import { MARKETPLACE_CATEGORIES, categorySlugsMatching } from "@/data/marketplace-categories";
 import { ZAMBIA_PROVINCES } from "@/data/zambia-provinces";
 
-type SortOption = "newest" | "price-asc" | "price-desc";
+type SortOption = "recommended" | "newest" | "price-asc" | "price-desc";
 
 const SORT_LABELS: Record<SortOption, string> = {
+  recommended: "Recommended",
   newest: "Newest",
   "price-asc": "Price low to high",
   "price-desc": "Price high to low",
@@ -22,7 +23,7 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get("category") ?? "";
   const initialQuery = searchParams.get("q") ?? "";
-  const [sort, setSort] = useState<SortOption>("newest");
+  const [sort, setSort] = useState<SortOption>("recommended");
   const [query, setQuery] = useState(initialQuery);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -49,11 +50,13 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
       : allProducts;
     const q = initialQuery.trim().toLowerCase();
     if (q) {
+      const matchingCategories = categorySlugsMatching(q);
       list = list.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           (p.description ?? "").toLowerCase().includes(q) ||
-          p.seller.toLowerCase().includes(q)
+          p.seller.toLowerCase().includes(q) ||
+          matchingCategories.includes(p.categorySlug)
       );
     }
     const min = Number(minPrice);
@@ -62,7 +65,9 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
     if (maxPrice && !Number.isNaN(max)) list = list.filter((p) => p.priceZmw <= max);
     if (provinces.length > 0) list = list.filter((p) => provinces.includes(p.province));
     list = [...list];
-    if (sort === "price-asc") list.sort((a, b) => a.priceZmw - b.priceZmw);
+    // "recommended" keeps the server's seller-mixed order.
+    if (sort === "newest") list.sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+    else if (sort === "price-asc") list.sort((a, b) => a.priceZmw - b.priceZmw);
     else if (sort === "price-desc") list.sort((a, b) => b.priceZmw - a.priceZmw);
     return list;
   }, [allProducts, activeCategory, initialQuery, sort, minPrice, maxPrice, provinces]);

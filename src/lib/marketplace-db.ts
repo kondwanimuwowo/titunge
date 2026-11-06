@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/server";
+import { mixBySeller } from "@/lib/marketplace-mix";
 
 /**
  * Public marketplace reads, deliberately cross-tenant. Uses the service-role
@@ -36,6 +37,7 @@ export interface MarketplaceProduct {
   description: string;
   shipping: MarketplaceProductShipping;
   care: string;
+  createdAt?: string;
   rating?: number;
   reviewCount?: number;
 }
@@ -111,6 +113,7 @@ function toMarketplaceProduct(row: any): MarketplaceProduct {
       returns: storefront.returns_policy || FALLBACK.returns,
     },
     care: extra?.care_instructions || FALLBACK.care,
+    createdAt: row.created_at ?? undefined,
   };
 }
 
@@ -204,13 +207,9 @@ export async function getFeaturedProducts(limit = 8): Promise<MarketplaceProduct
     .map(toMarketplaceProduct)
     .filter((p: MarketplaceProduct) => !seen.has(p.id));
 
-  // Stable sort: products with a real photo first, but otherwise keeping
-  // the existing order (featured-before-filler, newest-first within each).
-  const combined = [...featured, ...filler].sort(
-    (a, b) => Number(Boolean(b.image)) - Number(Boolean(a.image))
-  );
-
-  return combined.slice(0, limit);
+  // Sellers take turns so one shop can't fill the row; within a seller,
+  // featured items still lead.
+  return mixBySeller([...featured, ...filler], { keepOrderWithinSeller: true }).slice(0, limit);
 }
 
 export async function getMarketplaceSellers(): Promise<MarketplaceSeller[]> {
