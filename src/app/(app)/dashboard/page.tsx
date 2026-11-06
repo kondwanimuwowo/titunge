@@ -14,9 +14,15 @@ import MaterialUsageChart from "@/components/dashboard/MaterialUsageChart";
 import EmployeeProductivityChart from "@/components/dashboard/EmployeeProductivityChart";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import type { OrderStatus } from "@/lib/types/database";
+import MarketplaceDashboard from "@/components/dashboard/MarketplaceDashboard";
+import { getSellerMarketplaceOrders } from "@/lib/data/marketplace-seller-orders";
+import { getMarketplaceSalesStats } from "@/lib/data/marketplace-analytics";
+import { getInquiryStats } from "@/lib/data/inquiries";
 
 export default async function DashboardPage() {
-  const { businessId, userId, business } = await getBusinessContext();
+  const { businessId, userId, business, role } = await getBusinessContext();
+  // Employees can't open Finance or Analytics, so they don't see money figures here either.
+  const showMoney = role !== "employee";
 
   const supabase = await createClient();
   const { data: profileData } = await supabase
@@ -26,6 +32,52 @@ export default async function DashboardPage() {
     .maybeSingle();
 
   const firstName = (profileData as any)?.full_name?.split(" ")[0];
+  const header = (
+    <PageHeader
+      title={`Welcome back, ${firstName || 'Team'}!`}
+      description={`Here's a snapshot of what's happening with ${business.name} today.`}
+    />
+  );
+
+  if (business.focus === "marketplace_only") {
+    const [salesStats, orders, inquiryStats, { count: listedCount }, { data: storefront }, { data: payoutProfile }] =
+      await Promise.all([
+        getMarketplaceSalesStats(businessId),
+        getSellerMarketplaceOrders(businessId),
+        getInquiryStats(businessId),
+        // Same listing rule as lib/marketplace-db.ts: active finished good with a photo.
+        (supabase.from("products") as any)
+          .select("id", { count: "exact", head: true })
+          .eq("business_id", businessId)
+          .eq("active", true)
+          .is("deleted_at", null)
+          .eq("product_type", "finished_good")
+          .not("images", "is", null)
+          .neq("images", "[]"),
+        (supabase.from("business_storefront") as any).select("province, contact_phone").eq("business_id", businessId).maybeSingle(),
+        (supabase.from("business_payout_profiles") as any).select("payout_method").eq("business_id", businessId).maybeSingle(),
+      ]);
+
+    return (
+      <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {header}
+        <MarketplaceDashboard
+          showMoney={showMoney}
+          data={{
+            salesTotal: salesStats.totalRevenue,
+            paidOrderCount: salesStats.orderCount,
+            orders,
+            newQuestions: inquiryStats.newCount,
+            listedCount: listedCount ?? 0,
+            hasProvince: !!storefront?.province,
+            hasContactPhone: !!storefront?.contact_phone,
+            hasPayoutAccount: !!payoutProfile?.payout_method,
+          }}
+        />
+      </div>
+    );
+  }
+
   const data = await getDashboardStats(businessId);
 
   const clockedInToday = data.raw.todayAttendance.filter((a: any) => !a.clock_out).length;
@@ -33,13 +85,11 @@ export default async function DashboardPage() {
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <DashboardRealtime />
-      <PageHeader
-        title={`Welcome back, ${firstName || 'Team'}!`}
-        description={`Here's a snapshot of what's happening with ${business.name} today.`}
-      />
+      {header}
 
       {/* KPI Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${showMoney ? "lg:grid-cols-4" : ""} gap-4`}>
+        {showMoney && (
         <StatsCard
           title="Total Revenue"
           value={`K${data.orders.totalRevenue.toLocaleString()}`}
@@ -48,6 +98,7 @@ export default async function DashboardPage() {
           color="blue"
           delay={0.1}
         />
+        )}
         <StatsCard
           title="Total Orders"
           value={data.orders.total}
@@ -56,13 +107,15 @@ export default async function DashboardPage() {
           color="green"
           delay={0.2}
         />
+        {showMoney && (
         <StatsCard
           title="Avg Order Value"
-          value={`K${(data.orders.total > 0 ? (data.orders.totalRevenue / data.orders.total) : 0).toFixed(0)}`}
+          value={`K${(data.orders.earnedCount > 0 ? (data.orders.totalRevenue / data.orders.earnedCount) : 0).toFixed(0)}`}
           icon={<TrendingUp size={18} />}
           color="yellow"
           delay={0.3}
         />
+        )}
         <StatsCard
           title="Low Stock Items"
           value={data.inventory.lowStockCount}
@@ -75,14 +128,15 @@ export default async function DashboardPage() {
 
       {/* Primary Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RevenueChart data={data.revenue.monthlyRevenue.map((r, i) => ({ month: i.toString(), revenue: r }))} />
+        {showMoney && (
+          <RevenueChart data={data.revenue.monthlyRevenue.map((r, i) => ({ month: i.toString(), revenue: r }))} />
+        )}
         <OrderStatusChart data={Object.entries(data.orders.byStatus).map(([status, count]) => ({ status, count }))} />
       </div>
 
       {/* Secondary Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MaterialUsageChart data={data.raw.lowStockMaterials as any} /> 
-        {/* We reuse the material node here for MVP, assuming low stock is top materials; we normally need usage array */}
+        <MaterialUsageChart data={data.raw.materials as any} />
         <EmployeeProductivityChart data={data.raw.todayAttendance} />
       </div>
 
@@ -110,17 +164,19 @@ export default async function DashboardPage() {
                       <p className="font-semibold text-sm text-foreground">{order.order_number}</p>
                       <OrderStatusBadge status={(order.status || 'enquiry') as OrderStatus} />
                     </div>
-                    {/* Real app would populate customer info here via joined query in data access layer */}
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1.5">
+                      {order.customers?.name && <span className="text-foreground/80">{order.customers.name} &middot;</span>}
                       <Calendar size={12} />
                       {order.created_at ? format(new Date(order.created_at), "MMM dd, yyyy") : 'Unknown Date'}
                     </p>
                   </div>
+                  {showMoney && (
                   <div className="text-right">
                     <p className="font-bold text-sm text-foreground">
                       K{parseFloat(order.total_cost || "0").toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
+                  )}
                 </div>
               ))}
             </div>

@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { deleteExpense } from "@/app/actions/finance";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Receipt, Download, Sparkle, RefreshCw } from "lucide-react";
+import { Plus, Trash2, Receipt, Download, Sparkle, RefreshCw, Edit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ExpensesManagerProps {
@@ -126,15 +126,24 @@ export default function ExpensesManager({
                       {expense.payment_method || "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(expense.id)}
-                        disabled={isPending}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {!expense.auto_generated && (
+                          <Link href={`/finance/expenses/${expense.id}/edit`} aria-label="Edit expense">
+                            <Button variant="ghost" size="sm" disabled={isPending} className="h-8 w-8 p-0">
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(expense.id)}
+                          disabled={isPending}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

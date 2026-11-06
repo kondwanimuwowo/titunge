@@ -13,7 +13,7 @@ export async function getDashboardStats(businessId: string) {
       { data: employees },
       { data: todayAttendance },
     ] = await Promise.all([
-      (supabase.from("orders") as any).select("*").eq("business_id", businessId).is("deleted_at", null),
+      (supabase.from("orders") as any).select("*, customers(name)").eq("business_id", businessId).is("deleted_at", null),
       (supabase.from("customers") as any).select("*").eq("business_id", businessId).is("deleted_at", null),
       (supabase.from("materials") as any).select("*").eq("business_id", businessId).is("deleted_at", null),
       (supabase.from("employees") as any).select("*").eq("business_id", businessId).eq("active", true),
@@ -49,6 +49,7 @@ export async function getDashboardStats(businessId: string) {
       },
       raw: {
         recentOrders: (orders || []).sort((a: any, b: any) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()).slice(0, 5),
+        materials: materials || [],
         lowStockMaterials: (materials || []).filter((m: any) => (m.stock_quantity ?? 0) <= (m.min_stock_level ?? 0)),
         todayAttendance: todayAttendance || [],
       }
@@ -61,6 +62,18 @@ export async function getDashboardStats(businessId: string) {
 
 // Helper calculation functions (extrapolated from legacy)
 
+// Same rule as Finance (getFinancialSummary): revenue is earned when an order
+// is completed or delivered, and it belongs to the order's date.
+function isEarned(order: any): boolean {
+  const status = (order.status || "").toLowerCase();
+  return status === "completed" || status === "delivered";
+}
+
+function orderDateOf(order: any): Date | null {
+  const raw = order.order_date || order.created_at;
+  return raw ? new Date(raw) : null;
+}
+
 function calculateOrderStats(orders: any[]) {
   const now = new Date();
   const thisMonth = now.getMonth();
@@ -70,6 +83,7 @@ function calculateOrderStats(orders: any[]) {
 
   const statusCounts: Record<string, number> = {};
   let totalRevenue = 0;
+  let earnedCount = 0;
   let thisMonthOrders = 0;
   let lastMonthOrders = 0;
   let thisMonthRevenue = 0;
@@ -78,14 +92,22 @@ function calculateOrderStats(orders: any[]) {
   orders.forEach((order) => {
     const status = (order.status || "enquiry").toLowerCase();
     statusCounts[status] = (statusCounts[status] || 0) + 1;
-    totalRevenue += parseFloat(order.total_cost || "0");
+    if (isEarned(order)) {
+      totalRevenue += parseFloat(order.total_cost || "0");
+      earnedCount++;
+    }
     pendingBalance += parseFloat(order.balance_due || "0");
 
     if (order.created_at) {
       const orderDate = new Date(order.created_at);
       if (orderDate.getMonth() === thisMonth && orderDate.getFullYear() === thisYear) {
         thisMonthOrders++;
-        thisMonthRevenue += parseFloat(order.total_cost || "0");
+        if (isEarned(order)) {
+          const earnedDate = orderDateOf(order);
+          if (earnedDate && earnedDate.getMonth() === thisMonth && earnedDate.getFullYear() === thisYear) {
+            thisMonthRevenue += parseFloat(order.total_cost || "0");
+          }
+        }
       }
       if (orderDate.getMonth() === lastMonth && orderDate.getFullYear() === lastMonthYear) {
         lastMonthOrders++;
@@ -104,6 +126,7 @@ function calculateOrderStats(orders: any[]) {
     total: orders.length,
     byStatus: statusCounts,
     totalRevenue,
+    earnedCount,
     thisMonthOrders,
     thisMonthRevenue,
     pendingBalance,
@@ -164,12 +187,9 @@ function calculateRevenueStats(orders: any[]) {
   const revenueByStatus: Record<string, number> = {};
 
   orders.forEach((order) => {
-    if (order.created_at) {
-      const orderDate = new Date(order.created_at);
-      if (orderDate.getFullYear() === currentYear) {
-        const month = orderDate.getMonth();
-        monthlyRevenue[month] += parseFloat(order.total_cost || "0");
-      }
+    const orderDate = orderDateOf(order);
+    if (isEarned(order) && orderDate && orderDate.getFullYear() === currentYear) {
+      monthlyRevenue[orderDate.getMonth()] += parseFloat(order.total_cost || "0");
     }
 
     const status = (order.status || "enquiry").toLowerCase();

@@ -6,6 +6,7 @@ export async function getFinancialSummary(businessId: string, startDate: string,
   const [ordersResult, overheadResult, expensesResult, paymentsResult] = await Promise.all([
     (supabase.from("orders") as any)
       .select("id, total_cost, material_cost, labour_cost, overhead_cost, status")
+      .is("deleted_at", null)
       .eq("business_id", businessId)
       .gte("order_date", startDate)
       .lte("order_date", endDate),
@@ -240,6 +241,17 @@ export async function getOverheadCosts(businessId: string, startDate: string, en
   }
 
   return data || [];
+}
+
+export async function getExpenseById(businessId: string, id: string) {
+  const supabase = await createClient();
+  const { data, error } = await (supabase.from("expenses") as any)
+    .select("*")
+    .eq("business_id", businessId)
+    .eq("id", id)
+    .single();
+  if (error && error.code !== "PGRST116") return null;
+  return data || null;
 }
 
 export async function getOverheadById(businessId: string, id: string) {
