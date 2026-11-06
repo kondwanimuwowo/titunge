@@ -7,7 +7,7 @@ const CARDS = [
     accent: "#5fa8a0",
     title: "Sell your craft",
     description:
-      "Open a shop on Titunge and reach customers across the continent. Listing is free and you keep control of your prices.",
+      "Open a shop on Titunge and reach customers across Zambia. Listing is free and you set your own prices.",
     href: "/sell",
     cta: "Start selling",
   },

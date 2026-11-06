@@ -29,19 +29,19 @@ export function Hero() {
         </FadeIn>
         <FadeIn delay={0.1}>
           <p className="mt-4 text-[#c9d4d2] text-base lg:text-lg leading-relaxed max-w-md">
-            Fabric, garments, and custom pieces from independent makers across Africa.
+            Fabric, garments, and custom pieces from independent Zambian makers.
           </p>
         </FadeIn>
         <FadeIn delay={0.18} className="mt-8 flex flex-wrap gap-4">
           <Link
-            href="#new"
+            href="/browse"
             className="text-white text-base font-bold rounded-full px-8 py-3.5 transition-colors hover:bg-[#4f958d]"
             style={{ backgroundColor: "#5fa8a0" }}
           >
             Shop now
           </Link>
           <Link
-            href="#sell"
+            href="/sell"
             className="bg-white text-[#0e1a18] text-base font-bold rounded-full px-8 py-3.5 transition-colors hover:bg-gray-100"
           >
             Start selling

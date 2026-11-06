@@ -4,15 +4,13 @@ import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
 
 const SELL_LINKS = [
   { label: "Start selling", href: "/sell" },
-  { label: "Seller handbook", href: "/sell" },
-  { label: "Fees", href: "/sell" },
+  { label: "Pricing and fees", href: "/pricing" },
   { label: "Titunge for Business", href: "/business" },
 ];
 
 const COMPANY_LINKS = [
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Help center", href: "/contact" },
 ];
 
 export function MarketplaceFooter() {
@@ -25,7 +23,7 @@ export function MarketplaceFooter() {
               <Image src="/titunge-logo.png" alt="Titunge" width={128} height={32} className="h-8 w-auto object-contain" />
             </Link>
             <p className="text-sm text-[#c9d4d2] leading-relaxed max-w-[280px]">
-              A marketplace for fashion and tailoring, made in Africa.
+              A marketplace for fashion and tailoring, made in Zambia.
             </p>
           </div>
 

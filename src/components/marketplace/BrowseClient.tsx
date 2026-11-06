@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { Breadcrumb } from "./Breadcrumb";
 import { ProductCard } from "./ProductCard";
 import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
+import { ZAMBIA_PROVINCES } from "@/data/zambia-provinces";
 
 type SortOption = "newest" | "price-asc" | "price-desc";
 
@@ -16,8 +17,6 @@ const SORT_LABELS: Record<SortOption, string> = {
   "price-desc": "Price high to low",
 };
 
-const SHIPS_FROM = ["Zambia", "Ghana", "Nigeria", "Kenya", "Senegal"];
-
 export function BrowseClient({ products: allProducts }: { products: MarketplaceProduct[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -25,6 +24,22 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
   const initialQuery = searchParams.get("q") ?? "";
   const [sort, setSort] = useState<SortOption>("newest");
   const [query, setQuery] = useState(initialQuery);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [provinces, setProvinces] = useState<string[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilterCount = provinces.length + (minPrice ? 1 : 0) + (maxPrice ? 1 : 0);
+
+  const toggleProvince = (province: string) =>
+    setProvinces((current) =>
+      current.includes(province) ? current.filter((p) => p !== province) : [...current, province]
+    );
+
+  const clearFilters = () => {
+    setMinPrice("");
+    setMaxPrice("");
+    setProvinces([]);
+  };
 
   const category = MARKETPLACE_CATEGORIES.find((c) => c.slug === activeCategory);
 
@@ -41,11 +56,16 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
           p.seller.toLowerCase().includes(q)
       );
     }
+    const min = Number(minPrice);
+    const max = Number(maxPrice);
+    if (minPrice && !Number.isNaN(min)) list = list.filter((p) => p.priceZmw >= min);
+    if (maxPrice && !Number.isNaN(max)) list = list.filter((p) => p.priceZmw <= max);
+    if (provinces.length > 0) list = list.filter((p) => provinces.includes(p.province));
     list = [...list];
     if (sort === "price-asc") list.sort((a, b) => a.priceZmw - b.priceZmw);
     else if (sort === "price-desc") list.sort((a, b) => b.priceZmw - a.priceZmw);
     return list;
-  }, [allProducts, activeCategory, initialQuery, sort]);
+  }, [allProducts, activeCategory, initialQuery, sort, minPrice, maxPrice, provinces]);
 
   const selectCategory = (slug: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -68,7 +88,17 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
       <h1 className="text-3xl font-extrabold tracking-tight mb-8">{category?.name ?? "All items"}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-10">
-        <aside className="flex flex-col gap-8">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          aria-expanded={filtersOpen}
+          className="lg:hidden inline-flex items-center gap-2 self-start text-sm font-semibold border border-gray-200 rounded-full px-4 py-2"
+        >
+          <SlidersHorizontal size={15} />
+          Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+        </button>
+
+        <aside className={`${filtersOpen ? "flex" : "hidden"} lg:flex flex-col gap-8`}>
           <div>
             <h3 className="text-sm font-bold mb-3">Category</h3>
             <div className="flex flex-col gap-2">
@@ -93,47 +123,58 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
           </div>
 
           <div>
-            <h3 className="text-sm font-bold mb-3">Price range</h3>
+            <h3 className="text-sm font-bold mb-3">Price range (K)</h3>
             <div className="flex items-center gap-2">
-              <input type="number" placeholder="Min" className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5" />
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                placeholder="Min"
+                aria-label="Minimum price"
+                className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5"
+              />
               <span className="text-gray-400">to</span>
-              <input type="number" placeholder="Max" className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5" />
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                placeholder="Max"
+                aria-label="Maximum price"
+                className="w-full text-sm border border-gray-200 rounded-md px-2 py-1.5"
+              />
             </div>
           </div>
 
           <div>
             <h3 className="text-sm font-bold mb-3">Ships from</h3>
             <div className="flex flex-col gap-2">
-              {SHIPS_FROM.map((country, i) => (
-                <label key={country} className="flex items-center gap-2 text-sm text-gray-600">
-                  <input type="checkbox" defaultChecked={i === 0} className="accent-[#5fa8a0]" />
-                  {country}
+              {ZAMBIA_PROVINCES.map((province) => (
+                <label key={province} className="flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={provinces.includes(province)}
+                    onChange={() => toggleProvince(province)}
+                    className="accent-[#5fa8a0]"
+                  />
+                  {province}
                 </label>
               ))}
             </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-bold mb-3">Rating</h3>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 text-sm text-gray-600">
-                <input type="checkbox" defaultChecked className="accent-[#5fa8a0]" />
-                4 stars and up
-              </label>
-              <label className="flex items-center gap-2 text-sm text-gray-600">
-                <input type="checkbox" className="accent-[#5fa8a0]" />
-                3 stars and up
-              </label>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="text-white text-sm font-semibold rounded-full px-6 py-2.5 transition-colors hover:bg-[#4f958d]"
-            style={{ backgroundColor: "#5fa8a0" }}
-          >
-            Apply filters
-          </button>
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="self-start text-sm font-semibold text-[#0e1a18] underline underline-offset-4 hover:text-[#5fa8a0]"
+            >
+              Clear filters
+            </button>
+          )}
         </aside>
 
         <div>
@@ -176,7 +217,9 @@ export function BrowseClient({ products: allProducts }: { products: MarketplaceP
           </div>
 
           {products.length === 0 ? (
-            <p className="text-sm text-gray-500 py-16 text-center">No items in this category yet.</p>
+            <p className="text-sm text-gray-500 py-16 text-center">
+              {activeFilterCount > 0 ? "No items match these filters." : "No items in this category yet."}
+            </p>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (

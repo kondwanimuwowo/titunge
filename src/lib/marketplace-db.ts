@@ -28,6 +28,7 @@ export interface MarketplaceProduct {
   seller: string;
   sellerSlug: string;
   categorySlug: string;
+  province: string;
   image: string;
   gallery: string[];
   priceZmw: number;
@@ -49,6 +50,7 @@ export interface MarketplaceSeller {
   slug: string;
   name: string;
   location: string;
+  province: string;
   avatar: string;
   banner: string;
   bio: string;
@@ -63,10 +65,19 @@ export interface MarketplaceSeller {
 const FALLBACK = {
   leadTime: "Contact the seller for lead time",
   shipsFrom: "Not specified",
-  delivery: "Contact the seller for delivery details",
+  delivery: "Arranged with the seller after you pay",
   returns: "Contact the seller for return policy",
   care: "",
 };
+
+/** "Kabulonga" + "Lusaka" -> "Kabulonga, Lusaka Province", without repeating
+ *  the province when the seller already typed it into their location. */
+function formatPlace(location: string | null | undefined, province: string | null | undefined): string {
+  const town = (location ?? "").trim();
+  if (!province) return town;
+  if (town.toLowerCase().includes(province.toLowerCase())) return town;
+  return town ? `${town}, ${province} Province` : `${province} Province`;
+}
 
 function toMarketplaceProduct(row: any): MarketplaceProduct {
   const business = row.businesses ?? {};
@@ -87,6 +98,7 @@ function toMarketplaceProduct(row: any): MarketplaceProduct {
     seller: business.name ?? "Unknown seller",
     sellerSlug: business.slug ?? "",
     categorySlug: extra?.category_slug ?? "",
+    province: storefront.province ?? "",
     image: images[0] ?? "",
     gallery: images.slice(1),
     priceZmw: Number(row.price ?? 0),
@@ -94,7 +106,7 @@ function toMarketplaceProduct(row: any): MarketplaceProduct {
     description: row.description ?? "",
     shipping: {
       leadTime: extra?.shipping_lead_time || FALLBACK.leadTime,
-      shipsFrom: storefront.location || FALLBACK.shipsFrom,
+      shipsFrom: formatPlace(storefront.location, storefront.province) || FALLBACK.shipsFrom,
       delivery: storefront.delivery_policy || FALLBACK.delivery,
       returns: storefront.returns_policy || FALLBACK.returns,
     },
@@ -109,7 +121,8 @@ function toMarketplaceSeller(row: any, itemCount: number): MarketplaceSeller {
   return {
     slug: row.slug,
     name: row.name,
-    location: storefront.location ?? "",
+    location: formatPlace(storefront.location, storefront.province),
+    province: storefront.province ?? "",
     avatar: row.logo_url ?? "",
     banner: storefront.banner_url ?? "",
     bio: storefront.bio ?? "",
@@ -126,7 +139,7 @@ function toMarketplaceSeller(row: any, itemCount: number): MarketplaceSeller {
 
 const PRODUCT_SELECT = `
   id, name, description, price, sizes, images, business_id, created_at,
-  businesses!inner(name, slug, status, marketplace_fee_mode, sizing_standard, business_storefront(location, delivery_policy, returns_policy)),
+  businesses!inner(name, slug, status, marketplace_fee_mode, sizing_standard, business_storefront(location, province, delivery_policy, returns_policy)),
   product_storefront_extra(category_slug, care_instructions, shipping_lead_time, featured)
 `;
 
@@ -205,7 +218,7 @@ export async function getMarketplaceSellers(): Promise<MarketplaceSeller[]> {
 
   const { data: businesses, error } = await admin
     .from("businesses")
-    .select("id, name, slug, logo_url, business_storefront(location, banner_url, bio, founded_year, delivery_policy, returns_policy, custom_orders_policy)")
+    .select("id, name, slug, logo_url, business_storefront(location, province, banner_url, bio, founded_year, delivery_policy, returns_policy, custom_orders_policy)")
     .eq("status", "active");
 
   if (error || !businesses) return [];
@@ -230,34 +243,27 @@ export async function getMarketplaceSellers(): Promise<MarketplaceSeller[]> {
     .sort((a, b) => b.itemCount - a.itemCount);
 }
 
-export interface MarketplaceStats {
-  makerCount: number;
-  productCount: number;
-  orderCount: number;
+export interface PublicPricing {
+  /** Marketplace commission as a whole-number percent, e.g. 10. */
+  commissionPercent: number;
+  seatPriceKwacha: number;
+  payoutReleaseHours: number;
 }
 
-export async function getMarketplaceStats(): Promise<MarketplaceStats> {
+/** Live plan/fee figures for public marketing pages, so copy can never drift
+ *  from what billing and payouts actually charge. Falls back to the schema
+ *  defaults if the settings row can't be read. */
+export async function getPublicPricing(): Promise<PublicPricing> {
   const admin = createAdminClient();
-
-  const [{ count: makerCount }, { count: productCount }, { count: orderCount }] = await Promise.all([
-    admin.from("businesses").select("id", { count: "exact", head: true }).eq("status", "active"),
-    withPhoto(
-      (admin.from("products") as any)
-        .select("id", { count: "exact", head: true })
-        .eq("active", true)
-        .is("deleted_at", null)
-        .eq("product_type", "finished_good")
-    ),
-    (admin.from("orders") as any)
-      .select("id", { count: "exact", head: true })
-      .in("status", ["completed", "delivered"])
-      .is("deleted_at", null),
-  ]);
+  const { data } = await (admin.from("platform_settings") as any)
+    .select("commission_rate, seat_price_kwacha, payout_release_window_hours")
+    .eq("id", true)
+    .maybeSingle();
 
   return {
-    makerCount: makerCount ?? 0,
-    productCount: productCount ?? 0,
-    orderCount: orderCount ?? 0,
+    commissionPercent: Math.round(Number(data?.commission_rate ?? 0.1) * 100),
+    seatPriceKwacha: Number(data?.seat_price_kwacha ?? 250),
+    payoutReleaseHours: Number(data?.payout_release_window_hours ?? 24),
   };
 }
 
@@ -268,7 +274,7 @@ export async function getMarketplaceSellerBySlug(
 
   const { data: business, error } = await admin
     .from("businesses")
-    .select("id, name, slug, logo_url, status, business_storefront(location, banner_url, bio, founded_year, delivery_policy, returns_policy, custom_orders_policy)")
+    .select("id, name, slug, logo_url, status, business_storefront(location, province, banner_url, bio, founded_year, delivery_policy, returns_policy, custom_orders_policy)")
     .eq("slug", slug)
     .eq("status", "active")
     .maybeSingle();

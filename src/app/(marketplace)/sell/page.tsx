@@ -1,32 +1,35 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Percent, Ruler, Wallet } from "lucide-react";
 import { ImagePlaceholder } from "@/components/marketplace/ImagePlaceholder";
-import { getMarketplaceStats } from "@/lib/marketplace-db";
+import { getPublicPricing } from "@/lib/marketplace-db";
 
-const FEATURES = [
-  {
-    icon: Percent,
-    title: "Free to start",
-    description: "No listing fees. Titunge takes a 5% commission only when an item sells.",
-  },
-  {
-    icon: Ruler,
-    title: "Built for makers",
-    description: "List made-to-order pieces with custom measurements, not just off-the-shelf stock.",
-  },
-  {
-    icon: Wallet,
-    title: "Get paid your way",
-    description: "Weekly payouts by mobile money or bank transfer, in your local currency.",
-  },
-];
+// Fee and payout figures come live from platform_settings.
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Sell on Titunge | Open your shop",
+  description: "List your garments, fabric, and made-to-order pieces on Titunge. No listing fees, paid by mobile money.",
+};
 
 export default async function SellPage() {
-  const stats = await getMarketplaceStats();
-  const STATS = [
-    { value: stats.makerCount.toLocaleString(), label: "makers selling" },
-    { value: stats.productCount.toLocaleString(), label: "products listed" },
-    { value: stats.orderCount.toLocaleString(), label: "orders delivered" },
+  const { commissionPercent, payoutReleaseHours } = await getPublicPricing();
+  const FEATURES = [
+    {
+      icon: Percent,
+      title: "Free to start",
+      description: `No listing fees. Titunge takes a ${commissionPercent}% fee only when an item sells.`,
+    },
+    {
+      icon: Ruler,
+      title: "Built for makers",
+      description: "List made-to-order pieces that need measurements, not just off-the-shelf stock.",
+    },
+    {
+      icon: Wallet,
+      title: "Get paid automatically",
+      description: `Paid to your mobile money or bank account ${payoutReleaseHours} hours after each order is delivered.`,
+    },
   ];
 
   return (
@@ -48,7 +51,7 @@ export default async function SellPage() {
             Sell your craft on Titunge
           </h1>
           <p className="mt-4 text-[#c9d4d2] text-base leading-relaxed max-w-md">
-            Reach customers across the continent looking for handmade fashion and made-to-order tailoring.
+            Reach customers across Zambia looking for handmade fashion and made-to-order tailoring.
           </p>
           <Link
             href="/onboarding"
@@ -74,19 +77,6 @@ export default async function SellPage() {
                 <h3 className="text-base font-bold">{feature.title}</h3>
               </div>
               <p className="text-sm text-gray-500 leading-relaxed">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="py-16" style={{ backgroundColor: "#f9f7f5" }}>
-        <div className="max-w-6xl mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          {STATS.map((stat) => (
-            <div key={stat.label}>
-              <div className="text-4xl font-extrabold" style={{ fontFamily: "var(--font-canter)" }}>
-                {stat.value}
-              </div>
-              <div className="text-sm text-gray-500 mt-2">{stat.label}</div>
             </div>
           ))}
         </div>

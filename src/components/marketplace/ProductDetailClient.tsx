@@ -8,6 +8,7 @@ import { ProductCard } from "./ProductCard";
 import { Breadcrumb } from "./Breadcrumb";
 import { WishlistToggleButton } from "./WishlistToggleButton";
 import { useCart } from "./CartProvider";
+import { AskSellerButton } from "./AskSellerButton";
 import type { MarketplaceProduct } from "@/lib/marketplace-db";
 import { MARKETPLACE_CATEGORIES } from "@/data/marketplace-categories";
 import { formatZmw } from "@/lib/marketplace-currency";
@@ -104,7 +105,7 @@ export function ProductDetailClient({ product, moreFromShop, initialWishlisted =
               ))}
             </div>
             {product.sizes.includes("Custom") && (
-              <p className="text-xs text-gray-500 mt-2">Select Custom to provide your own measurements after ordering.</p>
+              <p className="text-xs text-gray-500 mt-2">Select Custom and the maker will contact you to take your measurements.</p>
             )}
           </div>
 
@@ -123,11 +124,12 @@ export function ProductDetailClient({ product, moreFromShop, initialWishlisted =
             >
               Visit shop
             </Link>
+            <AskSellerButton sellerName={product.seller} productId={product.id} productName={product.name} size={size} />
           </div>
 
           <div className="mt-8 bg-gray-50 rounded-xl p-5 flex flex-col gap-2 text-sm">
             <div className="flex justify-between text-gray-600">
-              <span>Delivery</span>
+              <span>Ready in</span>
               <span className="text-[#0e1a18]">{product.shipping.leadTime}</span>
             </div>
             <div className="flex justify-between text-gray-600">
@@ -135,7 +137,7 @@ export function ProductDetailClient({ product, moreFromShop, initialWishlisted =
               <span className="text-[#0e1a18]">{product.shipping.shipsFrom}</span>
             </div>
             <div className="flex justify-between text-gray-600">
-              <span>Delivery time</span>
+              <span>Delivery</span>
               <span className="text-[#0e1a18]">{product.shipping.delivery}</span>
             </div>
             <div className="flex justify-between text-gray-600">

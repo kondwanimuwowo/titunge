@@ -16,6 +16,7 @@ export function MarketplaceNav() {
   const [businessUrl, setBusinessUrl] = useState("/business");
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const businessLabel = businessUrl === "/business" ? "For business" : "Your dashboard";
   const cartCount = items.reduce((sum, line) => sum + line.qty, 0);
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export function MarketplaceNav() {
             className="hidden md:inline text-sm font-semibold text-white rounded-full px-6 py-3 whitespace-nowrap transition-colors hover:bg-[#1c2f2c]"
             style={{ backgroundColor: "#0e1a18" }}
           >
-            Go to Titunge for Business
+            {businessLabel}
           </a>
 
           <button
@@ -141,7 +142,7 @@ export function MarketplaceNav() {
             style={{ backgroundColor: "#0e1a18" }}
             onClick={() => setMobileOpen(false)}
           >
-            Go to Titunge for Business
+            {businessLabel}
           </a>
         </div>
       )}

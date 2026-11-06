@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AskSellerButton } from "./AskSellerButton";
 import { ImagePlaceholder } from "./ImagePlaceholder";
 import { ProductCard } from "./ProductCard";
 import type { MarketplaceSeller, MarketplaceProduct } from "@/lib/marketplace-db";
@@ -12,7 +13,6 @@ interface ShopPageClientProps {
 }
 
 export function ShopPageClient({ seller, products }: ShopPageClientProps) {
-  const [following, setFollowing] = useState(false);
   const [filter, setFilter] = useState("");
 
   const filterOptions = useMemo(() => {
@@ -39,20 +39,11 @@ export function ShopPageClient({ seller, products }: ShopPageClientProps) {
                 : ""}
               {seller.itemCount} items
             </p>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setFollowing((v) => !v)}
-                className="text-sm font-semibold rounded-full px-6 py-2.5 transition-colors"
-                style={{
-                  backgroundColor: following ? "#5fa8a0" : "#0e1a18",
-                  color: "#ffffff",
-                }}
-              >
-                {following ? "Following" : "Follow shop"}
-              </button>
-              <span className="text-sm font-semibold text-gray-500">Message</span>
-            </div>
+            <AskSellerButton
+              sellerName={seller.name}
+              sellerSlug={seller.slug}
+              className="inline-flex items-center gap-2 text-sm font-semibold rounded-full px-6 py-2.5 text-white bg-[#0e1a18] hover:bg-[#1c2f2c] transition-colors"
+            />
             <p className="text-sm leading-relaxed max-w-xl text-gray-600 mt-2">{seller.bio}</p>
           </div>
         </div>

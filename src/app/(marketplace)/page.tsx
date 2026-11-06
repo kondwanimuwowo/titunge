@@ -6,9 +6,12 @@ import { MakerSpotlight } from "@/components/marketplace/MakerSpotlight";
 import { DualCta } from "@/components/marketplace/DualCta";
 import { getFeaturedProducts, getMarketplaceSellers } from "@/lib/marketplace-db";
 
+// Featured products and makers change as sellers list; never prerender at build time.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "Titunge: handmade fashion and tailoring, made in Africa",
-  description: "Fabric, garments, and custom pieces from independent makers across Africa.",
+  title: "Titunge: handmade fashion and tailoring from Zambian makers",
+  description: "Fabric, garments, and custom pieces from independent makers across Zambia.",
 };
 
 export default async function MarketplaceHomePage() {
