@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { isValidWebhookSignature, getCollectionStatus, isSuccessStatus, isPendingStatus } from "@/lib/lenco";
-import { createFulfillmentRowsForOrder } from "@/lib/marketplace-fulfillments";
+import { markMarketplaceOrderPaid } from "@/lib/marketplace-payment";
 
 export const dynamic = "force-dynamic";
 
@@ -77,16 +77,7 @@ export async function POST(request: NextRequest) {
     const collection = await getCollectionStatus(reference);
 
     if (isSuccessStatus(collection.status)) {
-      await (admin.from("marketplace_orders") as any)
-        .update({
-          payment_status: "successful",
-          status: "being_sewn",
-          lenco_reference: collection.lencoReference,
-          paid_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", order.id);
-      await createFulfillmentRowsForOrder(admin, order.id);
+      await markMarketplaceOrderPaid(admin, order.id, collection.lencoReference);
     } else if (!isPendingStatus(collection.status)) {
       await (admin.from("marketplace_orders") as any)
         .update({ payment_status: "failed", lenco_reference: collection.lencoReference, updated_at: new Date().toISOString() })

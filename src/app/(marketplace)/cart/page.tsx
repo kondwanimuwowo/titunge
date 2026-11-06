@@ -86,7 +86,7 @@ export default function CartPage() {
             subtotal={subtotal}
             delivery={delivery}
             total={total}
-            footnote="Tracked delivery within Africa, 5 to 9 days."
+            footnote="Delivery or collection is arranged directly with the seller after you pay."
             cta={
               <Link
                 href="/checkout"

@@ -10,7 +10,7 @@ import {
   type LencoOperator,
 } from "@/lib/lenco";
 import { DELIVERY_FEE_ZMW } from "@/data/marketplace-orders";
-import { createFulfillmentRowsForOrder } from "@/lib/marketplace-fulfillments";
+import { markMarketplaceOrderPaid } from "@/lib/marketplace-payment";
 import { insertWithOrderNumberRetry } from "@/lib/marketplace-order-number";
 import { computeDiscount, isPromoCodeValid } from "@/lib/marketplace-promo";
 import { computePayoutAmount } from "@/lib/marketplace-payout-math";
@@ -24,9 +24,6 @@ interface CartLineInput {
 interface ShippingDetailsInput {
   fullName: string;
   phone: string;
-  country: string;
-  city: string;
-  street: string;
   notes: string;
 }
 
@@ -60,7 +57,6 @@ export async function createPendingOrderAction(params: {
   shippingDetails: ShippingDetailsInput;
   buyerEmail?: string;
   promoCode?: string;
-  fulfillmentMethod?: "delivery" | "pickup";
 }): Promise<{ success: boolean; message?: string; orderId?: string; orderNumber?: string; reference?: string; total?: number }> {
   if (params.items.length === 0) {
     return { success: false, message: "Your basket is empty." };
@@ -81,11 +77,7 @@ export async function createPendingOrderAction(params: {
 
   const subtotal = validItems.reduce((sum, { line, product }) => sum + product.priceZmw * line.qty, 0);
 
-  // Never trust the client's choice at face value — pickup only makes sense
-  // when every line in the order comes from the same seller.
-  const sellerSlugs = new Set(validItems.map(({ product }) => product.sellerSlug));
-  const isPickup = params.fulfillmentMethod === "pickup" && sellerSlugs.size === 1;
-  const deliveryFee = isPickup ? 0 : DELIVERY_FEE_ZMW;
+  const deliveryFee = DELIVERY_FEE_ZMW;
 
   const admin = createAdminClient();
 
@@ -164,15 +156,11 @@ export async function createPendingOrderAction(params: {
         buyer_email: params.buyerEmail || null,
         buyer_phone: params.shippingDetails.phone,
         shipping_address: {
-          country: params.shippingDetails.country,
-          city: params.shippingDetails.city,
-          street: params.shippingDetails.street,
           notes: params.shippingDetails.notes,
         },
         subtotal,
         delivery_fee: deliveryFee,
         platform_fee_passed: platformFeePassed,
-        fulfillment_method: isPickup ? "pickup" : "delivery",
         promo_code: appliedPromoCode,
         discount_amount: discountAmount,
         total,
@@ -280,16 +268,7 @@ export async function checkOrderPaymentStatusAction(
     const collection = await getCollectionStatus(order.payment_reference);
 
     if (isSuccessStatus(collection.status)) {
-      await (admin.from("marketplace_orders") as any)
-        .update({
-          payment_status: "successful",
-          status: "being_sewn",
-          lenco_reference: collection.lencoReference,
-          paid_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", orderId);
-      await createFulfillmentRowsForOrder(admin, orderId);
+      await markMarketplaceOrderPaid(admin, orderId, collection.lencoReference);
       return { success: true, paymentStatus: "successful", orderNumber: order.order_number };
     }
 
@@ -305,4 +284,28 @@ export async function checkOrderPaymentStatusAction(
     const message = err instanceof Error ? err.message : "Failed to check payment status.";
     return { success: false, message };
   }
+}
+
+/** "Find my order" for guest buyers on a new device: the order number alone
+ *  is guessable, so the phone number used at checkout must match too. */
+export async function findMarketplaceOrderAction(
+  orderNumber: string,
+  phone: string
+): Promise<{ success: boolean; message?: string; orderNumber?: string }> {
+  const normalizedNumber = orderNumber.trim().toUpperCase();
+  const lastDigits = (value: string) => value.replace(/[^\d]/g, "").slice(-9);
+  if (!normalizedNumber || lastDigits(phone).length < 9) {
+    return { success: false, message: "Enter your order number and the phone number you used at checkout." };
+  }
+
+  const admin = createAdminClient();
+  const { data: order } = await (admin.from("marketplace_orders") as any)
+    .select("order_number, buyer_phone")
+    .eq("order_number", normalizedNumber)
+    .maybeSingle();
+
+  if (!order || lastDigits(order.buyer_phone ?? "") !== lastDigits(phone)) {
+    return { success: false, message: "We couldn't find an order with those details." };
+  }
+  return { success: true, orderNumber: order.order_number };
 }

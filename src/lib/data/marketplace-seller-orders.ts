@@ -20,8 +20,18 @@ export interface SellerMarketplaceOrder {
   fulfillmentStatus: string;
   paymentStatus: string;
   buyerName: string;
+  buyerPhone: string;
+  buyerEmail: string | null;
+  shippingAddress: SellerShippingAddress;
   createdAt: string;
   items: SellerMarketplaceOrderItem[];
+}
+
+export interface SellerShippingAddress {
+  country?: string;
+  city?: string;
+  street?: string;
+  notes?: string;
 }
 
 /** Marketplace orders that contain at least one of this business's products.
@@ -37,7 +47,7 @@ export async function getSellerMarketplaceOrders(businessId: string): Promise<Se
   const [{ data: items, error }, { data: fulfillments }] = await Promise.all([
     (supabase.from("marketplace_order_items") as any)
       .select(
-        "id, product_name, size, qty, unit_price, image_url, order_id, marketplace_orders(id, order_number, status, payment_status, buyer_name, created_at)"
+        "id, product_name, size, qty, unit_price, image_url, order_id, marketplace_orders(id, order_number, status, payment_status, buyer_name, buyer_phone, buyer_email, shipping_address, created_at)"
       )
       .eq("business_id", businessId)
       .order("created_at", { ascending: false }),
@@ -61,6 +71,9 @@ export async function getSellerMarketplaceOrders(businessId: string): Promise<Se
       status: string;
       payment_status: string;
       buyer_name: string;
+      buyer_phone: string;
+      buyer_email: string | null;
+      shipping_address: SellerShippingAddress | null;
       created_at: string;
     } | null;
     if (!order) continue;
@@ -73,6 +86,9 @@ export async function getSellerMarketplaceOrders(businessId: string): Promise<Se
         fulfillmentStatus: fulfillmentByOrder.get(order.id) ?? "awaiting_payment",
         paymentStatus: order.payment_status,
         buyerName: order.buyer_name,
+        buyerPhone: order.buyer_phone,
+        buyerEmail: order.buyer_email,
+        shippingAddress: order.shipping_address ?? {},
         createdAt: order.created_at,
         items: [],
       });

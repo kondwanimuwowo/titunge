@@ -22,18 +22,12 @@ export interface ShippingDetails {
   fullName: string;
   email: string;
   phone: string;
-  country: string;
-  city: string;
-  street: string;
   notes: string;
 }
-
-export type FulfillmentMethod = "delivery" | "pickup";
 
 interface CartState {
   items: CartLine[];
   shippingDetails: ShippingDetails | null;
-  fulfillmentMethod: FulfillmentMethod;
 }
 
 const STORAGE_KEY = "titunge-cart";
@@ -45,17 +39,12 @@ function lineKey(productId: string, size: string) {
 interface CartContextValue {
   items: CartLine[];
   shippingDetails: ShippingDetails | null;
-  fulfillmentMethod: FulfillmentMethod;
-  /** True only when every line in the cart is sold by the same seller —
-   *  picking up a multi-seller order from "a store" isn't a coherent offer. */
-  canPickup: boolean;
   addItem: (productId: string, size: string, qty?: number) => void;
   incQty: (productId: string, size: string) => void;
   decQty: (productId: string, size: string) => void;
   removeItem: (productId: string, size: string) => void;
   clearCart: () => void;
   setShippingDetails: (details: ShippingDetails) => void;
-  setFulfillmentMethod: (method: FulfillmentMethod) => void;
   subtotal: number;
   delivery: number;
   /** Preview of the marketplace fee passed through to the buyer, for sellers
@@ -70,7 +59,7 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<CartState>({ items: [], shippingDetails: null, fulfillmentMethod: "delivery" });
+  const [state, setState] = useState<CartState>({ items: [], shippingDetails: null });
   const [hydrated, setHydrated] = useState(false);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
 
@@ -133,22 +122,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, shippingDetails: details }));
   };
 
-  const setFulfillmentMethod = (method: FulfillmentMethod) => {
-    setState((s) => ({ ...s, fulfillmentMethod: method }));
-  };
-
-  const cartSellerSlugs = new Set(
-    state.items
-      .map((line) => products.find((p) => p.id === line.productId)?.sellerSlug)
-      .filter((slug): slug is string => Boolean(slug))
-  );
-  const canPickup = cartSellerSlugs.size === 1;
 
   const subtotal = state.items.reduce((sum, line) => {
     const product = products.find((p) => p.id === line.productId);
     return sum + (product ? product.priceZmw * line.qty : 0);
   }, 0);
-  const delivery = state.items.length === 0 || (state.fulfillmentMethod === "pickup" && canPickup) ? 0 : DELIVERY_FEE_ZMW;
+  const delivery = state.items.length === 0 ? 0 : DELIVERY_FEE_ZMW;
 
   const subtotalByBusiness = new Map<string, number>();
   for (const line of state.items) {
@@ -179,15 +158,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         items: state.items,
         shippingDetails: state.shippingDetails,
-        fulfillmentMethod: state.fulfillmentMethod,
-        canPickup,
         addItem,
         incQty,
         decQty,
         removeItem,
         clearCart,
         setShippingDetails,
-        setFulfillmentMethod,
         subtotal,
         delivery,
         platformFee,

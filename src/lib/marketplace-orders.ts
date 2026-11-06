@@ -45,6 +45,7 @@ function toMarketplaceOrder(row: any): MarketplaceOrder {
     subtotal: Number(row.subtotal),
     delivery: Number(row.delivery_fee),
     total: Number(row.total),
+    sellers: Array.isArray(row.sellers) ? row.sellers : [],
   };
 }
 

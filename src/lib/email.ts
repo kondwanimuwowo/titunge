@@ -14,6 +14,7 @@ export async function sendEmail(params: {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 }): Promise<{ success: boolean; message?: string }> {
   const resend = client();
   if (!resend) {
@@ -26,6 +27,7 @@ export async function sendEmail(params: {
       to: params.to,
       subject: params.subject,
       html: params.html,
+      ...(params.replyTo ? { replyTo: params.replyTo } : {}),
     });
     if (error) {
       return { success: false, message: error.message };
@@ -328,4 +330,99 @@ export function inviteEmailHtml(params: {
       </p>
     </div>
   `;
+}
+
+/** Escapes text typed by the public (buyer names, addresses, messages)
+ *  before it goes into an email. */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export interface MarketplaceEmailLine {
+  name: string;
+  size: string | null;
+  qty: number;
+  unitPrice: number;
+}
+
+function marketplaceShell(heading: string, bodyHtml: string): string {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #0e1a18;">
+      <div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5fa8a0;">Titunge</div>
+      <h1 style="font-size: 20px; margin: 8px 0 20px;">${heading}</h1>
+      ${bodyHtml}
+      <p style="font-size: 12px; color: #888; padding-top: 20px; border-top: 1px solid #eee; margin-top: 24px;">Titunge, the marketplace for Zambian makers.</p>
+    </div>
+  `;
+}
+
+function marketplaceLinesHtml(lines: MarketplaceEmailLine[]): string {
+  return lines
+    .map(
+      (l) => `
+      <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px;">
+        <span>${escapeHtml(l.name)}${l.size ? ` (${escapeHtml(l.size)})` : ""} &times; ${l.qty}</span>
+        <span>${formatZmw(l.unitPrice * l.qty)}</span>
+      </div>`
+    )
+    .join("");
+}
+
+export function marketplaceSellerOrderEmailHtml(params: {
+  businessName: string;
+  orderNumber: string;
+  buyerName: string;
+  buyerPhone: string;
+  notes: string;
+  lines: MarketplaceEmailLine[];
+  ordersUrl: string;
+}): string {
+  return marketplaceShell(
+    `New paid order ${escapeHtml(params.orderNumber)}`,
+    `
+      <p style="font-size: 14px; line-height: 1.6;">${escapeHtml(params.businessName)}, you have a new marketplace order. Payment has been received.</p>
+      ${marketplaceLinesHtml(params.lines)}
+      <div style="font-size: 14px; line-height: 1.6; margin-top: 16px;">
+        <div><strong>${escapeHtml(params.buyerName)}</strong>, ${escapeHtml(params.buyerPhone)}</div>
+        <div>Contact the buyer to arrange delivery or collection.</div>
+        ${params.notes ? `<div>Buyer's note: ${escapeHtml(params.notes)}</div>` : ""}
+      </div>
+      <p style="font-size: 14px; line-height: 1.6;">Mark the order as shipped, then delivered, in your workspace. You're paid automatically after delivery.</p>
+      <a href="${params.ordersUrl}" style="display: inline-block; background: #5fa8a0; color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 999px;">Open marketplace orders</a>
+    `
+  );
+}
+
+export function marketplaceBuyerConfirmationEmailHtml(params: {
+  buyerName: string;
+  orderNumber: string;
+  lines: MarketplaceEmailLine[];
+  deliveryFee: number;
+  total: number;
+  trackUrl: string;
+  sellers: { name: string; phone: string | null }[];
+}): string {
+  const sellersHtml = params.sellers
+    .map(
+      (s) =>
+        `<div style="font-size: 14px; padding: 2px 0;"><strong>${escapeHtml(s.name)}</strong>${s.phone ? `: ${escapeHtml(s.phone)}` : ""}</div>`
+    )
+    .join("");
+  return marketplaceShell(
+    `Thank you, your order is confirmed`,
+    `
+      <p style="font-size: 14px; line-height: 1.6;">Hi ${escapeHtml(params.buyerName)}, we've received your payment for order <strong>${escapeHtml(params.orderNumber)}</strong>. The seller has been told and will contact you on your phone number to arrange delivery or collection, and measurements if your order needs them.</p>
+      ${marketplaceLinesHtml(params.lines)}
+      ${params.deliveryFee > 0 ? `<div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px;"><span>Delivery</span><span>${formatZmw(params.deliveryFee)}</span></div>` : ""}
+      <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 15px; font-weight: 700;"><span>Total paid</span><span>${formatZmw(params.total)}</span></div>
+      ${sellersHtml ? `<p style="font-size: 14px; line-height: 1.6; margin-bottom: 4px;">Your seller${params.sellers.length === 1 ? "" : "s"}:</p>${sellersHtml}` : ""}
+      <p style="font-size: 14px; line-height: 1.6;">Keep your order number. You can track your order at any time:</p>
+      <a href="${params.trackUrl}" style="display: inline-block; background: #0e1a18; color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 999px;">Track your order</a>
+    `
+  );
 }

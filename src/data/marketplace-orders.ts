@@ -20,6 +20,11 @@ export interface MarketplaceOrder {
   subtotal: number;
   delivery: number;
   total: number;
+  /** Only present once the order is paid: who to contact about delivery. */
+  sellers: { name: string; phone: string | null }[];
 }
 
-export const DELIVERY_FEE_ZMW = 135;
+// Titunge doesn't handle delivery: after payment the buyer and seller arrange
+// delivery or collection directly, so checkout never adds a delivery fee.
+// Kept as a constant so totals stay explicit if that changes.
+export const DELIVERY_FEE_ZMW = 0;

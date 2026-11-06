@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { OrderSummaryPanel, type OrderSummaryItem } from "./OrderSummaryPanel";
+import { SellerContacts } from "./SellerContacts";
 import { getOrder } from "@/lib/marketplace-orders";
 import type { MarketplaceOrder } from "@/data/marketplace-orders";
 
@@ -61,10 +62,15 @@ export function OrderConfirmationClient() {
       <CheckCircle2 size={40} color="#5fa8a0" strokeWidth={1.5} />
       <h1 className="mt-4 text-2xl font-extrabold tracking-tight">Thank you, your order is placed</h1>
       <p className="mt-3 text-sm text-gray-600 leading-relaxed">
-        Order {order.id}. A confirmation was sent to your email. {order.items[0]?.seller ?? "The maker"} will start sewing within 2 days.
+        Order {order.id}. Keep this number. If you gave an email, we&apos;ve sent your receipt there. The seller will
+        contact you to arrange delivery or collection.
       </p>
 
-      <div className="w-full mt-8">
+      <div className="w-full mt-8 text-left">
+        <SellerContacts order={order} />
+      </div>
+
+      <div className="w-full mt-6">
         <OrderSummaryPanel items={summaryItems} subtotal={order.subtotal} delivery={order.delivery} total={order.total} />
       </div>
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { OrderSummaryPanel, type OrderSummaryItem } from "./OrderSummaryPanel";
+import { SellerContacts } from "./SellerContacts";
 import { StatusBadge } from "./StatusBadge";
 import { getOrder } from "@/lib/marketplace-orders";
 import type { MarketplaceOrder, MarketplaceOrderStatus } from "@/data/marketplace-orders";
@@ -61,6 +62,10 @@ export function OrderDetailClient({ orderNumber }: { orderNumber: string }) {
           <p className="text-sm text-gray-500 mt-1">Placed {order.date}</p>
         </div>
         <StatusBadge status={order.status as MarketplaceOrderStatus} />
+      </div>
+
+      <div className="mb-6">
+        <SellerContacts order={order} />
       </div>
 
       <OrderSummaryPanel items={summaryItems} subtotal={order.subtotal} delivery={order.delivery} total={order.total} />

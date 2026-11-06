@@ -7,6 +7,7 @@ import { getOrders } from "@/lib/marketplace-orders";
 import { useCart } from "@/components/marketplace/CartProvider";
 import { ImagePlaceholder } from "@/components/marketplace/ImagePlaceholder";
 import { StatusBadge } from "@/components/marketplace/StatusBadge";
+import { FindOrderForm } from "@/components/marketplace/FindOrderForm";
 import { formatZmw } from "@/lib/marketplace-currency";
 import { createClient } from "@/lib/supabase/client";
 import type { MarketplaceOrder } from "@/data/marketplace-orders";
@@ -51,6 +52,8 @@ export default function OrderHistoryPage() {
 
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight mb-2">Your orders</h1>
+
+          <FindOrderForm />
 
           {signedIn === false && (
             <div className="mb-6 flex items-center justify-between bg-gray-50 rounded-xl px-5 py-3.5">

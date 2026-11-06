@@ -57,10 +57,12 @@ export function OrderSummaryPanel({ items, subtotal, delivery, platformFee = 0, 
           <span>Subtotal</span>
           <span>{formatZmw(subtotal)}</span>
         </div>
-        <div className="flex justify-between text-gray-600">
-          <span>{deliveryLabel}</span>
-          <span>{formatZmw(delivery)}</span>
-        </div>
+        {delivery > 0 && (
+          <div className="flex justify-between text-gray-600">
+            <span>{deliveryLabel}</span>
+            <span>{formatZmw(delivery)}</span>
+          </div>
+        )}
         {platformFee > 0 && (
           <div className="flex justify-between text-gray-600">
             <span>Marketplace fee</span>
