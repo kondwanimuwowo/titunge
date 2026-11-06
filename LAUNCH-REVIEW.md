@@ -80,6 +80,8 @@ Priority key:
    - `20261105000000_storefront_province.sql`
    - `20261105010000_notifications_link.sql`
    - `20261105020000_storefront_contact_phone.sql`
+   - `20261106000000_merge_ankara_into_chitenge.sql`
+   - `20261106010000_expand_marketplace_categories.sql`
 2. Confirm `RESEND_API_KEY` is set on the Worker. Optionally set `CONTACT_INBOX_EMAIL` (defaults to `hello@titunge.com`). Make sure the sending domain is verified in Resend, or no seller, buyer or contact email goes out.
 3. Confirm the five cron jobs are live on cron-jobs.org (`process-billing` now also sends exhausted-retry alerts).
 4. Launch sellers: set province and contact number in Settings > Marketplace, add a payout account, and set a marketplace category on products.
