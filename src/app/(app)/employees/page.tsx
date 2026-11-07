@@ -5,6 +5,7 @@ import StatsCard from "@/components/dashboard/StatsCard";
 import EmployeeList from "@/components/employees/EmployeeList";
 import TimeClockMetric from "@/components/employees/TimeClockMetric";
 import { Users, Clock, Check, UserX } from "lucide-react";
+import { attendanceHours } from "@/lib/utils/date";
 
 export default async function EmployeesPage() {
   const { businessId } = await getBusinessContext();
@@ -17,7 +18,7 @@ export default async function EmployeesPage() {
   const inactiveCount = employees.length - activeCount;
   const clockedInCount = todayAttendance.filter((a) => a.clock_in && !a.clock_out).length;
   const totalHours = todayAttendance.reduce(
-    (sum, a) => sum + (parseFloat(String(a.hours_worked || 0))),
+    (sum, a) => sum + attendanceHours(a),
     0
   );
 

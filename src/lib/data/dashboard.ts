@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getZambianDate } from "@/lib/utils/date";
+import { attendanceHours, getZambianDate } from "@/lib/utils/date";
 
 export async function getDashboardStats(businessId: string) {
   const supabase = await createClient();
@@ -26,7 +26,9 @@ export async function getDashboardStats(businessId: string) {
 
     const orderStats = calculateOrderStats(orders || []);
     const inventoryStats = calculateInventoryStats(materials || []);
-    const employeeStats = calculateEmployeeStats(todayAttendance || []);
+    // Open shifts count the hours worked so far, so today's figures aren't all zero.
+    const attendanceToday = (todayAttendance || []).map((a: any) => ({ ...a, hours_worked: attendanceHours(a) }));
+    const employeeStats = calculateEmployeeStats(attendanceToday);
     const revenueStats = calculateRevenueStats(orders || []);
 
     return {
@@ -51,7 +53,7 @@ export async function getDashboardStats(businessId: string) {
         recentOrders: (orders || []).sort((a: any, b: any) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()).slice(0, 5),
         materials: materials || [],
         lowStockMaterials: (materials || []).filter((m: any) => (m.stock_quantity ?? 0) <= (m.min_stock_level ?? 0)),
-        todayAttendance: todayAttendance || [],
+        todayAttendance: attendanceToday,
       }
     };
   } catch (error) {
