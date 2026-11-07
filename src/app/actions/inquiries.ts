@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { generateOrderNumber } from "@/lib/order-number";
 import { createClient } from "@/lib/supabase/server";
 import { requireBusinessContext } from "@/lib/business-context";
 import { format } from "date-fns";
@@ -66,7 +67,7 @@ export async function convertToOrderAction(
     items: OrderItemInput[];
   }
 ) {
-  const { businessId } = await requireBusinessContext();
+  const { businessId, orderPrefix } = await requireBusinessContext();
   const supabase = await createClient();
 
   try {
@@ -74,7 +75,7 @@ export async function convertToOrderAction(
       return { success: false, message: "Add at least one item to the order." };
     }
 
-    const orderNumber = `ORD-${format(new Date(), "yyyyMMdd")}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const orderNumber = generateOrderNumber(orderPrefix);
 
     // Find or create the customer
     let customerId = orderData.customer_id;

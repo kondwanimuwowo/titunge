@@ -98,6 +98,7 @@ export async function requireBusinessContext(): Promise<{
   userId: string;
   role: BusinessRole;
   plan: BusinessPlan;
+  orderPrefix: string;
 }> {
   const supabase = await createClient();
   const headersList = await headers();
@@ -112,7 +113,7 @@ export async function requireBusinessContext(): Promise<{
 
   const { data: business } = await supabase
     .from("businesses")
-    .select("id, plan, status")
+    .select("id, plan, status, order_prefix")
     .eq("slug", slug)
     .single();
 
@@ -134,5 +135,6 @@ export async function requireBusinessContext(): Promise<{
     userId: user.id,
     role: membership.role as BusinessRole,
     plan: business.plan as BusinessPlan,
+    orderPrefix: business.order_prefix || "ORD",
   };
 }
