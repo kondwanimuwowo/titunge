@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import StatsCard from "@/components/dashboard/StatsCard";
 import CustomerList from "@/components/customers/CustomerList";
 import { Button } from "@/components/ui/button";
+import { hasMeasurements } from "@/lib/measurements";
 
 export default async function CustomersPage() {
   const { businessId } = await getBusinessContext();
@@ -13,7 +14,7 @@ export default async function CustomersPage() {
 
   // Compute stats
   const totalCustomers = customers.length;
-  const customersWithMeasurements = customers.filter((c: any) => c.measurements).length;
+  const customersWithMeasurements = customers.filter((c: any) => hasMeasurements(c.measurements)).length;
   
   const now = new Date();
   const currentMonth = now.getMonth();

@@ -20,6 +20,7 @@ import {
 
 import { deleteCustomerAction } from "@/app/actions/customers";
 import { CustomerBulkActions } from "./CustomerBulkActions";
+import { hasMeasurements } from "@/lib/measurements";
 
 interface CustomerListProps {
   initialCustomers: any[];
@@ -74,8 +75,8 @@ export default function CustomerList({ initialCustomers }: CustomerListProps) {
         id: "measurements",
         header: "Measurements",
         cell: ({ row }: any) => {
-          const hasMeasurements = !!row.original.measurements;
-          return hasMeasurements ? (
+          const measured = hasMeasurements(row.original.measurements);
+          return measured ? (
             <Badge variant="outline" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-200 shadow-sm">
               <Ruler className="w-3 h-3 mr-1.5" /> Filed
             </Badge>
@@ -155,7 +156,7 @@ export default function CustomerList({ initialCustomers }: CustomerListProps) {
           Name: customer.name || "Walk-in",
           Phone: customer.phone || "",
           Email: customer.email || "",
-          "Has Measurements": customer.measurements ? "Yes" : "No",
+          "Has Measurements": hasMeasurements(customer.measurements) ? "Yes" : "No",
           Joined: customer.created_at || "",
         })}
         exportFilename="customers.csv"

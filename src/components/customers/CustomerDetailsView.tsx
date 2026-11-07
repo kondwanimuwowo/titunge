@@ -31,6 +31,7 @@ import {
 import MeasurementsForm from "./MeasurementsForm";
 import OrderStatusBadge from "../orders/OrderStatusBadge";
 import { updateMeasurementsAction } from "@/app/actions/customers";
+import { hasMeasurements } from "@/lib/measurements";
 
 interface CustomerDetailsViewProps {
   customer: any;
@@ -169,12 +170,12 @@ export default function CustomerDetailsView({
                     disabled={isPending}
                     className="h-8 border-primary/40 text-primary hover:bg-primary/10 text-xs font-bold rounded-lg shadow-sm"
                   >
-                    {isPending ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : customer.measurements ? <Edit className="mr-2 h-3 w-3" /> : <Plus className="mr-2 h-3 w-3" />}
-                    {customer.measurements ? "Refine" : "Add Stats"}
+                    {isPending ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : hasMeasurements(customer.measurements) ? <Edit className="mr-2 h-3 w-3" /> : <Plus className="mr-2 h-3 w-3" />}
+                    {hasMeasurements(customer.measurements) ? "Refine" : "Add Stats"}
                   </Button>
             </CardHeader>
             <CardContent className="pt-6">
-                {customer.measurements ? (
+                {hasMeasurements(customer.measurements) ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(customer.measurements)
                     .filter(([key]) => key !== "notes")
@@ -362,7 +363,7 @@ export default function CustomerDetailsView({
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-                {customer.measurements ? "Update Measurements" : "Add Measurements"}
+                {hasMeasurements(customer.measurements) ? "Update Measurements" : "Add Measurements"}
             </DialogTitle>
           </DialogHeader>
           <MeasurementsForm
