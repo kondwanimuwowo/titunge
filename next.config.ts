@@ -12,6 +12,13 @@ function r2Hostname(): string {
 }
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Image uploads go through server actions: product photos up to 5 MB,
+      // shop banners up to 4 MB, plus multipart overhead. The default is 1 MB.
+      bodySizeLimit: "6mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

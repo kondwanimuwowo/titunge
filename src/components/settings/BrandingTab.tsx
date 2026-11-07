@@ -52,13 +52,17 @@ export default function BrandingTab({ currentThemeKey, logoUrl, businessName }: 
     const formData = new FormData();
     formData.append("logo", file);
     startLogoTransition(async () => {
-      const result = await uploadLogo(formData);
-      if (result.success) {
-        toast.success("Logo uploaded");
-      } else {
+      try {
+        const result = await uploadLogo(formData);
+        if (result.success) {
+          toast.success("Logo uploaded");
+          return;
+        }
         toast.error(result.message ?? "Upload failed");
-        setPreviewLogo(null);
+      } catch {
+        toast.error("We couldn't upload that logo. Try a smaller image (under 2 MB) or check your connection.");
       }
+      setPreviewLogo(null);
     });
   };
 

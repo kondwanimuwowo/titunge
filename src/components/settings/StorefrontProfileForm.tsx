@@ -87,12 +87,17 @@ export default function StorefrontProfileForm({ storefront, businessName, busine
     const formData = new FormData();
     formData.append("banner", file);
     startBannerTransition(async () => {
-      const result = await uploadStorefrontBannerAction(formData);
-      if (result.success) toast.success("Banner uploaded");
-      else {
+      try {
+        const result = await uploadStorefrontBannerAction(formData);
+        if (result.success) {
+          toast.success("Banner uploaded");
+          return;
+        }
         toast.error(result.message || "Upload failed");
-        setPreviewBanner(null);
+      } catch {
+        toast.error("We couldn't upload that banner. Try a smaller image (under 4 MB) or check your connection.");
       }
+      setPreviewBanner(null);
     });
   };
 
