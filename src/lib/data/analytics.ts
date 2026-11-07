@@ -333,7 +333,7 @@ export async function getAnalyticsStats(businessId: string, filters?: AnalyticsF
   const supabase = await createClient();
 
   let ordersQuery = (supabase.from("orders") as any)
-    .select("total_cost, customers(name)")
+    .select("total_cost, status, customers(name)")
     .eq("business_id", businessId)
     .is("deleted_at", null);
   ordersQuery = applyOrderFilters(ordersQuery, filters);
