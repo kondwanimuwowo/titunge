@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
+import { isEarnedStatus } from "@/lib/revenue";
 
 export interface AnalyticsFilters {
   startDate?: string;
@@ -44,7 +45,7 @@ export async function getRevenueData(
       const monthLabel = format(date, "MMM yyyy");
 
       let query = (supabase.from("orders") as any)
-        .select("total_cost")
+        .select("total_cost, status")
         .eq("business_id", businessId)
         .gte("order_date", start)
         .lte("order_date", end)
@@ -53,7 +54,7 @@ export async function getRevenueData(
 
       const { data } = await query;
 
-      const revenue = (data || []).reduce(
+      const revenue = (data || []).filter((order: any) => isEarnedStatus(order.status)).reduce(
         (sum: number, order: any) => sum + parseFloat(order.total_cost || "0"),
         0
       );
@@ -246,7 +247,7 @@ export async function getCustomerAnalytics(
   const supabase = await createClient();
 
   let query = (supabase.from("orders") as any)
-    .select("total_cost, customers(name)")
+    .select("total_cost, status, customers(name)")
     .eq("business_id", businessId)
     .is("deleted_at", null);
   query = applyOrderFilters(query, filters);
@@ -353,7 +354,8 @@ export async function getAnalyticsStats(businessId: string, filters?: AnalyticsF
   const customers: any[] = customersResult.data || [];
   const materials: any[] = materialsResult.data || [];
 
-  const totalRevenue = orders.reduce(
+  const earned = orders.filter((o: any) => isEarnedStatus(o.status));
+  const totalRevenue = earned.reduce(
     (sum: number, o: any) => sum + parseFloat(o.total_cost || "0"),
     0
   );
@@ -365,7 +367,7 @@ export async function getAnalyticsStats(businessId: string, filters?: AnalyticsF
   }).length;
 
   const spendByCustomer: Record<string, number> = {};
-  orders.forEach((o: any) => {
+  earned.forEach((o: any) => {
     const name = o.customers?.name;
     if (!name) return;
     spendByCustomer[name] = (spendByCustomer[name] || 0) + parseFloat(o.total_cost || "0");
@@ -378,7 +380,7 @@ export async function getAnalyticsStats(businessId: string, filters?: AnalyticsF
     totalRevenue: Math.round(totalRevenue * 100) / 100,
     activeCustomers: customers.length,
     lowStockCount,
-    avgOrderValue: orders.length > 0 ? Math.round((totalRevenue / orders.length) * 100) / 100 : 0,
+    avgOrderValue: earned.length > 0 ? Math.round((totalRevenue / earned.length) * 100) / 100 : 0,
     topCustomerName,
   };
 }

@@ -118,8 +118,9 @@ function calculateOrderStats(orders: any[]) {
   const orderGrowth =
     lastMonthOrders === 0 ? 0 : ((thisMonthOrders - lastMonthOrders) / lastMonthOrders) * 100;
 
+  // Completed orders are finished work, not active ones.
   const activeOrders = orders.filter(
-    (o) => !["delivered", "cancelled"].includes((o.status || "").toLowerCase())
+    (o) => !["completed", "delivered", "cancelled"].includes((o.status || "").toLowerCase())
   ).length;
 
   return {

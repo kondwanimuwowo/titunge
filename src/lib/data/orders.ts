@@ -1,4 +1,5 @@
 ﻿import { createClient } from "@/lib/supabase/server";
+import { isEarnedStatus } from "@/lib/revenue";
 
 export async function getOrders(businessId: string) {
   const supabase = await createClient();
@@ -75,8 +76,8 @@ export async function getOrderStats(businessId: string) {
     const status = order.status || 'enquiry';
     stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
 
-    // Total revenue
-    stats.totalRevenue += parseFloat(order.total_cost || "0");
+    // Revenue: completed and delivered orders only, same as Finance
+    if (isEarnedStatus(order.status)) stats.totalRevenue += parseFloat(order.total_cost || "0");
 
     // This month
     if (order.created_at) {
