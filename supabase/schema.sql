@@ -1117,23 +1117,40 @@ VALUES (
   'business-assets',
   'business-assets',
   true,
-  2097152, -- 2 MB
+  4194304, -- 4 MB (shop banners); logos are capped at 2 MB in code
   ARRAY['image/png','image/jpeg','image/jpg','image/gif','image/webp','image/svg+xml']
 )
 ON CONFLICT (id) DO NOTHING;
 
--- Allow any authenticated user to upload to their own business folder
-CREATE POLICY "Authenticated users can upload business assets"
-  ON storage.objects FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'business-assets');
-
+-- Members can only write inside their own business's folder ({business_id}/...).
 CREATE POLICY "Business assets are publicly readable"
   ON storage.objects FOR SELECT TO public
   USING (bucket_id = 'business-assets');
 
-CREATE POLICY "Authenticated users can update their business assets"
+CREATE POLICY "Members can upload their business assets"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'business-assets'
+    AND (storage.foldername(name))[1] IN (SELECT public.my_business_ids()::text)
+  );
+
+CREATE POLICY "Members can update their business assets"
   ON storage.objects FOR UPDATE TO authenticated
-  USING (bucket_id = 'business-assets');
+  USING (
+    bucket_id = 'business-assets'
+    AND (storage.foldername(name))[1] IN (SELECT public.my_business_ids()::text)
+  )
+  WITH CHECK (
+    bucket_id = 'business-assets'
+    AND (storage.foldername(name))[1] IN (SELECT public.my_business_ids()::text)
+  );
+
+CREATE POLICY "Members can delete their business assets"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'business-assets'
+    AND (storage.foldername(name))[1] IN (SELECT public.my_business_ids()::text)
+  );
 
 -- ============================================================
 -- STORAGE: Profile avatars
