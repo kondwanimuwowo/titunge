@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BarChart3, Box, Users, Scissors, Wallet, ClipboardList, ArrowRight, Check } from "lucide-react";
 import { FadeIn } from "@/components/marketing/FadeIn";
+import { ProductPreview } from "@/components/marketing/ProductPreview";
 import { getPublicPricing } from "@/lib/marketplace-db";
 import { getPlans } from "@/data/plans";
 
@@ -87,8 +88,14 @@ export default async function BusinessPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative pt-36 pb-24 lg:pt-48 lg:pb-36" style={{ backgroundColor: "#0e1a18" }}>
+      <section className="relative pt-36 pb-16 lg:pt-44 lg:pb-24" style={{ backgroundColor: "#0e1a18" }}>
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
+          <FadeIn>
+            <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#5fa8a0]/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#7cc0b8]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#5fa8a0]" />
+              For tailors, designers and garment makers
+            </p>
+          </FadeIn>
           <FadeIn className="max-w-3xl">
             <h1
               className="text-5xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight"
@@ -132,6 +139,10 @@ export default async function BusinessPage() {
                 <p className="text-xs text-gray-400 mt-1.5 max-w-[140px] leading-snug">{stat.label}</p>
               </div>
             ))}
+          </FadeIn>
+
+          <FadeIn delay={0.34} className="relative z-10 mt-16 lg:mt-20">
+            <ProductPreview />
           </FadeIn>
         </div>
 
