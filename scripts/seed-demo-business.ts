@@ -495,11 +495,16 @@ async function main() {
     const month = new Date(START.getFullYear(), START.getMonth() + m, 1, 12);
     if (month > TODAY) break;
     const first = ymd(month);
+    // The current month only carries its days so far, so "this month" isn't
+    // shown as a loss a few days in.
+    const isCurrent = month.getFullYear() === TODAY.getFullYear() && month.getMonth() === TODAY.getMonth();
+    const share = isCurrent ? TODAY.getDate() / new Date(TODAY.getFullYear(), TODAY.getMonth() + 1, 0).getDate() : 1;
+    const part = (amount: number) => Math.round(amount * share);
     overheads.push(
-      { business_id: B, month: first, category: "Rent", description: "Northmead shop rent", amount: 15000 },
-      { business_id: B, month: first, category: "Salaries", description: "Staff salaries", amount: 31500 },
-      { business_id: B, month: first, category: "Utilities", description: "ZESCO and water", amount: int(1600, 2300) },
-      { business_id: B, month: first, category: "Internet", description: "Fibre internet", amount: 950 },
+      { business_id: B, month: first, category: "Rent", description: "Northmead shop rent", amount: part(15000) },
+      { business_id: B, month: first, category: "Salaries", description: "Staff salaries", amount: part(31500) },
+      { business_id: B, month: first, category: "Utilities", description: "ZESCO and water", amount: part(int(1600, 2300)) },
+      { business_id: B, month: first, category: "Internet", description: "Fibre internet", amount: part(950) },
     );
     const inMonth = (dayOfMonth: number) => {
       const d = new Date(month.getFullYear(), month.getMonth(), dayOfMonth, 12);
