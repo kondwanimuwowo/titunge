@@ -126,7 +126,13 @@ export async function hardDeleteOrder(orderId: string) {
   return { success: true };
 }
 
-export async function updateOrderStatus(orderId: string, status: string, notes: string = "") {
+export async function updateOrderStatus(
+  orderId: string,
+  status: string,
+  notes: string = "",
+  /** How the customer paid the remaining balance, recorded when the order is completed. */
+  paymentMethod?: string
+) {
   const { businessId } = await requireBusinessContext();
   const supabase = await createClient();
 
@@ -229,7 +235,7 @@ export async function updateOrderStatus(orderId: string, status: string, notes: 
 
     const { error: paymentError } = await (supabase as any).rpc(
       "post_order_completion_payment",
-      { p_order_id: orderId, p_business_id: businessId }
+      { p_order_id: orderId, p_business_id: businessId, p_payment_method: paymentMethod ?? null }
     );
 
     if (paymentError) {
@@ -364,6 +370,8 @@ export async function createOrderAction(orderData: {
   assigned_tailor_id?: string | null;
   due_date?: string | null;
   deposit?: number;
+  /** How the deposit was paid: Cash, Mobile Money or Bank Transfer. */
+  payment_method?: string | null;
   description?: string | null;
   notes?: string | null;
   status?: string;
@@ -408,7 +416,7 @@ export async function createOrderAction(orderData: {
     // itself was created successfully either way.
     const { error: depositError } = await (supabase as any).rpc(
       "post_order_deposit_payment",
-      { p_order_id: newOrderId, p_business_id: businessId }
+      { p_order_id: newOrderId, p_business_id: businessId, p_payment_method: orderData.payment_method ?? null }
     );
     if (depositError) {
       console.error("Failed to post order deposit payment:", depositError.message);

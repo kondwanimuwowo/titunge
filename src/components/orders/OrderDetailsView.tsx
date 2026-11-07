@@ -49,6 +49,8 @@ import { sendOrderReceiptEmail, sendOrderQuotationEmail } from "@/app/actions/or
 import type { OrderStatus } from "@/lib/types/database";
 
 import { formatKwacha } from "@/lib/money";
+import { PaymentMethodPicker } from "@/components/orders/PaymentMethodPicker";
+import type { PaymentMethod } from "@/data/payment-methods";
 // Matches what CreateOrderForm actually creates orders with (status: "enquiry")
 // and what StatusTimeline/OrderStatusBadge/OrderContextPanel are built around.
 const STATUS_FLOW: OrderStatus[] = [
@@ -72,6 +74,9 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
   const [statusNotes, setStatusNotes] = useState("");
   const [isSendingReceipt, setIsSendingReceipt] = useState(false);
   const [isSendingQuotation, setIsSendingQuotation] = useState(false);
+  const [balanceMethod, setBalanceMethod] = useState<PaymentMethod>("Cash");
+  const balanceOnCompletion =
+    parseFloat(String(order.total_cost || 0)) - parseFloat(String(order.deposit || 0));
 
   const handleEmailReceipt = async () => {
     setIsSendingReceipt(true);
@@ -107,7 +112,12 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
     if (!nextStatus) return;
 
     startTransition(async () => {
-      const result = await updateOrderStatus(order.id, nextStatus, statusNotes);
+      const result = await updateOrderStatus(
+        order.id,
+        nextStatus,
+        statusNotes,
+        nextStatus === "completed" && balanceOnCompletion > 0 ? balanceMethod : undefined
+      );
       if (result.success) {
         toast.success(`Order moved to ${nextStatus}`);
         setStatusNotes("");
@@ -136,7 +146,8 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
           </p>
         </div>
         <div className="flex gap-2">
-          {!["cancelled", "delivered"].includes(order.status) && (
+          {/* A completed order has already posted its payments and costs to Finance. */}
+          {!["cancelled", "completed", "delivered"].includes(order.status) && (
             <CancelOrderDialog
               orderId={order.id}
               orderNumber={order.order_number}
@@ -558,6 +569,16 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                     onChange={(e) => setStatusNotes(e.target.value)}
                   />
                 </div>
+
+                {nextStatus === "completed" && balanceOnCompletion > 0 && (
+                  <div className="mb-4">
+                    <PaymentMethodPicker
+                      value={balanceMethod}
+                      onChange={setBalanceMethod}
+                      label={`Balance of ${formatKwacha(balanceOnCompletion, 2)} paid by`}
+                    />
+                  </div>
+                )}
 
                 <Button
                   onClick={handleStatusChange}

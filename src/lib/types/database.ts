@@ -2107,11 +2107,11 @@ export type Database = {
     Functions: {
       my_business_ids: { Args: never; Returns: string[] }
       post_order_deposit_payment: {
-        Args: { p_order_id: string; p_business_id: string }
+        Args: { p_order_id: string; p_business_id: string; p_payment_method?: string | null }
         Returns: number
       }
       post_order_completion_payment: {
-        Args: { p_order_id: string; p_business_id: string }
+        Args: { p_order_id: string; p_business_id: string; p_payment_method?: string | null }
         Returns: number
       }
     }

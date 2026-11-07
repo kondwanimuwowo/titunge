@@ -623,8 +623,9 @@ $$;
 -- Posts the order's deposit as a payment once, when the order is created
 -- with one. Idempotent via payments_order_id_source_auto_idx.
 CREATE OR REPLACE FUNCTION public.post_order_deposit_payment(
-  p_order_id    uuid,
-  p_business_id uuid
+  p_order_id       uuid,
+  p_business_id    uuid,
+  p_payment_method text DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -660,7 +661,7 @@ BEGIN
   INSERT INTO public.payments
     (business_id, order_id, payment_date, amount, payment_method, source, notes)
   VALUES
-    (p_business_id, p_order_id, CURRENT_DATE, v_order.deposit, 'deposit', 'deposit',
+    (p_business_id, p_order_id, CURRENT_DATE, v_order.deposit, NULLIF(trim(p_payment_method), ''), 'deposit',
      format('Deposit for Order #%s', v_order.order_number));
 
   RETURN 1;
@@ -671,8 +672,9 @@ $$;
 -- once, when the order is completed. Idempotent via
 -- payments_order_id_source_auto_idx.
 CREATE OR REPLACE FUNCTION public.post_order_completion_payment(
-  p_order_id    uuid,
-  p_business_id uuid
+  p_order_id       uuid,
+  p_business_id    uuid,
+  p_payment_method text DEFAULT NULL
 )
 RETURNS integer
 LANGUAGE plpgsql
@@ -715,7 +717,7 @@ BEGIN
   INSERT INTO public.payments
     (business_id, order_id, payment_date, amount, payment_method, source, notes)
   VALUES
-    (p_business_id, p_order_id, CURRENT_DATE, v_amount, 'balance', 'balance',
+    (p_business_id, p_order_id, CURRENT_DATE, v_amount, NULLIF(trim(p_payment_method), ''), 'balance',
      format('Balance for Order #%s', v_order.order_number));
 
   RETURN 1;

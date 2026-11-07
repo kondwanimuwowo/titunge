@@ -33,6 +33,8 @@ import MeasurementsForm from "@/components/customers/MeasurementsForm";
 import type { OrderItemInput } from "@/lib/orderItems";
 
 import { formatKwacha } from "@/lib/money";
+import { PaymentMethodPicker } from "@/components/orders/PaymentMethodPicker";
+import type { PaymentMethod } from "@/data/payment-methods";
 const UNASSIGNED = "__unassigned";
 
 interface SelectedMaterial {
@@ -307,6 +309,7 @@ export default function CreateOrderForm({
   const watchedDeposit = watch("deposit");
   const deposit = parseFloat(watchedDeposit || "0");
   const balance = orderSubtotal - deposit;
+  const [depositMethod, setDepositMethod] = useState<PaymentMethod>("Cash");
 
   const handleSubmit = () => {
     const values = getValues();
@@ -320,6 +323,7 @@ export default function CreateOrderForm({
         assigned_tailor_id: values.assigned_tailor_id === UNASSIGNED ? null : values.assigned_tailor_id || null,
         due_date: values.due_date || null,
         deposit: deposit || 0,
+        payment_method: deposit > 0 ? depositMethod : null,
         description: values.description,
         notes: values.notes,
         status: "enquiry",
@@ -488,10 +492,14 @@ export default function CreateOrderForm({
               </div>
             )}
 
-            {(watch("customer_id") || createdCustomerId) && (
-              <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                <Check size={12} /> Customer selected
-              </p>
+            {selectedCustomerId && (
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <Check size={14} className="shrink-0" />
+                <span className="min-w-0 truncate">
+                  <span className="font-semibold">{selectedCustomer?.name ?? "Customer"}</span>
+                  {selectedCustomer?.phone ? ` · ${selectedCustomer.phone}` : ""}
+                </span>
+              </div>
             )}
           </div>
         )}
@@ -857,6 +865,10 @@ export default function CreateOrderForm({
                 </Label>
                 <Input id="deposit" type="number" min="0" step="0.01" placeholder="0.00" {...register("deposit")} className="mt-1 max-w-xs" />
               </div>
+
+              {deposit > 0 && (
+                <PaymentMethodPicker value={depositMethod} onChange={setDepositMethod} label="Deposit paid by" />
+              )}
 
               {orderSubtotal > 0 && (
                 <div className="flex justify-between items-center bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 text-sm">
