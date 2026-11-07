@@ -17,6 +17,7 @@ import {
   recordDocumentPaymentAction,
   convertQuotationToInvoiceAction,
 } from "@/app/actions/documents";
+import { formatKwacha } from "@/lib/money";
 
 export default function DocumentDetailView({ document }: { document: any }) {
   const router = useRouter();
@@ -179,33 +180,33 @@ export default function DocumentDetailView({ document }: { document: any }) {
             <div key={item.id} className="px-3 py-2.5 border-b border-border last:border-0 grid grid-cols-12 gap-2 items-center text-sm">
               <div className="col-span-6">{item.description}</div>
               <div className="col-span-2 text-center">{item.quantity}</div>
-              <div className="col-span-2 text-right">K{parseFloat(item.unit_price).toFixed(2)}</div>
-              <div className="col-span-2 text-right font-medium">K{(parseFloat(item.unit_price) * parseFloat(item.quantity)).toFixed(2)}</div>
+              <div className="col-span-2 text-right">{formatKwacha(parseFloat(item.unit_price), 2)}</div>
+              <div className="col-span-2 text-right font-medium">{formatKwacha((parseFloat(item.unit_price) * parseFloat(item.quantity)), 2)}</div>
             </div>
           ))}
         </div>
 
         <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-2 text-sm ml-auto max-w-xs">
           <div className="flex justify-between text-muted-foreground">
-            <span>Subtotal</span><span>K{subtotal.toFixed(2)}</span>
+            <span>Subtotal</span><span>{formatKwacha(subtotal, 2)}</span>
           </div>
           {parseFloat(document.tax_rate || "0") > 0 && (
             <div className="flex justify-between text-muted-foreground">
-              <span>Tax ({document.tax_rate}%)</span><span>K{taxAmount.toFixed(2)}</span>
+              <span>Tax ({document.tax_rate}%)</span><span>{formatKwacha(taxAmount, 2)}</span>
             </div>
           )}
           <div className="border-t border-border my-1" />
           <div className="flex justify-between font-semibold text-primary">
-            <span>Total</span><span>K{total.toFixed(2)}</span>
+            <span>Total</span><span>{formatKwacha(total, 2)}</span>
           </div>
           {!isQuotation && amountPaid > 0 && (
             <>
               <div className="flex justify-between text-muted-foreground">
-                <span>Paid</span><span>K{amountPaid.toFixed(2)}</span>
+                <span>Paid</span><span>{formatKwacha(amountPaid, 2)}</span>
               </div>
               <div className="flex justify-between font-semibold">
                 <span>Balance</span>
-                <span className={balance > 0 ? "text-red-600" : "text-emerald-600"}>K{balance.toFixed(2)}</span>
+                <span className={balance > 0 ? "text-red-600" : "text-emerald-600"}>{formatKwacha(balance, 2)}</span>
               </div>
             </>
           )}
@@ -218,7 +219,7 @@ export default function DocumentDetailView({ document }: { document: any }) {
               {document.payments.map((p: any) => (
                 <div key={p.id} className="px-3 py-2 flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">{format(new Date(p.paid_at), "d MMM yyyy")}{p.method ? ` · ${p.method}` : ""}</span>
-                  <span className="font-medium">K{parseFloat(p.amount).toFixed(2)}</span>
+                  <span className="font-medium">{formatKwacha(parseFloat(p.amount), 2)}</span>
                 </div>
               ))}
             </div>

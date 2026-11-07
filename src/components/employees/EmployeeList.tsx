@@ -42,6 +42,7 @@ import {
   Eye,
 } from "lucide-react";
 
+import { formatKwacha } from "@/lib/money";
 const ROLES = ["All Roles", "Tailor", "Cutter", "Finisher", "QC Inspector", "Supervisor", "Manager"];
 
 interface EmployeeListProps {
@@ -202,7 +203,7 @@ export default function EmployeeList({ initialEmployees, initialAttendance }: Em
         cell: ({ row }: any) => {
           const rate = row.getValue("hourly_rate");
           return rate != null ? (
-            <span className="text-sm font-medium">K{parseFloat(String(rate)).toFixed(2)}</span>
+            <span className="text-sm font-medium">{formatKwacha(parseFloat(String(rate)), 2)}</span>
           ) : (
             <span className="text-muted-foreground">—</span>
           );

@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { CHART_COLORS } from "@/lib/constants";
+import { formatKwacha } from "@/lib/money";
 
 interface ProfitabilityChartProps {
   data: { month: string; revenue: number; costs: number; profit: number }[];
@@ -30,7 +31,7 @@ export function ProfitabilityChart({ data }: ProfitabilityChartProps) {
             axisLine={false}
           />
           <YAxis
-            tickFormatter={(value: any) => `K${(value / 1000).toFixed(0)}k`}
+            tickFormatter={(value: any) => `${formatKwacha((value / 1000), 0)}k`}
             tick={{ fontSize: 12 }}
             tickLine={false}
             axisLine={false}

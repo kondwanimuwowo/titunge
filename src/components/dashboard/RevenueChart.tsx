@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { motion } from "framer-motion";
+import { formatKwacha, formatKwachaCompact } from "@/lib/money";
 
 interface RevenueData {
   month: string;
@@ -76,8 +77,9 @@ export default function RevenueChart({ data }: RevenueChartProps) {
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-              tickFormatter={(value) => `K${value}`}
-              dx={-10}
+              tickFormatter={(value: number) => formatKwachaCompact(value)}
+              width={56}
+              dx={-4}
             />
             <Tooltip
               contentStyle={{
@@ -87,7 +89,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
                 boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
               }}
               itemStyle={{ color: "hsl(var(--foreground))", fontWeight: 500 }}
-              formatter={(value: any) => typeof value === "number" ? [`K${value.toFixed(2)}`, "Revenue"] : ["—", "Revenue"]}
+              formatter={(value: any) => typeof value === "number" ? [`${formatKwacha(value, 2)}`, "Revenue"] : ["—", "Revenue"]}
             />
             <Area
               type="monotone"

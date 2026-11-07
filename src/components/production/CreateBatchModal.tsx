@@ -19,6 +19,7 @@ import { getProducts } from "@/lib/data/products";
 import { getMaterials } from "@/lib/data/inventory";
 import { X } from "lucide-react";
 
+import { formatKwacha } from "@/lib/money";
 interface CreateBatchModalProps {
   onClose: () => void;
   products: any[];
@@ -139,7 +140,7 @@ export default function CreateBatchModal({
               <option value="">-- Select Product --</option>
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} (K{parseFloat(String(p.price || 0)).toFixed(2)})
+                  {p.name} ({formatKwacha(parseFloat(String(p.price || 0)), 2)})
                 </option>
               ))}
             </select>
@@ -230,7 +231,7 @@ export default function CreateBatchModal({
                     .filter((m) => !selectedMaterials.some((sm) => sm.material_id === m.id))
                     .map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.name} (K{parseFloat(String(m.unit_cost || 0)).toFixed(2)})
+                        {m.name} ({formatKwacha(parseFloat(String(m.unit_cost || 0)), 2)})
                       </option>
                     ))}
                 </select>
@@ -266,7 +267,7 @@ export default function CreateBatchModal({
                 <strong>Materials:</strong> {selectedMaterials.length} selected
               </p>
               <p>
-                <strong>Est. Labor:</strong> K{watch("labor_cost").toFixed(2)}
+                <strong>Est. Labor:</strong> {formatKwacha(watch("labor_cost"), 2)}
               </p>
             </div>
           )}

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { createDocumentAction } from "@/app/actions/documents";
 import type { DocumentItemInput } from "@/lib/documentItems";
 import type { DocumentType } from "@/lib/types/database";
+import { formatKwacha } from "@/lib/money";
 
 interface BasketItem extends DocumentItemInput {
   key: string;
@@ -260,8 +261,8 @@ export default function CreateDocumentForm({ customers, financialSettings, defau
                 <div key={item.key} className="px-3 py-2.5 border-b border-border last:border-0 grid grid-cols-12 gap-2 items-center">
                   <div className="col-span-6 text-sm font-medium">{item.description}</div>
                   <div className="col-span-2 text-center text-sm">{item.quantity}</div>
-                  <div className="col-span-2 text-right text-sm">K{item.unit_price.toFixed(2)}</div>
-                  <div className="col-span-1 text-right text-sm font-semibold text-primary">K{(item.unit_price * item.quantity).toFixed(2)}</div>
+                  <div className="col-span-2 text-right text-sm">{formatKwacha(item.unit_price, 2)}</div>
+                  <div className="col-span-1 text-right text-sm font-semibold text-primary">{formatKwacha((item.unit_price * item.quantity), 2)}</div>
                   <div className="col-span-1 flex justify-end">
                     <button type="button" onClick={() => handleRemoveItem(item.key)} className="p-1 text-muted-foreground hover:text-destructive rounded">
                       <Trash2 size={13} />
@@ -314,18 +315,18 @@ export default function CreateDocumentForm({ customers, financialSettings, defau
         <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-2 text-sm">
           <div className="flex justify-between items-center text-muted-foreground">
             <span>Subtotal</span>
-            <span>K{subtotal.toFixed(2)}</span>
+            <span>{formatKwacha(subtotal, 2)}</span>
           </div>
           {taxRate > 0 && (
             <div className="flex justify-between items-center text-muted-foreground">
               <span>Tax ({taxRate}%)</span>
-              <span>K{taxAmount.toFixed(2)}</span>
+              <span>{formatKwacha(taxAmount, 2)}</span>
             </div>
           )}
           <div className="border-t border-border my-1" />
           <div className="flex justify-between items-center font-semibold text-primary">
             <span>Total</span>
-            <span>K{total.toFixed(2)}</span>
+            <span>{formatKwacha(total, 2)}</span>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { getProductById } from "@/lib/data/products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ProductDeleteButton from "@/components/products/ProductDeleteButton";
+import { formatKwacha } from "@/lib/money";
 
 async function getProductOrders(productId: string) {
   const supabase = await createClient();
@@ -116,7 +117,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="rounded-lg border border-border bg-card p-4">
               <p className="text-xs text-muted-foreground mb-1">Price</p>
               <p className="text-xl font-bold text-primary">
-                K{parseFloat(String(product.price || 0)).toFixed(2)}
+                {formatKwacha(parseFloat(String(product.price || 0)), 2)}
               </p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4">
@@ -160,7 +161,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                       <Badge variant="secondary" className="capitalize text-xs">{order.status}</Badge>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold">
-                      K{parseFloat(String(order.total_cost || 0)).toFixed(2)}
+                      {formatKwacha(parseFloat(String(order.total_cost || 0)), 2)}
                     </td>
                   </tr>
                 ))}

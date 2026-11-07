@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { updateOrderMaterialsAction } from "@/app/actions/orders";
 
+import { formatKwacha } from "@/lib/money";
 interface MaterialOption {
   id: string;
   name: string;
@@ -169,7 +170,7 @@ export default function BillOfMaterialsEditor({
               >
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground text-sm truncate">{row.name}</p>
-                  <p className="text-xs text-muted-foreground">K{row.unit_cost.toFixed(2)} / {row.unit}</p>
+                  <p className="text-xs text-muted-foreground">{formatKwacha(row.unit_cost, 2)} / {row.unit}</p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Input
@@ -184,7 +185,7 @@ export default function BillOfMaterialsEditor({
                   <span className="text-xs text-muted-foreground w-10">{row.unit}</span>
                 </div>
                 <p className="font-bold text-primary text-sm w-20 text-right shrink-0">
-                  K{(row.quantity_used * row.unit_cost).toFixed(2)}
+                  {formatKwacha((row.quantity_used * row.unit_cost), 2)}
                 </p>
                 <Button
                   variant="ghost"
@@ -200,7 +201,7 @@ export default function BillOfMaterialsEditor({
 
             <div className="flex justify-end pt-2 border-t border-border/60">
               <p className="text-sm font-bold text-foreground">
-                Total: <span className="text-primary">K{total.toFixed(2)}</span>
+                Total: <span className="text-primary">{formatKwacha(total, 2)}</span>
               </p>
             </div>
           </div>
@@ -219,7 +220,7 @@ export default function BillOfMaterialsEditor({
                     {row.quantity_used.toFixed(2)} {row.unit}
                   </p>
                   <p className="font-bold text-primary text-sm">
-                    K{(row.quantity_used * row.unit_cost).toFixed(2)}
+                    {formatKwacha((row.quantity_used * row.unit_cost), 2)}
                   </p>
                 </div>
               </div>
@@ -236,7 +237,7 @@ export default function BillOfMaterialsEditor({
               <SelectContent>
                 {addOptions.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
-                    {m.name} (K{m.unit_cost.toFixed(2)}/{m.unit})
+                    {m.name} ({formatKwacha(m.unit_cost, 2)}/{m.unit})
                   </SelectItem>
                 ))}
               </SelectContent>

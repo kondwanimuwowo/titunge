@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { Scissors } from "lucide-react";
 
+import { formatKwacha } from "@/lib/money";
 interface OrderReceiptProps {
   order: any;
   taxRate: number;
@@ -67,7 +68,7 @@ export default function OrderReceipt({ order, taxRate, businessName }: OrderRece
                   {item.quantity > 1 ? ` × ${item.quantity}` : ""}
                 </span>
                 <span className="text-foreground">
-                  K{(parseFloat(item.unit_price || 0) * (item.quantity || 1)).toFixed(2)}
+                  {formatKwacha((parseFloat(item.unit_price || 0) * (item.quantity || 1)), 2)}
                 </span>
               </div>
             ))}
@@ -103,25 +104,25 @@ export default function OrderReceipt({ order, taxRate, businessName }: OrderRece
       <div className="py-4 border-t border-border space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>
-          <span className="text-foreground">K{subtotal.toFixed(2)}</span>
+          <span className="text-foreground">{formatKwacha(subtotal, 2)}</span>
         </div>
         {taxRate > 0 && (
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Tax ({taxRate}%)</span>
-            <span className="text-foreground">K{taxAmount.toFixed(2)}</span>
+            <span className="text-foreground">{formatKwacha(taxAmount, 2)}</span>
           </div>
         )}
         <div className="flex justify-between text-base font-bold pt-2 border-t border-border">
           <span className="text-foreground">Total</span>
-          <span className="text-foreground">K{grandTotal.toFixed(2)}</span>
+          <span className="text-foreground">{formatKwacha(grandTotal, 2)}</span>
         </div>
         <div className="flex justify-between text-sm pt-1">
           <span className="text-muted-foreground">Deposit Paid</span>
-          <span className="text-foreground">K{deposit.toFixed(2)}</span>
+          <span className="text-foreground">{formatKwacha(deposit, 2)}</span>
         </div>
         <div className="flex justify-between text-sm font-semibold">
           <span className={balance > 0 ? "text-red-600" : "text-emerald-600"}>Balance Due</span>
-          <span className={balance > 0 ? "text-red-600" : "text-emerald-600"}>K{balance.toFixed(2)}</span>
+          <span className={balance > 0 ? "text-red-600" : "text-emerald-600"}>{formatKwacha(balance, 2)}</span>
         </div>
       </div>
 

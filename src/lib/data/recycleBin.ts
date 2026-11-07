@@ -5,6 +5,7 @@ import { getDeletedMaterials } from "./inventory";
 import { getDeletedOrders } from "./orders";
 import { getDeletedBatches } from "./production";
 import { getDeletedGarmentTypes } from "./finance";
+import { formatKwacha } from "@/lib/money";
 
 export type RecycleBinType =
   | "employee"
@@ -53,7 +54,7 @@ export async function getRecycleBinItems(businessId: string): Promise<RecycleBin
       id: p.id,
       type: "product" as const,
       title: p.name,
-      subtitle: `${p.category || "Uncategorised"} · K${parseFloat(String(p.price || 0)).toFixed(2)}`,
+      subtitle: `${p.category || "Uncategorised"} · ${formatKwacha(parseFloat(String(p.price || 0)), 2)}`,
       deletedAt: p.deleted_at,
     })),
     ...materials.map((m: any) => ({
@@ -81,7 +82,7 @@ export async function getRecycleBinItems(businessId: string): Promise<RecycleBin
       id: g.id,
       type: "garment_type" as const,
       title: g.name,
-      subtitle: `${g.complexity || "standard"} · K${parseFloat(String(g.base_labour_cost || 0)).toFixed(2)} labour`,
+      subtitle: `${g.complexity || "standard"} · ${formatKwacha(parseFloat(String(g.base_labour_cost || 0)), 2)} labour`,
       deletedAt: g.updated_at,
     })),
   ];

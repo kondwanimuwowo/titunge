@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { motion } from "framer-motion";
+import { formatKwacha, formatKwachaCompact } from "@/lib/money";
 
 interface MaterialNode {
   name: string;
@@ -66,16 +67,18 @@ export default function MaterialUsageChart({ data }: MaterialUsageChartProps) {
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-              angle={-45}
+              angle={-35}
               textAnchor="end"
-              dy={10}
+              interval={0}
+              height={72}
+              tickFormatter={(name: string) => (name.length > 16 ? `${name.slice(0, 15)}…` : name)}
             />
-            <YAxis 
+            <YAxis
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
-              tickFormatter={(value) => `K${value}`}
-              dx={-10}
+              tickFormatter={(value: number) => formatKwachaCompact(value)}
+              width={52}
             />
             <Tooltip
               cursor={{ fill: "hsl(var(--muted) / 0.5)" }}
@@ -87,7 +90,7 @@ export default function MaterialUsageChart({ data }: MaterialUsageChartProps) {
               }}
               formatter={(value: any, name: any) => {
                 if (typeof value !== "number") return ["—", name || "—"];
-                if (name === "Total Value") return [`K${value.toFixed(2)}`, name];
+                if (name === "Total Value") return [`${formatKwacha(value, 2)}`, name];
                 return [value.toFixed(1), name];
               }}
             />

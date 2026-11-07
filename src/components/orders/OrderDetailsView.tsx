@@ -48,6 +48,7 @@ import { updateOrderStatus } from "@/app/actions/orders";
 import { sendOrderReceiptEmail, sendOrderQuotationEmail } from "@/app/actions/order-documents";
 import type { OrderStatus } from "@/lib/types/database";
 
+import { formatKwacha } from "@/lib/money";
 // Matches what CreateOrderForm actually creates orders with (status: "enquiry")
 // and what StatusTimeline/OrderStatusBadge/OrderContextPanel are built around.
 const STATUS_FLOW: OrderStatus[] = [
@@ -352,7 +353,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                         </div>
                       </div>
                       <p className="font-semibold text-foreground whitespace-nowrap">
-                        K{(parseFloat(item.unit_price || 0) * (item.quantity || 1)).toFixed(2)}
+                        {formatKwacha((parseFloat(item.unit_price || 0) * (item.quantity || 1)), 2)}
                       </p>
                     </div>
                     {item.style_notes && (
@@ -420,28 +421,28 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                   <div className="bg-muted/20 rounded-xl p-5 border border-border/60 space-y-3">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Materials</span>
-                      <span className="font-semibold text-foreground">K{parseFloat(order.material_cost || "0").toFixed(2)}</span>
+                      <span className="font-semibold text-foreground">{formatKwacha(parseFloat(order.material_cost || "0"), 2)}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Labour</span>
-                      <span className="font-semibold text-foreground">K{parseFloat(order.labour_cost || "0").toFixed(2)}</span>
+                      <span className="font-semibold text-foreground">{formatKwacha(parseFloat(order.labour_cost || "0"), 2)}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Overhead</span>
-                      <span className="font-semibold text-foreground">K{parseFloat(order.overhead_cost || "0").toFixed(2)}</span>
+                      <span className="font-semibold text-foreground">{formatKwacha(parseFloat(order.overhead_cost || "0"), 2)}</span>
                     </div>
 
                     <div className="pt-3 mt-1 border-t border-border/60">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-foreground">Base Cost</span>
                         <span className="text-lg font-bold text-foreground">
-                          K{(
+                          {formatKwacha((
                             parseFloat(order.material_cost || "0") +
                             parseFloat(order.labour_cost || "0") +
                             parseFloat(order.overhead_cost || "0")
-                          ).toFixed(2)}
+                          ), 2)}
                         </span>
                       </div>
                     </div>
@@ -458,7 +459,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                       <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Selling Price</span>
                     </div>
                     <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                      K{parseFloat(order.total_cost || "0").toFixed(2)}
+                      {formatKwacha(parseFloat(order.total_cost || "0"), 2)}
                     </div>
                   </div>
 
@@ -479,7 +480,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                         <div className="flex justify-between text-sm mb-2">
                           <span className="text-muted-foreground font-medium">Net Profit</span>
                           <span className={`font-bold ${isLoss ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                            K{Math.abs(profitAmount).toFixed(2)}
+                            {formatKwacha(Math.abs(profitAmount), 2)}
                             {isLoss && <span className="text-xs ml-1">(LOSS)</span>}
                           </span>
                         </div>
@@ -517,7 +518,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
               <div className="grid grid-cols-2 gap-4 pt-6 border-t border-border/50">
                 <div className="p-4 bg-muted/20 rounded-xl border border-border/40 flex items-center justify-between">
                   <span className="text-sm font-medium text-muted-foreground">Deposit Paid</span>
-                  <span className="font-bold text-foreground">K{parseFloat(order.deposit || "0").toFixed(2)}</span>
+                  <span className="font-bold text-foreground">{formatKwacha(parseFloat(order.deposit || "0"), 2)}</span>
                 </div>
                 <div className={`p-4 rounded-xl border flex items-center justify-between ${
                   (order.balance_due || 0) > 0 ? "bg-red-500/5 border-red-500/20" : "bg-emerald-500/5 border-emerald-500/20"
@@ -528,7 +529,7 @@ export default function OrderDetailsView({ order, availableMaterials = [] }: Ord
                   <span className={`text-xl font-black tracking-tight ${
                     (order.balance_due || 0) > 0 ? "text-red-600 dark:text-red-500" : "text-emerald-600 dark:text-emerald-500"
                   }`}>
-                    K{parseFloat(order.balance_due || "0").toFixed(2)}
+                    {formatKwacha(parseFloat(order.balance_due || "0"), 2)}
                   </span>
                 </div>
               </div>

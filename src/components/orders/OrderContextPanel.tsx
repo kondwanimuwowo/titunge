@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateMeasurementsAction } from "@/app/actions/customers";
 
+import { formatKwacha } from "@/lib/money";
 // ─── Measurement fields (matches MeasurementsForm.tsx) ────────────────────
 const BODY_FIELDS = [
   { name: "full_length",     label: "Full Length" },
@@ -368,7 +369,7 @@ export default function OrderContextPanel({ order }: OrderContextPanelProps) {
             <div className="flex items-center justify-between">
               <span className="text-sm text-amber-700">Amount due</span>
               <span className="text-xl font-black text-amber-800 tabular-nums">
-                K{balance.toFixed(2)}
+                {formatKwacha(balance, 2)}
               </span>
             </div>
             <Link href={`/finance/payments/new?order_id=${order.id}`}>

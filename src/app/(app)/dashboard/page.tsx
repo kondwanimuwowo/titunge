@@ -18,6 +18,7 @@ import MarketplaceDashboard from "@/components/dashboard/MarketplaceDashboard";
 import { getSellerMarketplaceOrders } from "@/lib/data/marketplace-seller-orders";
 import { getMarketplaceSalesStats } from "@/lib/data/marketplace-analytics";
 import { getInquiryStats } from "@/lib/data/inquiries";
+import { formatKwacha } from "@/lib/money";
 
 export default async function DashboardPage() {
   const { businessId, userId, business, role } = await getBusinessContext();
@@ -110,7 +111,7 @@ export default async function DashboardPage() {
         {showMoney && (
         <StatsCard
           title="Avg Order Value"
-          value={`K${(data.orders.earnedCount > 0 ? (data.orders.totalRevenue / data.orders.earnedCount) : 0).toFixed(0)}`}
+          value={`${formatKwacha((data.orders.earnedCount > 0 ? (data.orders.totalRevenue / data.orders.earnedCount) : 0), 0)}`}
           icon={<TrendingUp size={18} />}
           color="yellow"
           delay={0.3}

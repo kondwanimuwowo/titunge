@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { addPayment } from "@/app/actions/finance";
+import { formatKwacha } from "@/lib/money";
 
 const NO_ORDER = "__none";
 
@@ -83,7 +84,7 @@ export default function PaymentForm({ orders, defaultOrderId }: PaymentFormProps
                 <SelectItem value={NO_ORDER}>-- No linked order --</SelectItem>
                 {orders.map((o) => (
                   <SelectItem key={o.id} value={o.id}>
-                    {o.order_number} (K{parseFloat(String(o.total_cost || 0)).toFixed(2)})
+                    {o.order_number} ({formatKwacha(parseFloat(String(o.total_cost || 0)), 2)})
                   </SelectItem>
                 ))}
               </SelectContent>

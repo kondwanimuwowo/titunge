@@ -7,6 +7,7 @@ import { getMaterialById, getMaterialHistory } from "@/lib/data/inventory";
 import { getBusinessContext } from "@/lib/business-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { formatKwacha } from "@/lib/money";
 
 function StockStatusBadge({ stock, min }: { stock: number; min: number }) {
   if (stock <= 0) {
@@ -98,11 +99,11 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-xs text-muted-foreground mb-1">Cost / Unit</p>
-          <p className="text-2xl font-bold">K{cost.toFixed(2)}</p>
+          <p className="text-2xl font-bold">{formatKwacha(cost, 2)}</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-xs text-muted-foreground mb-1">Total Value</p>
-          <p className="text-2xl font-bold">K{totalValue.toFixed(2)}</p>
+          <p className="text-2xl font-bold">{formatKwacha(totalValue, 2)}</p>
         </div>
       </div>
 
@@ -155,7 +156,7 @@ export default async function MaterialDetailPage({ params }: { params: Promise<{
                           {isAdd ? "+" : ""}{Number(tx.quantity_change).toFixed(2)}
                         </td>
                         <td className="px-4 py-3 text-right text-muted-foreground">
-                          {tx.unit_cost ? `K${parseFloat(String(tx.unit_cost)).toFixed(2)}` : "—"}
+                          {tx.unit_cost ? `${formatKwacha(parseFloat(String(tx.unit_cost)), 2)}` : "—"}
                         </td>
                         <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">
                           {tx.notes || "—"}

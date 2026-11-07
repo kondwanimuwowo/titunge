@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { CHART_COLORS } from "@/lib/constants";
 import { formatZmw } from "@/lib/marketplace-currency";
+import { formatKwachaCompact } from "@/lib/money";
 
 interface TopProductsChartProps {
   data: { productName: string; revenue: number }[];
@@ -34,7 +35,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={data} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border" />
-          <XAxis type="number" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(v) => `K${v}`} />
+          <XAxis type="number" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(v: number) => formatKwachaCompact(v)} />
           <YAxis
             type="category"
             dataKey="productName"

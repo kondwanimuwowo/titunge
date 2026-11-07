@@ -32,6 +32,7 @@ import { convertToOrderAction } from "@/app/actions/inquiries";
 import MeasurementsForm from "@/components/customers/MeasurementsForm";
 import type { OrderItemInput } from "@/lib/orderItems";
 
+import { formatKwacha } from "@/lib/money";
 const UNASSIGNED = "__unassigned";
 
 interface SelectedMaterial {
@@ -146,12 +147,15 @@ export default function CreateOrderForm({
     setBuilderLabourCost(calculatedLabourCost.toFixed(2));
   }, [builderGarmentTypeId, calculatedLabourCost]);
 
-  // Seed unit price with the recommendation whenever its inputs change, unless
-  // the user already typed something different for this item.
+  // The unit price follows the recommendation (garment, labour, materials)
+  // until the user types their own price for this item.
+  const [priceEdited, setPriceEdited] = useState(false);
   useEffect(() => {
-    setBuilderUnitPrice(recommendedUnitPrice > 0 ? recommendedUnitPrice.toFixed(2) : "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setPriceEdited(false);
   }, [builderGarmentTypeId, builderProductId, itemType]);
+  useEffect(() => {
+    if (!priceEdited) setBuilderUnitPrice(recommendedUnitPrice > 0 ? recommendedUnitPrice.toFixed(2) : "");
+  }, [recommendedUnitPrice, priceEdited]);
 
   const resetBuilder = () => {
     setItemType("custom");
@@ -567,7 +571,7 @@ export default function CreateOrderForm({
                       <SelectContent>
                         {garmentTypes.map((g: any) => (
                           <SelectItem key={g.id} value={g.id}>
-                            {g.name} · K{parseFloat(g.base_labour_cost || "0").toFixed(0)} labour
+                            {g.name} · {formatKwacha(parseFloat(g.base_labour_cost || "0"), 0)} labour
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -600,7 +604,7 @@ export default function CreateOrderForm({
                           <button key={m.id} type="button" onMouseDown={() => handleAddMaterial(m)}
                             className="w-full px-3 py-2 text-sm text-left hover:bg-muted/50 flex justify-between items-center gap-2">
                             <span className="font-medium">{m.name}</span>
-                            <span className="text-xs text-muted-foreground shrink-0">K{parseFloat(m.unit_cost || "0").toFixed(2)}/{m.unit}</span>
+                            <span className="text-xs text-muted-foreground shrink-0">{formatKwacha(parseFloat(m.unit_cost || "0"), 2)}/{m.unit}</span>
                           </button>
                         ))}
                       </div>
@@ -616,7 +620,7 @@ export default function CreateOrderForm({
                                 className="w-16 h-7 text-xs text-center" />
                               <span className="text-xs text-muted-foreground">{m.unit}</span>
                             </div>
-                            <div className="col-span-2 text-right text-sm font-semibold text-primary">K{m.cost.toFixed(2)}</div>
+                            <div className="col-span-2 text-right text-sm font-semibold text-primary">{formatKwacha(m.cost, 2)}</div>
                             <div className="col-span-1 flex justify-end">
                               <button type="button" onClick={() => handleRemoveMaterial(m.material_id)} className="p-1 text-muted-foreground hover:text-destructive rounded">
                                 <X size={13} />
@@ -667,7 +671,7 @@ export default function CreateOrderForm({
                           const tracksStock = p.product_type === "finished_good" && p.stock_quantity != null;
                           return (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.name} · K{parseFloat(p.price || "0").toFixed(0)}
+                              {p.name} · {formatKwacha(parseFloat(p.price || "0"), 0)}
                               {tracksStock && (p.stock_quantity <= 0 ? " · out of stock" : ` · ${p.stock_quantity} in stock`)}
                             </SelectItem>
                           );
@@ -688,14 +692,14 @@ export default function CreateOrderForm({
                   <Label className="text-xs flex items-center gap-1">
                     Unit Price (K) *
                     {itemType === "custom" && recommendedUnitPrice > 0 && (
-                      <button type="button" onClick={() => setBuilderUnitPrice(recommendedUnitPrice.toFixed(2))}
+                      <button type="button" onClick={() => { setPriceEdited(false); setBuilderUnitPrice(recommendedUnitPrice.toFixed(2)); }}
                         className="text-[10px] text-primary hover:underline font-normal">
-                        use recommended K{recommendedUnitPrice.toFixed(2)}
+                        use recommended {formatKwacha(recommendedUnitPrice, 2)}
                       </button>
                     )}
                   </Label>
                   <Input type="number" min="0" step="0.01" value={builderUnitPrice}
-                    onChange={(e) => setBuilderUnitPrice(e.target.value)} className="mt-1 h-9 bg-card" />
+                    onChange={(e) => { setPriceEdited(true); setBuilderUnitPrice(e.target.value); }} className="mt-1 h-9 bg-card" />
                 </div>
                 <Button type="button" onClick={handleAddItemToBasket} disabled={!canAddItem} className="gap-1.5 h-9">
                   <Plus size={14} /> Add to Order
@@ -722,8 +726,8 @@ export default function CreateOrderForm({
                       </p>
                     </div>
                     <div className="col-span-2 text-center text-sm">{item.quantity}</div>
-                    <div className="col-span-2 text-right text-sm">K{item.unit_price.toFixed(2)}</div>
-                    <div className="col-span-2 text-right text-sm font-semibold text-primary">K{(item.unit_price * item.quantity).toFixed(2)}</div>
+                    <div className="col-span-2 text-right text-sm">{formatKwacha(item.unit_price, 2)}</div>
+                    <div className="col-span-2 text-right text-sm font-semibold text-primary">{formatKwacha((item.unit_price * item.quantity), 2)}</div>
                     <div className="col-span-1 flex justify-end">
                       <button type="button" onClick={() => handleRemoveBasketItem(item.key)} className="p-1 text-muted-foreground hover:text-destructive rounded">
                         <Trash2 size={13} />
@@ -733,7 +737,7 @@ export default function CreateOrderForm({
                 ))}
                 <div className="bg-muted/20 px-3 py-2 flex justify-between items-center">
                   <span className="text-xs font-semibold text-muted-foreground">Order Total</span>
-                  <span className="text-sm font-bold text-primary">K{orderSubtotal.toFixed(2)}</span>
+                  <span className="text-sm font-bold text-primary">{formatKwacha(orderSubtotal, 2)}</span>
                 </div>
               </div>
             ) : (
@@ -800,7 +804,7 @@ export default function CreateOrderForm({
                 {basket.map((item) => (
                   <div key={item.key} className="px-4 py-2.5 flex justify-between items-center text-sm">
                     <span>{item.displayName} {item.quantity > 1 ? `× ${item.quantity}` : ""}</span>
-                    <span className="font-medium">K{(item.unit_price * item.quantity).toFixed(2)}</span>
+                    <span className="font-medium">{formatKwacha((item.unit_price * item.quantity), 2)}</span>
                   </div>
                 ))}
               </div>
@@ -814,7 +818,7 @@ export default function CreateOrderForm({
                       <TooltipContent className="max-w-xs">Sum of materials across every custom item in this order.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <span>K{orderMaterialCost.toFixed(2)}</span>
+                  <span>{formatKwacha(orderMaterialCost, 2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-muted-foreground">
                   <span className="flex items-center gap-1.5">
@@ -824,7 +828,7 @@ export default function CreateOrderForm({
                       <TooltipContent className="max-w-xs">Sum of labour across every custom item in this order.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <span>K{orderLabourCost.toFixed(2)}</span>
+                  <span>{formatKwacha(orderLabourCost, 2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-muted-foreground">
                   <span className="flex items-center gap-1.5">
@@ -834,12 +838,12 @@ export default function CreateOrderForm({
                       <TooltipContent className="max-w-xs">This order&apos;s share of monthly business expenses, set in Settings &gt; Financial. Already folded into each item&apos;s recommended price.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <span>K{perOrderOverhead.toFixed(2)}</span>
+                  <span>{formatKwacha(perOrderOverhead, 2)}</span>
                 </div>
                 <div className="border-t border-border my-1" />
                 <div className="flex justify-between items-center font-semibold text-primary">
                   <span>Order Total</span>
-                  <span>K{orderSubtotal.toFixed(2)}</span>
+                  <span>{formatKwacha(orderSubtotal, 2)}</span>
                 </div>
               </div>
 
@@ -864,7 +868,7 @@ export default function CreateOrderForm({
                     </Tooltip>
                   </span>
                   <span className={cn("font-bold text-base", balance < 0 ? "text-destructive" : "text-primary")}>
-                    K{balance.toFixed(2)}
+                    {formatKwacha(balance, 2)}
                   </span>
                 </div>
               )}

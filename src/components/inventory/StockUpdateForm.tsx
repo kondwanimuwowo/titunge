@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateStockAction } from "@/app/actions/inventory";
+import { formatKwacha } from "@/lib/money";
 
 interface StockUpdateFormProps {
   material: Tables<"materials">;
@@ -87,7 +88,7 @@ export default function StockUpdateForm({ material, mode }: StockUpdateFormProps
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Cost/unit</span>
-          <span className="font-semibold">K{currentCost.toFixed(2)}</span>
+          <span className="font-semibold">{formatKwacha(currentCost, 2)}</span>
         </div>
       </div>
 
@@ -122,7 +123,7 @@ export default function StockUpdateForm({ material, mode }: StockUpdateFormProps
                 onChange={() => (register("useSamePrice").onChange as any)({ target: { value: true } })}
                 disabled={isPending}
               />
-              <span className="text-sm">Same price (K{currentCost.toFixed(2)})</span>
+              <span className="text-sm">Same price ({formatKwacha(currentCost, 2)})</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -151,15 +152,15 @@ export default function StockUpdateForm({ material, mode }: StockUpdateFormProps
             <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm space-y-1">
               <div className="flex justify-between">
                 <span>Current value:</span>
-                <span className="font-mono">K{(currentStock * currentCost).toFixed(2)}</span>
+                <span className="font-mono">{formatKwacha((currentStock * currentCost), 2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>New stock value:</span>
-                <span className="font-mono">K{(Number(quantity) * Number(newPrice)).toFixed(2)}</span>
+                <span className="font-mono">{formatKwacha((Number(quantity) * Number(newPrice)), 2)}</span>
               </div>
               <div className="border-t pt-1 flex justify-between font-semibold text-blue-700">
                 <span>New weighted avg:</span>
-                <span className="font-mono">K{weightedAvgCost.toFixed(2)}</span>
+                <span className="font-mono">{formatKwacha(weightedAvgCost, 2)}</span>
               </div>
             </div>
           )}

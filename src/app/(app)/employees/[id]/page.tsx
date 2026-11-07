@@ -3,6 +3,7 @@ import { getEmployeeById, getEmployeeAttendance } from "@/lib/data/employees";
 import { getBusinessContext } from "@/lib/business-context";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { format } from "date-fns";
+import { formatKwacha } from "@/lib/money";
 
 export default async function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -46,7 +47,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
         </div>
         <div className="rounded-lg border bg-card text-card-foreground shadow-md p-4">
           <p className="text-xs text-muted-foreground">Hourly Rate</p>
-          <p className="text-sm font-semibold">K{(parseFloat(String(employee.hourly_rate || 0))).toFixed(2)}</p>
+          <p className="text-sm font-semibold">{formatKwacha((parseFloat(String(employee.hourly_rate || 0))), 2)}</p>
         </div>
         <div className="rounded-lg border bg-card text-card-foreground shadow-md p-4">
           <p className="text-xs text-muted-foreground">Status</p>
@@ -69,7 +70,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <div>
             <p className="text-sm text-muted-foreground">Est. Earnings</p>
             <p className="text-2xl font-bold">
-              K{(totalHours * parseFloat(String(employee.hourly_rate || 0))).toFixed(2)}
+              {formatKwacha((totalHours * parseFloat(String(employee.hourly_rate || 0))), 2)}
             </p>
           </div>
         </div>

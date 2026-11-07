@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { weightedScore, recencyBonus, sanitizeForFilter } from "@/lib/search/score";
 
+import { formatKwacha } from "@/lib/money";
 export const dynamic = "force-dynamic";
 
 interface ResultItem {
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest) {
     return {
       id: o.id,
       title: o.order_number,
-      subtitle: `${o.customers?.name || "Walk-in"} · K${parseFloat(o.total_cost || 0).toFixed(2)} · ${o.status}`,
+      subtitle: `${o.customers?.name || "Walk-in"} · ${formatKwacha(parseFloat(o.total_cost || 0), 2)} · ${o.status}`,
       href: `/orders/${o.id}`,
       score,
       badge: o.status,
@@ -146,7 +147,7 @@ export async function GET(req: NextRequest) {
     return {
       id: p.id,
       title: p.name,
-      subtitle: `${p.category || "Uncategorised"} · K${parseFloat(p.price || 0).toFixed(2)}`,
+      subtitle: `${p.category || "Uncategorised"} · ${formatKwacha(parseFloat(p.price || 0), 2)}`,
       href: `/products/${p.id}`,
       score,
     };

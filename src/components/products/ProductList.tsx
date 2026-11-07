@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { deleteProductAction } from "@/app/actions/products";
 import { Plus, Edit2, Trash2, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatKwacha } from "@/lib/money";
 
 interface ProductListProps {
   initialProducts: Tables<"products">[];
@@ -139,7 +140,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
                 )}
 
                 <p className="text-sm font-semibold text-primary">
-                  K{parseFloat(String(product.price || 0)).toFixed(2)}
+                  {formatKwacha(parseFloat(String(product.price || 0)), 2)}
                 </p>
 
                 {product.description && (

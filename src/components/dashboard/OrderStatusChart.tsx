@@ -21,9 +21,12 @@ interface OrderStatusChartProps {
 const COLORS: Record<string, string> = {
   enquiry: "#9ca3af", // gray-400
   contacted: "#60a5fa", // blue-400
+  pending: "#cbd5e1", // slate-300
   measurements: "#a78bfa", // purple-400
+  in_progress: "#38bdf8", // sky-400
   production: "#facc15", // yellow-400
   fitting: "#fb923c", // orange-400
+  ready: "#2dd4bf", // teal-400
   completed: "#34d399", // emerald-400
   delivered: "#10b981", // emerald-500
   cancelled: "#f87171", // red-400
@@ -32,9 +35,12 @@ const COLORS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   enquiry: "Enquiry",
   contacted: "Contacted",
+  pending: "Pending",
   measurements: "Measurements",
+  in_progress: "In progress",
   production: "Production",
   fitting: "Fitting",
+  ready: "Ready",
   completed: "Completed",
   delivered: "Delivered",
   cancelled: "Cancelled",

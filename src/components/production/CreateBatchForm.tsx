@@ -17,6 +17,7 @@ import {
 import { createBatchAction } from "@/app/actions/production";
 import { X, Plus } from "lucide-react";
 
+import { formatKwacha } from "@/lib/money";
 interface CreateBatchFormProps {
   products: any[];
   materials: any[];
@@ -124,7 +125,7 @@ export default function CreateBatchForm({ products, materials }: CreateBatchForm
               <SelectContent>
                 {products.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.name} (K{parseFloat(String(p.price || 0)).toFixed(2)})
+                    {p.name} ({formatKwacha(parseFloat(String(p.price || 0)), 2)})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -206,7 +207,7 @@ export default function CreateBatchForm({ products, materials }: CreateBatchForm
                   .filter((m) => !selectedMaterials.some((sm) => sm.material_id === m.id))
                   .map((m) => (
                     <SelectItem key={m.id} value={m.id}>
-                      {m.name} ({m.unit}) · K{parseFloat(String(m.unit_cost || 0)).toFixed(2)}
+                      {m.name} ({m.unit}) · {formatKwacha(parseFloat(String(m.unit_cost || 0)), 2)}
                     </SelectItem>
                   ))}
               </SelectContent>

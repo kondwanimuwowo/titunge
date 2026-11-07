@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, TrendingUp, TrendingDown, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatKwacha } from "@/lib/money";
 
 const OPERATION_LABELS: Record<string, { label: string; color: string; icon: "up" | "down" | "restore" }> = {
   restock:              { label: "Restock",             color: "bg-green-50 text-green-700 border-green-200",   icon: "up" },
@@ -195,7 +196,7 @@ export default async function InventoryAuditPage({
                         {isPositive ? "+" : ""}{Number(tx.quantity_change).toFixed(2)}
                       </td>
                       <td className="px-4 py-3 text-right text-muted-foreground tabular-nums">
-                        {tx.unit_cost != null ? `K${parseFloat(String(tx.unit_cost)).toFixed(2)}` : "—"}
+                        {tx.unit_cost != null ? `${formatKwacha(parseFloat(String(tx.unit_cost)), 2)}` : "—"}
                       </td>
                       <td className="px-4 py-3">
                         {tx.order_id ? (

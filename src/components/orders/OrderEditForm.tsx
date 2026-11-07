@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { updateOrderAction } from "@/app/actions/orders";
 
+import { formatKwacha } from "@/lib/money";
 const UNASSIGNED = "__unassigned";
 
 interface SelectedMaterial {
@@ -256,7 +257,7 @@ export default function OrderEditForm({
                   <SelectContent>
                     {garmentTypes.map((g: any) => (
                       <SelectItem key={g.id} value={g.id}>
-                        {g.name} · K{parseFloat(g.base_labour_cost || "0").toFixed(0)} labour
+                        {g.name} · {formatKwacha(parseFloat(g.base_labour_cost || "0"), 0)} labour
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -378,7 +379,7 @@ export default function OrderEditForm({
                   className="w-full px-3 py-2 text-sm text-left hover:bg-muted/50 flex justify-between items-center"
                 >
                   <span>{m.name}</span>
-                  <span className="text-xs text-muted-foreground">K{parseFloat(m.unit_cost || "0").toFixed(2)}/{m.unit}</span>
+                  <span className="text-xs text-muted-foreground">{formatKwacha(parseFloat(m.unit_cost || "0"), 2)}/{m.unit}</span>
                 </button>
               ))}
             </div>
@@ -401,7 +402,7 @@ export default function OrderEditForm({
                   />
                   <span className="text-xs text-muted-foreground">{m.unit}</span>
                 </div>
-                <div className="col-span-2 text-right text-sm font-semibold text-primary">K{m.cost.toFixed(2)}</div>
+                <div className="col-span-2 text-right text-sm font-semibold text-primary">{formatKwacha(m.cost, 2)}</div>
                 <div className="col-span-1 flex justify-end">
                   <button type="button" onClick={() => setSelectedMaterials((p) => p.filter((x) => x.material_id !== m.material_id))}
                     className="p-1 text-muted-foreground hover:text-destructive rounded transition-colors">
@@ -412,7 +413,7 @@ export default function OrderEditForm({
             ))}
             <div className="bg-muted/20 px-3 py-2 flex justify-between">
               <span className="text-xs font-semibold text-muted-foreground">Materials Total</span>
-              <span className="text-sm font-bold text-primary">K{materialCost.toFixed(2)}</span>
+              <span className="text-sm font-bold text-primary">{formatKwacha(materialCost, 2)}</span>
             </div>
           </div>
         )}
@@ -425,16 +426,16 @@ export default function OrderEditForm({
         </h2>
 
         <div className="bg-muted/30 rounded-xl border border-border p-4 space-y-2 text-sm">
-          <div className="flex justify-between text-muted-foreground"><span>Material Cost</span><span>K{materialCost.toFixed(2)}</span></div>
-          <div className="flex justify-between text-muted-foreground"><span>Labour Cost</span><span>K{labourCost.toFixed(2)}</span></div>
-          <div className="flex justify-between text-muted-foreground"><span>Overhead</span><span>K{perOrderOverhead.toFixed(2)}</span></div>
+          <div className="flex justify-between text-muted-foreground"><span>Material Cost</span><span>{formatKwacha(materialCost, 2)}</span></div>
+          <div className="flex justify-between text-muted-foreground"><span>Labour Cost</span><span>{formatKwacha(labourCost, 2)}</span></div>
+          <div className="flex justify-between text-muted-foreground"><span>Overhead</span><span>{formatKwacha(perOrderOverhead, 2)}</span></div>
           <div className="border-t border-border my-1" />
-          <div className="flex justify-between font-medium"><span>Base Cost</span><span>K{baseCost.toFixed(2)}</span></div>
+          <div className="flex justify-between font-medium"><span>Base Cost</span><span>{formatKwacha(baseCost, 2)}</span></div>
           {recommendedPrice > 0 && (
             <div className="flex justify-between font-semibold text-primary">
               <span>Recommended ({margin}% margin)</span>
               <div className="flex items-center gap-2">
-                <span>K{recommendedPrice.toFixed(2)}</span>
+                <span>{formatKwacha(recommendedPrice, 2)}</span>
                 <button type="button" onClick={() => setValue("total_cost", recommendedPrice.toFixed(2))}
                   className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full hover:bg-primary/20">Use</button>
               </div>
@@ -457,7 +458,7 @@ export default function OrderEditForm({
           <div className="flex justify-between items-center bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 text-sm">
             <span className="font-medium">Balance Due</span>
             <span className={cn("font-bold text-base", balance < 0 ? "text-destructive" : "text-primary")}>
-              K{balance.toFixed(2)}
+              {formatKwacha(balance, 2)}
             </span>
           </div>
         )}

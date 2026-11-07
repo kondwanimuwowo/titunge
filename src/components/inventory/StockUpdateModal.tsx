@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { formatKwacha } from "@/lib/money";
 
 interface StockUpdateModalProps {
   material: Tables<"materials">;
@@ -117,7 +118,7 @@ export default function StockUpdateModal({
                     checked={useSamePrice}
                     disabled={isPending}
                   />
-                  <span className="text-sm font-medium">Same price (K{currentCost.toFixed(2)})</span>
+                  <span className="text-sm font-medium">Same price ({formatKwacha(currentCost, 2)})</span>
                 </label>
               </div>
 
@@ -151,15 +152,15 @@ export default function StockUpdateModal({
                   <div className="text-sm space-y-1">
                     <div className="flex justify-between">
                       <span>Current value:</span>
-                      <span className="font-mono">K{(currentStock * currentCost).toFixed(2)}</span>
+                      <span className="font-mono">{formatKwacha((currentStock * currentCost), 2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>New stock value:</span>
-                      <span className="font-mono">K{(quantity * newPrice).toFixed(2)}</span>
+                      <span className="font-mono">{formatKwacha((quantity * newPrice), 2)}</span>
                     </div>
                     <div className="border-t pt-1 flex justify-between font-semibold">
                       <span>New weighted average:</span>
-                      <span className="font-mono text-blue-600">K{weightedAvgCost.toFixed(2)}</span>
+                      <span className="font-mono text-blue-600">{formatKwacha(weightedAvgCost, 2)}</span>
                     </div>
                   </div>
                 </Card>

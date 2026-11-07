@@ -21,6 +21,7 @@ import { MoreHorizontal, Plus, Edit2, Eye, Trash2, TrendingDown, TrendingUp, Ale
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
+import { formatKwacha } from "@/lib/money";
 interface InventoryListProps {
   initialMaterials: Tables<"materials">[];
   initialFinishedGoods: Tables<"products">[];
@@ -109,7 +110,7 @@ export default function InventoryList({
       {
         accessorKey: "unit_cost",
         header: "Cost/Unit",
-        cell: ({ row }: any) => <span className="text-sm">K{parseFloat(String(row.getValue("unit_cost") || 0)).toFixed(2)}</span>,
+        cell: ({ row }: any) => <span className="text-sm">{formatKwacha(parseFloat(String(row.getValue("unit_cost") || 0)), 2)}</span>,
       },
       {
         accessorKey: "supplier",
@@ -197,7 +198,7 @@ export default function InventoryList({
       {
         accessorKey: "unit_cost",
         header: "Cost/Unit",
-        cell: ({ row }: any) => <span className="text-sm">K{parseFloat(String(row.getValue("unit_cost") || 0)).toFixed(2)}</span>,
+        cell: ({ row }: any) => <span className="text-sm">{formatKwacha(parseFloat(String(row.getValue("unit_cost") || 0)), 2)}</span>,
       },
       {
         id: "actions",
