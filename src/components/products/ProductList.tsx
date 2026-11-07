@@ -8,7 +8,7 @@ import type { Tables } from "@/lib/types/database";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { deleteProductAction } from "@/app/actions/products";
-import { Plus, Edit2, Trash2, Package } from "lucide-react";
+import { Edit2, Trash2, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatKwacha } from "@/lib/money";
 
@@ -50,17 +50,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
 
   return (
     <div className="space-y-4">
-      {/* Search and Add Button */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <Link href="/products/new">
-          <Button className="gap-2 w-full md:w-auto" size="sm">
-            <Plus className="h-4 w-4" />
-            Add Product
-          </Button>
-        </Link>
-      </div>
-
-      {/* Search Box */}
+      {/* Search Box (the Add Product button lives in the page header) */}
       <div className="relative">
         <input
           type="text"
